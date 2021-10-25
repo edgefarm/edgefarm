@@ -19,6 +19,11 @@ dependencies:
     git: https://github.com/edgefarm/edgefarm.network
     branch: rework
 
+- name: edgefarm-data
+  source:
+    git: https://github.com/edgefarm/edgefarm.data
+    branch: rework
+
 commands:
 
 - name: init
