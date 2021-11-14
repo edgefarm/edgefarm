@@ -5,23 +5,13 @@ dependencies:
 - name: k3d
   source:
     git: https://github.com/edgefarm/devspace.base
-    subPath: /k3d
+    subPath: /environments/k3d
     branch: rework
 
 - name: sealed-secrets
   source:
     git: https://github.com/edgefarm/devspace.base
-    subPath: /sealed-secrets
-    branch: rework
-
-- name: edgefarm-network
-  source:
-    git: https://github.com/edgefarm/edgefarm.network
-    branch: rework
-
-- name: edgefarm-data
-  source:
-    git: https://github.com/edgefarm/edgefarm.data
+    subPath: /environments/sealed-secrets
     branch: rework
 
 commands:
