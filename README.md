@@ -1,3 +1,9 @@
 # EdgeFarm
 
-The first cloud native IoT PaaS solution for predictive maintenance and fleet optimization.
+Seamless edge computing.
+
+## Best Practices
+
+### Secret Management
+
+see `examples/secrets/README.md`.
