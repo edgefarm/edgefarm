@@ -1,0 +1,34 @@
+version: v1beta11
+
+dependencies:
+
+- name: k3d
+  source:
+    git: https://github.com/edgefarm/devspace.base
+    subPath: /environments/k3d
+    branch: rework
+
+- name: sealed-secrets
+  source:
+    git: https://github.com/edgefarm/devspace.base
+    subPath: /environments/sealed-secrets
+    branch: rework
+
+commands:
+- name: init
+  command: |-
+    devspace run update
+    devspace run k3d.init
+    devspace run sealed-secrets.init
+
+- name: purge
+  command: |-
+    devspace run k3d.purge
+
+- name: activate
+  command: |-
+    devspace run k3d.activate
+
+- name: update
+  command: |-
+    devspace update dependencies
