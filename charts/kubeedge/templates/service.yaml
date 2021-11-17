@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudcore
+  namespace: {{ .Release.Namespace }}
+  labels:
+    k8s-app: kubeedge
+    kubeedge: cloudcore
+  {{- with .Values.cloudHub.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+  - port: {{ .Values.cloudHub.https.port }}
+    name: https
+  - port: {{ .Values.cloudHub.websocket.port }}
+    name: wss
+  - port: {{ .Values.cloudHub.stream.port }}
+    name: stream
+  - port: {{ .Values.cloudHub.tunnel.port }}
+    name: tunnel
+  selector:
+    k8s-app: kubeedge
+    kubeedge: cloudcore
+  type: LoadBalancer
