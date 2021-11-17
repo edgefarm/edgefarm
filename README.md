@@ -38,7 +38,7 @@ There are some predefined handy commands that make the setup easier.
 
 To initializing and setup a fresh environment simply call:
 
-```
+```sh
 devspace run init
 devspace deploy
 ```

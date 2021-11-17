@@ -7,8 +7,8 @@ metadata:
   name: cloudcore
   namespace: {{ .Release.Namespace }}
 spec:
-  # currently fixed to one replica. 
-  replicas: 1 
+  # currently fixed to one replica.
+  replicas: 1
   selector:
     matchLabels:
       k8s-app: kubeedge
