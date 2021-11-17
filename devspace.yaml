@@ -14,9 +14,13 @@ dependencies:
       branch: rework
 
 vars:
-  - name: hostIP
+  - name: HOST_IP
     question: What is the IP address of your host?
     default: "127.0.0.1"
+  - name: HOST_IP_NIP_IO
+    command: echo $(echo ${HOST_IP} | xargs).nip.io
+  - name: NUMBER_OF_VIRTUAL_DEVICES
+    value: 4
 
 commands:
   - name: init
@@ -29,6 +33,7 @@ commands:
   - name: purge
     command: |-
       devspace run k3d.purge
+      devspace run purge-nodes
 
   - name: activate
     command: |-
@@ -41,12 +46,12 @@ commands:
   - name: generate-kubeedge-certs
     command: |-
       if [ ! -e dev/manifests/kubeedge-certs/config/server.pem -o ! -e dev/manifests/kubeedge-certs/config/server.key ]; then
-        hack/certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=kubeedge server ${hostIP}.nip.io
-        hack/certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ server ${hostIP}.nip.io
+        hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=kubeedge server ${HOST_IP_NIP_IO}
+        hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ server ${HOST_IP_NIP_IO}
       fi 
       if [ ! -e dev/manifests/kubeedge-certs/config/node.pem -o ! -e dev/manifests/kubeedge-certs/config/node.key ]; then
-        hack/certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=node node ${hostIP}.nip.io
-        hack/certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ node ${hostIP}.nip.io
+        hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=node node ${HOST_IP_NIP_IO}
+        hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ node ${HOST_IP_NIP_IO}
       fi
       if [ -e dev/manifests/kubeedge-certs/config/*.csr ]; then
         rm -f dev/manifests/kubeedge-certs/config/*.csr
@@ -54,6 +59,20 @@ commands:
       if [ -e dev/manifests/kubeedge-certs/config/*.srl ]; then
         rm -f dev/manifests/kubeedge-certs/config/*.srl
       fi
+
+  - name: instanciate-nodes
+    command: |-
+      hack/build-kubeedge-node.sh
+      for i in $(seq ${NUMBER_OF_VIRTUAL_DEVICES}); do
+        hack/instanciate-kubeedge-node.sh ${HOST_IP_NIP_IO} node$i
+      done
+
+  - name: purge-nodes
+    command: |-
+      for i in $(seq ${NUMBER_OF_VIRTUAL_DEVICES}); do
+        docker kill node$i
+        kubectl delete nodes node$i
+      done
 
 deployments:
   - name: kubeedge
@@ -64,7 +83,7 @@ deployments:
       values:
         cloudHub:
           dnsNames:
-            - ${hostIP}.nip.io
+            - ${HOST_IP_NIP_IO}
 
   - name: kubeedge-certs
     namespace: kubeedge
