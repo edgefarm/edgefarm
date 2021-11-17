@@ -49,17 +49,17 @@ spec:
         securityContext:
           privileged: true
         ports:
-        - containerPort: {{ .Values.cloudHub.websocket.port }}
+        - containerPort: 20000
           name: wss
           protocol: TCP
-        - containerPort: {{ .Values.cloudHub.https.port }}
+        - containerPort: 20002
           name: https
           protocol: TCP
-        - containerPort: {{ .Values.cloudHub.tunnel.port }}
-          name: tunnel
-          protocol: TCP
-        - containerPort: {{ .Values.cloudHub.stream.port }}
+        - containerPort: 20003
           name: stream
+          protocol: TCP
+        - containerPort: 20004
+          name: tunnel
           protocol: TCP
         resources:
           limits:

@@ -1,34 +1,74 @@
 version: v1beta11
 
 dependencies:
+  - name: k3d
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/k3d
+      branch: kubeedge
 
-- name: k3d
-  source:
-    git: https://github.com/edgefarm/devspace.base
-    subPath: /environments/k3d
-    branch: rework
+  - name: sealed-secrets
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/sealed-secrets
+      branch: rework
 
-- name: sealed-secrets
-  source:
-    git: https://github.com/edgefarm/devspace.base
-    subPath: /environments/sealed-secrets
-    branch: rework
+vars:
+  - name: hostIP
+    question: What is the IP address of your host?
+    default: "127.0.0.1"
 
 commands:
-- name: init
-  command: |-
-    devspace run update
-    devspace run k3d.init
-    devspace run sealed-secrets.init
+  - name: init
+    command: |-
+      devspace run update
+      devspace run k3d.init
+      devspace run sealed-secrets.init
+      devspace run generate-kubeedge-certs
 
-- name: purge
-  command: |-
-    devspace run k3d.purge
+  - name: purge
+    command: |-
+      devspace run k3d.purge
 
-- name: activate
-  command: |-
-    devspace run k3d.activate
+  - name: activate
+    command: |-
+      devspace run k3d.activate
 
-- name: update
-  command: |-
-    devspace update dependencies
+  - name: update
+    command: |-
+      devspace update dependencies
+
+  - name: generate-kubeedge-certs
+    command: |-
+      if [ ! -e dev/manifests/kubeedge-certs/config/server.pem -o ! -e dev/manifests/kubeedge-certs/config/server.key ]; then
+        hack/certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=kubeedge server ${hostIP}.nip.io
+        hack/certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ server ${hostIP}.nip.io
+      fi 
+      if [ ! -e dev/manifests/kubeedge-certs/config/node.pem -o ! -e dev/manifests/kubeedge-certs/config/node.key ]; then
+        hack/certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=node node ${hostIP}.nip.io
+        hack/certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ node ${hostIP}.nip.io
+      fi
+      if [ -e dev/manifests/kubeedge-certs/config/*.csr ]; then
+        rm -f dev/manifests/kubeedge-certs/config/*.csr
+      fi
+      if [ -e dev/manifests/kubeedge-certs/config/*.srl ]; then
+        rm -f dev/manifests/kubeedge-certs/config/*.srl
+      fi
+
+deployments:
+  - name: kubeedge
+    namespace: kubeedge
+    helm:
+      chart:
+        name: charts/kubeedge
+      values:
+        cloudHub:
+          dnsNames:
+            - ${hostIP}.nip.io
+
+  - name: kubeedge-certs
+    namespace: kubeedge
+    kubectl:
+      kustomize: true
+      manifests:
+        - dev/manifests/kubeedge-certs/

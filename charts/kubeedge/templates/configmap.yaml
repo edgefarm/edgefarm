@@ -22,7 +22,7 @@ data:
         https:
           address: 0.0.0.0
           enable: true
-          port: {{ .Values.cloudHub.https.port }}
+          port: 20002
         nodeLimit: 1000
         tlsCAFile: /etc/kubeedge/rootCa.pem
         tlsCAKeyFile: /etc/kubeedge/rootCa.key
@@ -34,16 +34,16 @@ data:
         websocket:
           address: 0.0.0.0
           enable: true
-          port: {{ .Values.cloudHub.websocket.port }}
+          port: 20000
       cloudStream:
         enable: true
-        streamPort: {{ .Values.cloudHub.stream.port }}
+        streamPort: 20003
         tlsStreamCAFile: /etc/kubeedge/rootCa.pem
         tlsStreamCertFile: /etc/kubeedge/server.pem
         tlsStreamPrivateKeyFile: /etc/kubeedge/server.key
         tlsTunnelCAFile: /etc/kubeedge/rootCa.pem
         tlsTunnelCertFile: /etc/kubeedge/server.pem
         tlsTunnelPrivateKeyFile: /etc/kubeedge/server.key
-        tunnelPort: {{ .Values.cloudHub.tunnel.port }}
+        tunnelPort: 20004
       dynamicController:
         enable: false

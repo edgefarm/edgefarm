@@ -12,14 +12,18 @@ metadata:
   {{- end }}
 spec:
   ports:
-  - port: {{ .Values.cloudHub.https.port }}
-    name: https
   - port: {{ .Values.cloudHub.websocket.port }}
     name: wss
+    targetPort: 20000
+  - port: {{ .Values.cloudHub.https.port }}
+    name: https
+    targetPort: 20002
   - port: {{ .Values.cloudHub.stream.port }}
     name: stream
+    targetPort: 20003
   - port: {{ .Values.cloudHub.tunnel.port }}
     name: tunnel
+    targetPort: 20004
   selector:
     k8s-app: kubeedge
     kubeedge: cloudcore
