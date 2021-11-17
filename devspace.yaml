@@ -5,7 +5,7 @@ dependencies:
     source:
       git: https://github.com/edgefarm/devspace.base
       subPath: /environments/k3d
-      branch: kubeedge
+      branch: main
 
   - name: sealed-secrets
     source:
@@ -45,20 +45,13 @@ commands:
 
   - name: generate-kubeedge-certs
     command: |-
-      if [ ! -e dev/manifests/kubeedge-certs/config/server.pem -o ! -e dev/manifests/kubeedge-certs/config/server.key ]; then
-        hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=kubeedge server ${HOST_IP_NIP_IO}
-        hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ server ${HOST_IP_NIP_IO}
-      fi 
-      if [ ! -e dev/manifests/kubeedge-certs/config/node.pem -o ! -e dev/manifests/kubeedge-certs/config/node.key ]; then
-        hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=node node ${HOST_IP_NIP_IO}
-        hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ node ${HOST_IP_NIP_IO}
-      fi
-      if [ -e dev/manifests/kubeedge-certs/config/*.csr ]; then
-        rm -f dev/manifests/kubeedge-certs/config/*.csr
-      fi
-      if [ -e dev/manifests/kubeedge-certs/config/*.srl ]; then
-        rm -f dev/manifests/kubeedge-certs/config/*.srl
-      fi
+      echo ${HOST_IP_NIP_IO}
+      hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=kubeedge server ${HOST_IP_NIP_IO}
+      hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ server ${HOST_IP_NIP_IO}
+      hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=node node ${HOST_IP_NIP_IO}
+      hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ node ${HOST_IP_NIP_IO}
+      rm -f dev/manifests/kubeedge-certs/config/*.csr || true
+      rm -f dev/manifests/kubeedge-certs/config/*.srl || true
 
   - name: instanciate-nodes
     command: |-
