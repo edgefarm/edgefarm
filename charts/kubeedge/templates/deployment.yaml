@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: kubeedge
+    kubeedge: cloudcore
+  name: cloudcore
+  namespace: {{ .Release.Namespace }}
+spec:
+  # currently fixed to one replica.
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: kubeedge
+      kubeedge: cloudcore
+  template:
+    metadata:
+      labels:
+        k8s-app: kubeedge
+        kubeedge: cloudcore
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/os
+                operator: NotIn
+                values:
+                - windows
+              - key: node-role.kubernetes.io/controlplane
+                operator: In
+                values:
+                - "true"
+            - matchExpressions:
+              - key: beta.kubernetes.io/os
+                operator: NotIn
+                values:
+                - windows
+              - key: node-role.kubernetes.io/master
+                operator: In
+                values:
+                - "true"
+      hostNetwork: true
+      containers:
+      - name: cloudcore
+        image:  {{ .Values.cloudcore.image }}
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 20000
+          name: wss
+          protocol: TCP
+        - containerPort: 20002
+          name: https
+          protocol: TCP
+        - containerPort: 20003
+          name: stream
+          protocol: TCP
+        - containerPort: 20004
+          name: tunnel
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 1Gi
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/kubeedge/config
+        - name: certs
+          mountPath: /etc/kubeedge
+      restartPolicy: Always
+      serviceAccount: cloudcore
+      serviceAccountName: cloudcore
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/controlplane
+        value: "true"
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        value: "true"
+      - effect: NoExecute
+        key: node-role.kubernetes.io/etcd
+        value: "true"
+      volumes:
+      - name: conf
+        configMap:
+          name: cloudcore
+      - name: certs
+        secret:
+          secretName: kubeedge-cert
