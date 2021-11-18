@@ -13,6 +13,12 @@ dependencies:
       subPath: /environments/sealed-secrets
       branch: rework
 
+  - name: kubeedge-node-dns
+    source:
+      git: https://github.com/edgefarm/node-dns
+      subPath: /
+      branch: devspace
+
 vars:
   - name: HOST_IP
     question: What is the IP address of your host?
