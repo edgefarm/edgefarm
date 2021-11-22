@@ -20,20 +20,25 @@ Dependencies:
 - k3d
 - kubectl
 - helm
+- openssl
 
 There are some predefined handy commands that make the setup easier.
 
-`devspace run init`: Initialization, incl. k3d cluster setup.
+`devspace run init`: Initialization with k3d cluster setup, kubeedge certs and kubeedge instance.
 
-`devspace run purge`: Remove all created resources, incl. clusters.
+`devspace run purge`: Remove all created resources, incl. clusters, virtual kubeedge nodes.
 
 `devspace run activate`: Set the kubernetes context pointing to the cluster.
 
 `devspace run update`: Update all dependencies.
 
+`devspace run instantiate-nodes`: Instantiate some virtual kubeedge nodes.
+
+`devspace run purge-nodes`: Destroys the virtual kubeedge nodes.
+
 To initializing and setup a fresh environment simply call:
 
-```
+```sh
 devspace run init
 devspace deploy
 ```
