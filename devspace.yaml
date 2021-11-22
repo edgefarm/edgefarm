@@ -53,11 +53,11 @@ commands:
       rm -f dev/manifests/kubeedge-certs/config/*.csr || true
       rm -f dev/manifests/kubeedge-certs/config/*.srl || true
 
-  - name: instanciate-nodes
+  - name: instantiate-nodes
     command: |-
       hack/build-kubeedge-node.sh
       for i in $(seq ${NUMBER_OF_VIRTUAL_DEVICES}); do
-        hack/instanciate-kubeedge-node.sh ${HOST_IP_NIP_IO} node$i
+        hack/instantiate-kubeedge-node.sh ${HOST_IP_NIP_IO} node$i
       done
 
   - name: purge-nodes
