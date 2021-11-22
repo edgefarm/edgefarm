@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ArgoCD
+metadata:
+  name: user-argocd
+spec:
+  # ha:
+  #   enabled: true
+  #   redisProxyImage: haproxy
+  #   redisProxyVersion: "2.0.4"
+  server:
+    ingress:
+      enabled: true
+    insecure: true

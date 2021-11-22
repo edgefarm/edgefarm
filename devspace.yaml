@@ -1,34 +1,70 @@
 version: v1beta11
 
 dependencies:
+  - name: k3d
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/k3d
+      branch: ingress-nginx
 
-- name: k3d
-  source:
-    git: https://github.com/edgefarm/devspace.base
-    subPath: /environments/k3d
-    branch: rework
-
-- name: sealed-secrets
-  source:
-    git: https://github.com/edgefarm/devspace.base
-    subPath: /environments/sealed-secrets
-    branch: rework
+  - name: sealed-secrets
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/sealed-secrets
+      branch: ingress-nginx
 
 commands:
-- name: init
-  command: |-
-    devspace run update
-    devspace run k3d.init
-    devspace run sealed-secrets.init
+  - name: init
+    command: |-
+      devspace run update
+      devspace run k3d.init
+      devspace run sealed-secrets.init
 
-- name: purge
-  command: |-
-    devspace run k3d.purge
+  - name: purge
+    command: |-
+      devspace run k3d.purge
 
-- name: activate
-  command: |-
-    devspace run k3d.activate
+  - name: activate
+    command: |-
+      devspace run k3d.activate
 
-- name: update
-  command: |-
-    devspace update dependencies
+  - name: update
+    command: |-
+      devspace update dependencies
+
+hooks:
+  - name: "install-operator-lifecycle-manager"
+    command: |-
+      curl -L https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/install.sh | bash -s -- v0.18.3 || true # ignore error's
+    os: darwin,linux
+    events:
+      - "before:deploy"
+
+  - name: "install-operators"
+    command: |-
+      kubectl apply -k manifests/operators
+    os: darwin,linux
+    events:
+      - "before:deploy"
+
+  # wait crd established
+  - command: |-
+      until kubectl wait --for=condition=established crd/certificates.cert-manager.io --timeout=60s; do sleep 2; done
+      until kubectl wait --for=condition=established crd/applications.argoproj.io --timeout=60s; do sleep 2; done
+      until kubectl wait --for=condition=established crd/keycloaks.keycloak.org --timeout=60s; do sleep 2; done
+    os: darwin,linux
+    events:
+      - "before:deploy"
+
+deployments:
+  - name: argocd
+    kubectl:
+      kustomize: true
+      manifests:
+        - ./manifests/argocd
+    namespace: argocd
+  - name: keycloak
+    kubectl:
+      manifests:
+        - ./manifests/keycloak
+    namespace: my-keycloak-operator
