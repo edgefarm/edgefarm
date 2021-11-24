@@ -1,0 +1,15 @@
+cloudcore:
+  image: kubeedge/cloudcore:v1.8.2
+cloudHub:
+  dnsNames: {}
+  websocket:
+    port: 10000
+  https:
+    port: 10002
+  stream:
+    port: 10003
+  tunnel:
+    port: 10004
+  # This is only needed for load balancer running on hetzner cloud
+  annotations: {}
+  # load-balancer.hetzner.cloud/location: nbg1

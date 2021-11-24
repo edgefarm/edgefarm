@@ -68,6 +68,19 @@ commands:
       done
 
 deployments:
+  - name: argocd
+    kubectl:
+      kustomize: true
+      manifests:
+        - ./manifests/edgefarm.core/argocd
+    namespace: argocd
+
+  - name: keycloak
+    kubectl:
+      manifests:
+        - ./manifests/edgefarm.core/keycloak
+    namespace: my-keycloak-operator
+
   - name: kubeedge
     namespace: kubeedge
     helm:
@@ -85,19 +98,6 @@ deployments:
       manifests:
         - dev/manifests/kubeedge-certs/
 
-  - name: argocd
-    kubectl:
-      kustomize: true
-      manifests:
-        - ./manifests/argocd
-    namespace: argocd
-
-  - name: keycloak
-    kubectl:
-      manifests:
-        - ./manifests/keycloak
-    namespace: my-keycloak-operator
-
 hooks:
   - name: "install-operator-lifecycle-manager"
     command: |-
@@ -106,14 +106,14 @@ hooks:
     events:
       - "before:deploy"
 
-  - name: "install-operators"
+  - name: "install-core-operators"
     command: |-
-      kubectl apply -k manifests/operators
+      kubectl apply -k manifests/edgefarm.core/operators
     os: darwin,linux
     events:
       - "before:deploy"
 
-  # wait crd established
+    # wait crd established
   - command: |-
       until kubectl wait --for=condition=established crd/certificates.cert-manager.io --timeout=60s; do sleep 2; done
       until kubectl wait --for=condition=established crd/applications.argoproj.io --timeout=60s; do sleep 2; done
@@ -121,3 +121,31 @@ hooks:
     os: darwin,linux
     events:
       - "before:deploy"
+
+  - name: install-network-operators
+    command: |-
+      kubectl kustomize --enable-helm=true manifests/edgefarm.network | kubectl apply -f -
+    os: darwin,linux
+    events:
+      - "after:deploy"
+
+  - name: install-applications-operators
+    command: |-
+      kubectl kustomize --enable-helm=true manifests/edgefarm.applications/operators | kubectl apply -f -
+    os: darwin,linux
+    events:
+      - "after:deploy"
+
+    # wait crd established
+  - command: |-
+      until kubectl wait --for=condition=established crd/applications.core.oam.dev --timeout=60s; do sleep 2; done
+    os: darwin,linux
+    events:
+      - "after:deploy"
+
+  - name: install-applications-kubevela
+    command: |-
+      kubectl kustomize --enable-helm=true manifests/edgefarm.applications/kubevela | kubectl apply -f -
+    os: darwin,linux
+    events:
+      - "after:deploy"
