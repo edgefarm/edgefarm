@@ -1,0 +1,35 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: mixed-app
+spec:
+  components:
+    - name: cloud-worker-1
+      type: main-worker
+      properties:
+        image: nginx
+        name: simplenginx
+      traits:
+        - type: labels
+          properties:
+            "app": "cloud-worker-1"
+    - name: edge-worker-1
+      type: edge-worker
+      properties:
+        image: nginx
+        name: simplenginx
+      traits:
+        - type: labels
+          properties:
+            "app": "edge-worker-1"
+    - name: edge-worker-2
+      type: edge-worker
+      properties:
+        image: nginx
+        name: simplenginx
+      traits:
+        - type: labels
+          properties:
+            "app": "edge-worker-2"
+    - name: network
+      type: application-network

@@ -98,6 +98,13 @@ deployments:
       manifests:
         - dev/manifests/kubeedge-certs/
 
+  # - name: mixed-app-network
+  #   namespace: mixed-app-network
+  #   kubectl:
+  #     kustomize: true
+  #     manifests:
+  #       - dev/applications/mixed-app-network/
+
 hooks:
   - name: "install-operator-lifecycle-manager"
     command: |-

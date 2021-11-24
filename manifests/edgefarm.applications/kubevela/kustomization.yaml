@@ -3,4 +3,4 @@ kind: Kustomization
 
 namespace: vela-system
 resources:
-  - github.com/edgefarm/edgefarm.applications/manifests/vela-caps?ref=main
+  - github.com/edgefarm/edgefarm.applications/manifests/vela-caps?ref=app-network
