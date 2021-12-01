@@ -87,9 +87,20 @@ deployments:
       chart:
         name: charts/kubeedge
       values:
+        cloudcore:
+          image: kubeedge/cloudcore:v1.8.2
         cloudHub:
           dnsNames:
             - ${HOST_IP_NIP_IO}
+          websocket:
+            port: 10000
+          https:
+            port: 10002
+          stream:
+            port: 10003
+          tunnel:
+            port: 10004
+          annotations: {}
 
   - name: kubeedge-certs
     namespace: kubeedge
