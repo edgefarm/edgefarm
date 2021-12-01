@@ -4,4 +4,4 @@ kind: Kustomization
 namespace: vela-system
 resources:
   - ./namespace.yaml
-  - github.com/edgefarm/edgefarm.applications/manifests/vela-system?ref=main
+  - github.com/edgefarm/edgefarm.applications/manifests/vela-system?ref=label

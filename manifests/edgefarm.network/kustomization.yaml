@@ -2,6 +2,4 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - github.com/edgefarm/edgefarm-network-operator/config/default?ref=main
-  - github.com/edgefarm/edgefarm.network/manifests/credsmanager?ref=kustomize
-  - github.com/edgefarm/node-dns/manifests?ref=kustomize
+  - github.com/edgefarm/edgefarm-network-operator/config/default?ref=label
