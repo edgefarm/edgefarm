@@ -12,16 +12,16 @@ metadata:
   {{- end }}
 spec:
   ports:
-  - port: {{ .Values.cloudHub.websocket.port }}
+  - port: 10000
     name: wss
     targetPort: 20000
-  - port: {{ .Values.cloudHub.https.port }}
+  - port: 10002
     name: https
     targetPort: 20002
-  - port: {{ .Values.cloudHub.stream.port }}
+  - port: 10003
     name: stream
     targetPort: 20003
-  - port: {{ .Values.cloudHub.tunnel.port }}
+  - port: 10004
     name: tunnel
     targetPort: 20004
   selector:
