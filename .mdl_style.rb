@@ -1,3 +1,3 @@
 all
 
-rule 'MD013', :line_length => 120
+rule 'MD013', :line_length => 240
