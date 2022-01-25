@@ -25,6 +25,7 @@ Dependencies:
 There are some predefined handy commands that make the setup easier.
 
 `devspace run init`: Initialization with k3d cluster setup, kubeedge certs and kubeedge instance.
+`devspace run deploy`: Deploy manifests
 `devspace run purge`: Remove all created resources, incl. clusters, virtual kubeedge nodes.
 `devspace run activate`: Set the kubernetes context pointing to the cluster.
 `devspace run update`: Update all dependencies.
@@ -35,7 +36,7 @@ To initializing and setup a fresh environment call the following commands *(plea
 
 ```sh
 devspace run init
-devspace deploy
+devspace run deploy
 ```
 
 ### Setup notes
@@ -43,10 +44,15 @@ devspace deploy
 **Note 1:** If asked for an IP address, use your [tailscale](https://login.tailscale.com/admin/machines) IP if available.
 This is used to ensure that external devices can access the kubeedge instance running locally on the developer machine.
 If you don't need access from external devices, you can simply put in the IP addresse that your development machine uses on your local network.
-To install tailscale, run the following command:
+To install and run tailscale, run the following command:
 
 ```sh
-devspace run tailscale-install
+if [ ! -x "$(command -v tailscale)" ]; then
+    echo "Installing Tailscale"
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up
+fi
+echo Tailscale IP: $(tailscale ip -4)
 ```
 
 **Note 2:** in order to get edgefarm.network up and running correctly you need to create the edgefarm.network secret first.

@@ -5,13 +5,14 @@ dependencies:
     source:
       git: https://github.com/edgefarm/devspace.base
       subPath: /environments/k3d
-      branch: ingress-nginx
-
-  - name: sealed-secrets
-    source:
-      git: https://github.com/edgefarm/devspace.base
-      subPath: /environments/sealed-secrets
-      branch: ingress-nginx
+      branch: ingress-nginx-siredmar
+  # sealed secrets wont work anymore and needs to be repaired. Error:
+  # deploy dependencies: Deploy dependency sealed-secrets error : error deploying sealed-secrets: W0125 16:53:00.418389 1019580 helpers.go:555] --dry-run is deprecated and can be replaced with --dry-run=client.
+  # - name: sealed-secrets
+  #   source:
+  #     git: https://github.com/edgefarm/devspace.base
+  #     subPath: /environments/sealed-secrets
+  #     branch: ingress-nginx-siredmar
 
 vars:
   - name: HOST_IP
@@ -28,8 +29,12 @@ commands:
       devspace run etc-hosts
       devspace run update
       devspace run k3d.init
-      devspace run sealed-secrets.init
+      # devspace run sealed-secrets.init
       devspace run generate-kubeedge-certs
+
+  - name: deploy
+    command: |-
+      devspace deploy
 
   - name: purge
     command: |-
@@ -73,17 +78,6 @@ commands:
       [[ -z $(cat /etc/hosts | grep user-argocd) ]] && \
       echo Adding entry for argocd to /etc/hosts && echo "127.0.0.1 user-argocd" | sudo tee -a /etc/hosts > /dev/null || \
       echo Entry for argocd already exists in /etc/hosts
-
-  - name: tailscale-install
-    command: |-
-      if [ -x "$(command -v tailscale)" ]; then
-        echo "Tailscale is already installed"
-      else
-        echo "Installing Tailscale"
-        curl -fsSL https://tailscale.com/install.sh | sh
-        sudo tailscale up
-      fi
-      echo Tailscale IP: $(tailscale ip -4)
 
   - name: argocd-password
     command: |-
