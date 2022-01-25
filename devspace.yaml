@@ -25,6 +25,7 @@ vars:
 commands:
   - name: init
     command: |-
+      devspace run etc-hosts
       devspace run update
       devspace run k3d.init
       devspace run sealed-secrets.init
@@ -66,6 +67,27 @@ commands:
         docker kill node$i
         kubectl delete nodes node$i
       done
+
+  - name: etc-hosts
+    command: |-
+      [[ -z $(cat /etc/hosts | grep user-argocd) ]] && \
+      echo Adding entry for argocd to /etc/hosts && echo "127.0.0.1 user-argocd" | sudo tee -a /etc/hosts > /dev/null || \
+      echo Entry for argocd already exists in /etc/hosts
+
+  - name: tailscale-install
+    command: |-
+      if [ -x "$(command -v tailscale)" ]; then
+        echo "Tailscale is already installed"
+      else
+        echo "Installing Tailscale"
+        curl -fsSL https://tailscale.com/install.sh | sh
+        sudo tailscale up
+      fi
+      echo Tailscale IP: $(tailscale ip -4)
+
+  - name: argocd-password
+    command: |-
+      kubectl -n argocd get secret user-argocd-cluster -o 'jsonpath={.data.admin\.password}' | base64 -d  && echo
 
 deployments:
   - name: argocd
