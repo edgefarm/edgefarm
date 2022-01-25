@@ -15,7 +15,7 @@ dependencies:
 
 vars:
   - name: HOST_IP
-    question: What is the IP address of your host?
+    question: What is the IP address of your host? (Prefer tailscale IP if available; run `tailscale ip -4`)?
     default: "127.0.0.1"
   - name: HOST_IP_NIP_IO
     command: echo $(echo ${HOST_IP} | xargs).nip.io
@@ -86,21 +86,6 @@ deployments:
     helm:
       chart:
         name: charts/kubeedge
-      values:
-        cloudcore:
-          image: kubeedge/cloudcore:v1.8.2
-        cloudHub:
-          dnsNames:
-            - ${HOST_IP_NIP_IO}
-          websocket:
-            port: 10000
-          https:
-            port: 10002
-          stream:
-            port: 10003
-          tunnel:
-            port: 10004
-          annotations: {}
 
   - name: kubeedge-certs
     namespace: kubeedge

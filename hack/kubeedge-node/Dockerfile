@@ -8,13 +8,13 @@ RUN curl -L https://github.com/kubeedge/kubeedge/releases/download/${KUBEEDGE_VE
     cp kubeedge-${KUBEEDGE_VERSION}-linux-${KUBEEDGE_ARCH}/edge/edgecore /usr/local/bin/edgecore && \
     rm -rf kubeedge-${KUBEEDGE_VERSION}-linux-${KUBEEDGE_ARCH} kubeedge-${KUBEEDGE_VERSION}-linux-${KUBEEDGE_ARCH}.tar.gz
 
-COPY dev/kubeedge-node/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY hack/kubeedge-node/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN mkdir -p /etc/kubeedge/config
 RUN mkdir -p /kubeedge
 
-COPY dev/kubeedge-node/edgecore.yaml.TEMPLATE /kubeedge/
-COPY dev/kubeedge-node/generate.sh /kubeedge/
+COPY hack/kubeedge-node/edgecore.yaml.TEMPLATE /kubeedge/
+COPY hack/kubeedge-node/generate.sh /kubeedge/
 
 RUN mkdir -p /etc/kubeedge/ca && \
     mkdir -p /etc/kubeedge/certs

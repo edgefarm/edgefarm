@@ -36,9 +36,33 @@ There are some predefined handy commands that make the setup easier.
 
 `devspace run purge-nodes`: Destroys the virtual kubeedge nodes.
 
-To initializing and setup a fresh environment simply call:
+To initializing and setup a fresh environment call:
 
 ```sh
 devspace run init
 devspace deploy
 ```
+
+### Setup notes
+
+Note 1: If asked for an IP address, use your [tailscale](https://login.tailscale.com/admin/machines) IP if available.
+This is used to ensure that external devices can access the kubeedge instance running locally on the developer machine.
+If you don't need access from external devices, you can simply put in the IP addresse that your development machine uses
+on your local network.
+
+Note 2: in order to get edgefarm.network up and running correctly you need to create the edgefarm.network secret first.
+Clone [ngs-accounts](https://github.com/edgefarm/ngs-accounts) and run `generate_secrets.sh` to generate the secrets
+and apply them in to the cluster.
+
+Note 3: make sure that you've set your `/etc/hosts` to `user-argocd` for `127.0.0.1` to enanble access to the `argocd`
+instance running on the kubeedge instance.
+
+```sh
+sudo echo "127.0.0.1 user-argocd" >> /etc/hosts
+```
+
+### Accessing services
+
+Once everything is setup correctly the following services can be reached:
+
+- argoCd: [https://user-argocd:8443/](https://user-argocd:8443/)
