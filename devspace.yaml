@@ -21,7 +21,7 @@ vars:
   - name: HOST_IP_NIP_IO
     command: echo $(echo ${HOST_IP} | xargs).nip.io
   - name: NUMBER_OF_VIRTUAL_DEVICES
-    value: 4
+    value: 2
 
 commands:
   - name: init
@@ -31,6 +31,7 @@ commands:
       devspace run k3d.init
       # devspace run sealed-secrets.init
       devspace run generate-kubeedge-certs
+      devspace run activate
 
   - name: deploy
     command: |-
@@ -120,7 +121,7 @@ deployments:
 hooks:
   - name: "install-operator-lifecycle-manager"
     command: |-
-      curl -L https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/install.sh | bash -s -- v0.18.3 || true # ignore error's
+      curl -L https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.19.1/install.sh | bash -s -- v0.20.0 || true # ignore error's
     os: darwin,linux
     events:
       - "before:deploy"

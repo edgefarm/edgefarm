@@ -4,15 +4,15 @@ metadata:
   name: mixed-app-network
 spec:
   components:
-    - name: cloud-application1
-      type: main-worker
-      properties:
-        image: nginx
-        name: simplenginx
-      traits:
-        - type: labels
-          properties:
-            "app": "cloud-application1"
+    # - name: cloud-application1
+    #   type: main-worker
+    #   properties:
+    #     image: nginx
+    #     name: simplenginx
+    #   traits:
+    #     - type: labels
+    #       properties:
+    # "app": "cloud-application1"
     - name: edge-application1
       type: edge-worker
       properties:
@@ -22,19 +22,19 @@ spec:
         - type: labels
           properties:
             "app": "edge-application1"
-    - name: edge-application2
-      type: edge-worker
-      properties:
-        image: nginx
-        name: simplenginx
-      traits:
-        - type: labels
-          properties:
-            "app": "edge-application2"
+    # - name: edge-application2
+    #   type: edge-worker
+    #   properties:
+    #     image: nginx
+    #     name: simplenginx
+    #   traits:
+    #     - type: labels
+    #       properties:
+    #         "app": "edge-application2"
     - name: network
       type: application-network
       properties:
         usernames:
-          - cloud-application1
+          # - cloud-application1
           - edge-application1
-          - edge-application2
+          # - edge-application2
