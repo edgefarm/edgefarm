@@ -37,6 +37,7 @@ To initializing and setup a fresh environment call the following commands *(plea
 ```sh
 devspace run init
 devspace run deploy
+devspace run activate
 ```
 
 ### Setup notes
