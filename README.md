@@ -38,6 +38,7 @@ To initializing and setup a fresh environment call the following commands *(plea
 devspace run init
 devspace run deploy
 devspace run activate
+devspace run instantiate-nodes
 ```
 
 ### Setup notes
