@@ -1,0 +1,74 @@
+version: v1beta11
+
+vars:
+  # kind
+  - name: KIND_CLUSTER_NAME
+    value: kind-edgefarm-core
+  - name: KIND_CONFIG
+    command: echo $(pwd)/kind-config.yaml
+  - name: KIND_CLUSTER_VERSION
+    value: "v1.21.12"
+
+dependencies:
+  - name: edgefarm
+    source:
+      path: ../
+
+  - name: kind
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/kind
+      branch: v1.1.0
+    vars:
+      - name: KIND_CLUSTER_NAME
+        value: ${KIND_CLUSTER_NAME}
+      - name: KIND_CONFIG
+        value: ${KIND_CONFIG}
+      - name: KIND_CLUSTER_VERSION
+        value: ${KIND_CLUSTER_VERSION}
+
+  - name: olm
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/olm
+      branch: v1.1.0
+
+  - name: helm-controller
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/helm-controller
+      branch: v1.1.0
+
+  - name: ingress
+    source:
+      git: https://github.com/edgefarm/devspace.base
+      subPath: /environments/ingress
+      branch: v1.1.0
+
+  - name: virtual-edge-node
+    source:
+      git: https://github.com/edgefarm/virtual-edge-node
+      branch: v1.0.7
+
+commands:
+  - name: init
+    command: |-
+      devspace run update
+      devspace run kind.init
+      devspace run helm-controller.install
+      devspace run ingress.init
+      devspace run olm.install
+      devspace run ingress.install
+      devspace run edgefarm.init
+
+  - name: purge
+    command: |-
+      devspace run kind.purge
+
+  - name: activate
+    command: |-
+      devspace run kind.activate
+
+  - name: update
+    command: |-
+      devspace update dependencies

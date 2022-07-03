@@ -1,86 +1,13 @@
 version: v1beta11
 
 dependencies:
-  - name: k3d
+  - name: edgefarm-core
     source:
-      git: https://github.com/edgefarm/devspace.base
-      subPath: /environments/k3d
-      branch: main
-
-  - name: sealed-secrets
-    source:
-      git: https://github.com/edgefarm/devspace.base
-      subPath: /environments/sealed-secrets
-      branch: rework
-
-vars:
-  - name: HOST_IP
-    question: What is the IP address of your host?
-    default: "127.0.0.1"
-  - name: HOST_IP_NIP_IO
-    command: echo $(echo ${HOST_IP} | xargs).nip.io
-  - name: NUMBER_OF_VIRTUAL_DEVICES
-    value: 4
+      git: https://github.com/edgefarm/edgefarm.core
+      subPath: /
+      branch: cleanup
 
 commands:
   - name: init
     command: |-
-      devspace run update
-      devspace run k3d.init
-      devspace run sealed-secrets.init
-      devspace run generate-kubeedge-certs
-
-  - name: purge
-    command: |-
-      devspace run k3d.purge
-      devspace run purge-nodes
-
-  - name: activate
-    command: |-
-      devspace run k3d.activate
-
-  - name: update
-    command: |-
-      devspace update dependencies
-
-  - name: generate-kubeedge-certs
-    command: |-
-      echo ${HOST_IP_NIP_IO}
-      hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=kubeedge server ${HOST_IP_NIP_IO}
-      hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ server ${HOST_IP_NIP_IO}
-      hack/generate-kubeedge-certs.sh genCSR dev/manifests/kubeedge-certs/config/ /CN=node node ${HOST_IP_NIP_IO}
-      hack/generate-kubeedge-certs.sh genCert dev/manifests/kubeedge-certs/config/rootCa.pem dev/manifests/kubeedge-certs/config/rootCa.key dev/manifests/kubeedge-certs/config/ node ${HOST_IP_NIP_IO}
-      rm -f dev/manifests/kubeedge-certs/config/*.csr || true
-      rm -f dev/manifests/kubeedge-certs/config/*.srl || true
-
-  - name: instanciate-nodes
-    command: |-
-      hack/build-kubeedge-node.sh
-      for i in $(seq ${NUMBER_OF_VIRTUAL_DEVICES}); do
-        hack/instanciate-kubeedge-node.sh ${HOST_IP_NIP_IO} node$i
-      done
-
-  - name: purge-nodes
-    command: |-
-      for i in $(seq ${NUMBER_OF_VIRTUAL_DEVICES}); do
-        docker kill node$i
-        kubectl delete nodes node$i
-      done
-
-deployments:
-  - name: kubeedge
-    namespace: kubeedge
-    helm:
-      chart:
-        name: charts/kubeedge
-      values:
-        cloudHub:
-          dnsNames:
-            - ${HOST_IP_NIP_IO}
-
-  - name: kubeedge-certs
-    namespace: kubeedge
-    kubectl:
-      kustomize: true
-      manifests:
-        - dev/manifests/kubeedge-certs/
+      devspace run edgefarm-core.init
