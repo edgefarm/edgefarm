@@ -1,0 +1,14 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: simple-app
+spec:
+  components:
+    - name: test-component
+      type: edge-worker
+      properties:
+        runtime:
+          - simple-app
+        image: busybox:latest
+        name: busybox
+        command: ["sh", "-c", "echo Hello && sleep 3600"]
