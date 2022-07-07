@@ -1,0 +1,22 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: e2e-app2
+spec:
+  components:
+    - name: test-component2
+      type: edge-worker
+      properties:
+        runtime:
+          - e2e
+        image: busybox:1.35.0-glibc
+        name: busybox
+        command: ["sh", "-c", "echo HelloFromApp2-A && sleep 3600"]
+    - name: test-component3
+      type: edge-worker
+      properties:
+        runtime:
+          - e2e
+        image: busybox:1.35.0-glibc
+        name: busybox
+        command: ["sh", "-c", "echo HelloFromApp2-B && sleep 3600"]

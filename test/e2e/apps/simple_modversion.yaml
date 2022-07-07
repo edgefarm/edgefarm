@@ -9,6 +9,6 @@ spec:
       properties:
         runtime:
           - e2e
-        image: busybox:1.35.0-glibc
+        image: busybox:1.35.0-musl
         name: busybox
         command: ["sh", "-c", "echo Hello && sleep 3600"]
