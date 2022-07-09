@@ -14,15 +14,21 @@ import (
 var _ = g.Describe("Edge Simple App Deployment", g.Serial, func() {
 
 	g.Describe("Edge Single App", func() {
+		var (
+			f *fw.Framework
+		)
+		g.BeforeEach(func() {
+			f = fw.DefaultFramework
+		})
 		g.AfterEach(func() {
-			fw.ExpectNoError(removeNodeLabels())
+			fw.ExpectNoError(f.RemoveNodeLabels(nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "delete", "application", appName)
-			fw.ExpectNoError(waitForNoPodsInNamespace(testingNameSpace))
+			fw.ExpectNoError(f.WaitForNoPodsInNamespace(testingNameSpace, dsPollTimeout))
 		})
 
 		g.It("App can be deployed on a specific edge node", func() {
 			numNodes := 1
-			fw.ExpectNoError(labelNodes(testingNameSpace, numNodes))
+			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/simple.yaml")
 			fw.ExpectNoError(waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, podNamePrefix1, numNodes))
 			l := getFirstPodLog(testingNameSpace, podNamePrefix1, 10)
@@ -32,7 +38,7 @@ var _ = g.Describe("Edge Simple App Deployment", g.Serial, func() {
 
 		g.It("App Component version can be changed", func() {
 			numNodes := 1
-			fw.ExpectNoError(labelNodes(testingNameSpace, numNodes))
+			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/simple.yaml")
 			fw.ExpectNoError(waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, podNamePrefix1, numNodes))
 			img, err := getFirstPodImage(testingNameSpace, podNamePrefix1)
@@ -55,23 +61,29 @@ var _ = g.Describe("Edge Simple App Deployment", g.Serial, func() {
 
 		g.It("App can be deployed on multiple edge nodes", func() {
 			numNodes := 2
-			fw.ExpectNoError(labelNodes(testingNameSpace, numNodes))
+			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/simple.yaml")
 			fw.ExpectNoError(waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, podNamePrefix1, numNodes))
 		})
 	})
 
 	g.Describe("Edge Multi App", func() {
+		var (
+			f *fw.Framework
+		)
+		g.BeforeEach(func() {
+			f = fw.DefaultFramework
+		})
 		g.AfterEach(func() {
-			fw.ExpectNoError(removeNodeLabels())
+			fw.ExpectNoError(f.RemoveNodeLabels(nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "delete", "application", appName)
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "delete", "application", appName2)
-			fw.ExpectNoError(waitForNoPodsInNamespace(testingNameSpace))
+			fw.ExpectNoError(f.WaitForNoPodsInNamespace(testingNameSpace, dsPollTimeout))
 		})
 
 		g.It("Multiple apps can be deployed on a specific edge node", func() {
 			numNodes := 1
-			fw.ExpectNoError(labelNodes(testingNameSpace, numNodes))
+			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/simple.yaml")
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/app2.yaml")
 			fw.ExpectNoError(waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, podNamePrefix1, numNodes))
@@ -89,7 +101,7 @@ var _ = g.Describe("Edge Simple App Deployment", g.Serial, func() {
 
 		g.It("Multiple apps can be deployed on a many edge nodes", func() {
 			numNodes := 3
-			fw.ExpectNoError(labelNodes(testingNameSpace, numNodes))
+			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/simple.yaml")
 			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "apps/app2.yaml")
 			fw.ExpectNoError(waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, podNamePrefix1, numNodes))
