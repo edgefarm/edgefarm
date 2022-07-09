@@ -1,0 +1,54 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: e2e-network
+spec:
+  components:
+    - type: application-network
+      name: e2e-network
+      properties:
+        subjects:
+          - name: e2e-subjects
+            subjects:
+              - EXPORT.>
+            stream: export-stream
+          - name: local-subjects
+            subjects:
+              - local.>
+            stream: local-stream
+        streams:
+          - name: export-stream
+            location: node
+            config:
+              storage: file
+              retention: limits
+              maxMsgsPerSubject: -1
+              maxMsgs: -1
+              maxBytes: 800000
+              maxAge: 10d
+              maxMsgSize: -1
+              discard: old
+          - name: local-stream
+            location: node
+            config:
+              storage: file
+              retention: limits
+              maxMsgsPerSubject: -1
+              maxMsgs: -1
+              maxBytes: 100000
+              maxAge: 10d
+              maxMsgSize: -1
+              discard: old
+          - name: export-stream-aggregate
+            location: main
+            link:
+              stream: export-stream
+            config:
+              storage: file
+              retention: limits
+              maxMsgsPerSubject: -1
+              maxMsgs: -1
+              maxBytes: 8000000
+              maxAge: 10d
+              maxMsgSize: -1
+              discard: old

@@ -1,0 +1,19 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: e2e-app
+spec:
+  components:
+    - name: publisher1
+      type: edge-worker
+      properties:
+        runtime:
+          - e2e
+        image: ci4rail/dev-e2epub:latest
+        name: e2epub
+        args: ["test1", "-n=e2e-network", "-d=1000", "-i=123"]
+      traits:
+        - type: edge-network-participant
+          properties:
+            networks:
+              - e2e-network
