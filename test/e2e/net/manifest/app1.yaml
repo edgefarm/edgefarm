@@ -1,7 +1,7 @@
 apiVersion: core.oam.dev/v1beta1
 kind: Application
 metadata:
-  name: e2e-app
+  name: e2e-net1
 spec:
   components:
     - name: publisher1

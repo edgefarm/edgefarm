@@ -12,7 +12,6 @@ const (
 	podNamePrefix2   = "test-component2" // must match name in manifest
 	podNamePrefix3   = "test-component3" // must match name in manifest
 	testingNameSpace = "default"         // must match name in manifest
-	edgeLabelKey     = "node-role.kubernetes.io/edge"
 	dsPollTimeout    = time.Minute * 5
 	kubeConfig       = ""
 )
