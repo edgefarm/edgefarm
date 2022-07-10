@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/edgefarm/edgefarm.core/test/pkg/framework"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -22,18 +21,10 @@ func podsAreAppliedToAllSelectedNodes(nameSpace string, labelKey string, expecte
 
 	podNodes := f.GetRunningPodsNodeNames(nameSpace, expectedPodNamePrefix)
 
-	// get list of tagged nodes
-	nods, err := f.GetNodes(metav1.ListOptions{})
-	framework.ExpectNoError(err)
-
-	taggedNodes := make([]string, 0)
-	for _, n := range nods.Items {
-		_, ok := n.ObjectMeta.Labels[labelKey]
-		if ok {
-			taggedNodes = append(taggedNodes, n.Name)
-		}
+	taggedNodes, err := f.GetTaggedNodes(labelKey)
+	if err != nil {
+		return false, err
 	}
-
 	// check if the two lists are identical
 	sort.Strings(podNodes)
 	sort.Strings(taggedNodes)

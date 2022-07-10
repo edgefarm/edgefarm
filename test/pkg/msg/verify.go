@@ -8,7 +8,8 @@ import (
 type VerifierState int
 
 const (
-	Verifying VerifierState = iota
+	Unknown VerifierState = iota
+	Verifying
 	FinishedOk
 	FinishedError
 )
@@ -50,7 +51,7 @@ func NewVerifier(okThreshold int) *Verifier {
 
 // VerifyMessage checks m against the states of the known producers
 func (v *Verifier) VerifyMessage(subject string, m Message) error {
-	key := fmt.Sprintf("%s-%s-%d", m.NodeID, subject, m.Id)
+	key := keyName(m.NodeID, subject, m.Id)
 
 	p, ok := v.ProducerMap[key]
 
@@ -92,4 +93,21 @@ func (v *Verifier) VerifyMessage(subject string, m Message) error {
 		}
 	}
 	return nil
+}
+
+func (v *Verifier) PublisherStatus(nodeID string, subject string, id int) (*Producer, VerifierState)  {
+	key := keyName(nodeID, subject, id)
+	state := Unknown
+
+	p, ok := v.ProducerMap[key]
+
+	if ok {
+		state = p.State
+	}
+	return p, state
+}
+
+
+func keyName(nodeID string, subject string, id int) string {
+	return fmt.Sprintf("%s-%s-%d", nodeID, subject, id)
 }

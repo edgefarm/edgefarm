@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/dapr/go-sdk v1.4.0
-	github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220709143403-80b0565b29b4
+	github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220710184549-339856ec98ea
 	github.com/nats-io/nats.go v1.15.0
 	github.com/onsi/ginkgo/v2 v2.1.4
 	github.com/onsi/gomega v1.19.0

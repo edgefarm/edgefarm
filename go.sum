@@ -116,6 +116,8 @@ github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220706190255-3f646b29a68a h1
 github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220706190255-3f646b29a68a/go.mod h1:gsmbzWhVQarfs0Z5WwLdt954I0fkIQeWBgfEqltwxuE=
 github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220709143403-80b0565b29b4 h1:GvAyD3BMR0G/6T/mFQp8GUeVcCtH0gUT6F5ShPiw2BU=
 github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220709143403-80b0565b29b4/go.mod h1:gsmbzWhVQarfs0Z5WwLdt954I0fkIQeWBgfEqltwxuE=
+github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220710184549-339856ec98ea h1:uM8pPVQmH48SNZOKtOzLOZhZklFdj36lhj5sXdlxfjE=
+github.com/edgefarm/edgefarm.core v1.0.0-beta.8.0.20220710184549-339856ec98ea/go.mod h1:gsmbzWhVQarfs0Z5WwLdt954I0fkIQeWBgfEqltwxuE=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153 h1:yUdfgN0XgIJw7foRItutHYUIhlcKzcSf5vDpdhQAKTc=
 github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
