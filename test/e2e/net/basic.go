@@ -1,19 +1,25 @@
 package net
 
 import (
+	"fmt"
+	"time"
+
 	fw "github.com/edgefarm/edgefarm.core/test/pkg/framework"
 	g "github.com/onsi/ginkgo/v2"
-	"github.com/edgefarm/edgefarm/test/pkg/msg"
-	. "github.com/onsi/gomega"
+
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-var _ = g.Describe("Edgefarm.Network Basic", g.Serial, func() {
-	g.BeforeSuite(func() {
-		f := fw.DefaultFramework
-		f.CreateTestNamespace(testingNameSpace) // ignore error if already exists
-	})
+var _ = g.SynchronizedBeforeSuite(func() []byte {
+	f := fw.DefaultFramework
+	f.CreateTestNamespace(testingNameSpace) // ignore error if already exists
+	return []byte{}
+}, func(d []byte) {
+})
 
-	g.Describe("Edge Single App", func() {
+var _ = g.Describe("Edgefarm.Network Basic", g.Serial, func() {
+
+	g.Describe("Edge Single NetApp", func() {
 		var (
 			f *fw.Framework
 		)
@@ -30,11 +36,28 @@ var _ = g.Describe("Edgefarm.Network Basic", g.Serial, func() {
 			numNodes := 1
 			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 
-			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/net.yaml")
-			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/app.yaml")
-			verifier := msg.NewVerifier(1000)
-			sub := NewNatsSubscriber()
+			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/net1.yaml")
+			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/app1.yaml")
 
+			var creds string
+			var natsUrl string
+			err := wait.PollImmediate(time.Second, dsPollTimeout, func() (bool, error) {
+				var err error
+				creds, natsUrl, err = getNatsParams(testingNameSpace, app1Name, comp1Name, net1Name)
+				if err != nil {
+					g.GinkgoWriter.Printf("Error getting nats params: %v\n", err)
+					return false, nil
+				}
+				return true, nil
+			})
+			fw.ExpectNoError(err)
+			fmt.Printf("Nats params: %s %s\n", creds, natsUrl)
+
+			sub, err := NewNatsSubscriber(natsUrl, creds, "EXPORT.>", "e2e-consumer",
+				fmt.Sprintf("%s.%s", net1Name, streamName))
+			fw.ExpectNoError(err)
+			defer sub.Close()
+			
 		})
 	})
 })

@@ -8,7 +8,7 @@ spec:
       type: edge-worker
       properties:
         runtime:
-          - e2e
+          - e2e-net
         image: ci4rail/dev-e2epub:latest
         name: e2epub
         args: ["test1", "-n=e2e-network", "-d=1000", "-i=123"]

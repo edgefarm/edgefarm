@@ -13,6 +13,7 @@ import (
 
 	// register tests
 	_ "github.com/edgefarm/edgefarm/test/e2e/apps"
+	_ "github.com/edgefarm/edgefarm/test/e2e/net"
 )
 
 func TestKube(t *testing.T) {
