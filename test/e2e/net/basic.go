@@ -8,7 +8,6 @@ import (
 	"time"
 
 	fw "github.com/edgefarm/edgefarm.core/test/pkg/framework"
-	"github.com/edgefarm/edgefarm/test/pkg/msg"
 	g "github.com/onsi/ginkgo/v2"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -52,50 +51,16 @@ var _ = g.Describe("Edgefarm.Network Basic", g.Serial, func() {
 
 			waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, comp1Name, numNodes)
 
-			var creds string
-			var natsUrl string
-			err = wait.PollImmediate(time.Second*5, dsPollTimeout, func() (bool, error) {
-				var err error
-				creds, natsUrl, err = getNatsParams(testingNameSpace, app1Name, comp1Name, net1Name)
-				if err != nil {
-					g.GinkgoWriter.Printf("Error getting nats params: %v\n", err)
-					return false, nil
-				}
-				return true, nil
-			})
-			fw.ExpectNoError(err)
-			fmt.Printf("Nats params: %s %s\n", creds, natsUrl)
-
-			sub, err := NewNatsSubscriber(natsUrl, creds, "EXPORT.>", "e2e-consumer",
-				fmt.Sprintf("%s_%s", net1Name, streamName))
+			sub, err := startupNatsSubscriber(testingNameSpace, app1Name, comp1Name, net1Name)
 			fw.ExpectNoError(err)
 			defer sub.Close()
 
 			taggedNodes, _ := f.GetTaggedNodes(nodeLabelKey)
 			nodeName := taggedNodes[0]
+			subject := fmt.Sprintf("EXPORT.%s.foo.bar", nodeName)
 
-			verifier := msg.NewVerifier(1000)
-			start := time.Now()
-			for {
-				m, subject, err := sub.Next(time.Second * 1)
-				fw.ExpectNoError(err, "error getting message from nats")
-
-				if m == nil {
-					fmt.Printf("no message received")
-				} else {
-					verifier.VerifyMessage(subject, *m)
-				}
-
-				pub, state := verifier.PublisherStatus(nodeName, fmt.Sprintf("EXPORT.%s.foo.bar", nodeName), pubID)
-				if state == msg.FinishedOk {
-					break
-				} else if state == msg.FinishedError {
-					g.Fail(fmt.Sprintf("Publisher verification failed: %v", pub.Err))
-				} else if time.Since(start) > dsPollTimeout {
-					g.Fail("Publisher verification timed out")
-				}
-				fmt.Printf("Publisher status: %v\n", state)
-			}
+			err = verifyPublishers(sub, []publisherExpect{{subject, pubID}}, 1000)
+			fw.ExpectNoError(err)
 		})
 	})
 })

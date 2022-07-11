@@ -28,7 +28,7 @@ func (s VerifierState) String() string {
 
 type Verifier struct {
 	// ProducerMap is a map with the detected producers together with their state
-	// key "<nodeId>-<subject>-<id>"
+	// key "<subject>-<id>"
 	ProducerMap map[string]*Producer
 	okThreshold int
 }
@@ -51,7 +51,7 @@ func NewVerifier(okThreshold int) *Verifier {
 
 // VerifyMessage checks m against the states of the known producers
 func (v *Verifier) VerifyMessage(subject string, m Message) error {
-	key := keyName(m.NodeID, subject, m.Id)
+	key := keyName(subject, m.Id)
 
 	p, ok := v.ProducerMap[key]
 
@@ -95,8 +95,8 @@ func (v *Verifier) VerifyMessage(subject string, m Message) error {
 	return nil
 }
 
-func (v *Verifier) PublisherStatus(nodeID string, subject string, id int) (*Producer, VerifierState)  {
-	key := keyName(nodeID, subject, id)
+func (v *Verifier) PublisherStatus(subject string, id int) (*Producer, VerifierState) {
+	key := keyName(subject, id)
 	state := Unknown
 
 	p, ok := v.ProducerMap[key]
@@ -107,7 +107,6 @@ func (v *Verifier) PublisherStatus(nodeID string, subject string, id int) (*Prod
 	return p, state
 }
 
-
-func keyName(nodeID string, subject string, id int) string {
-	return fmt.Sprintf("%s-%s-%d", nodeID, subject, id)
+func keyName(subject string, id int) string {
+	return fmt.Sprintf("%s-%d", subject, id)
 }
