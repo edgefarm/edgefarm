@@ -29,7 +29,7 @@ func startupNatsSubscriber(nameSpace string, appName string, compName string, ne
 	}
 	g.GinkgoWriter.Printf("Nats params: %s %s\n", creds, natsUrl)
 
-	sub, err := NewNatsSubscriber(natsUrl, creds, "EXPORT.>", "e2e-consumer",
+	sub, err := NewNatsSubscriber(natsUrl, creds, "EXPORT.>", "e2e-consumer1",
 		fmt.Sprintf("%s_%s", net1Name, streamName))
 	return sub, err
 }

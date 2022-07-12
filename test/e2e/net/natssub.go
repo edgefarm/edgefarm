@@ -2,6 +2,7 @@ package net
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -19,6 +20,8 @@ type NatsSubscriber struct {
 type messageEnvelope struct {
 	Data msg.Message
 }
+
+type VeriferFunc func(subject string, m msg.Message) error
 
 // NewNatsSubscriber creates a new NatsSubscriber for
 // subject pattern provided as consumer on stream
@@ -41,12 +44,20 @@ func NewNatsSubscriber(natsUrl string, creds string, subject string, consumer st
 	js, err := nc.JetStream()
 	if err != nil {
 		os.Remove(file.Name())
+		nc.Close()
 		return nil, err
 	}
-	sub, err := js.SubscribeSync(subject, nats.Durable(consumer), nats.MaxDeliver(3), nats.BindStream(stream))
+	_, err = js.AddConsumer(stream, &nats.ConsumerConfig{Durable: consumer, AckPolicy: nats.AckExplicitPolicy, ReplayPolicy: nats.ReplayInstantPolicy})
 	if err != nil {
 		os.Remove(file.Name())
-		return nil, err
+		nc.Close()
+		return nil, fmt.Errorf("can't add consumer: %v", err)
+	}
+	sub, err := js.PullSubscribe(subject, consumer, nats.Bind(stream, consumer))
+	if err != nil {
+		os.Remove(file.Name())
+		nc.Close()
+		return nil, fmt.Errorf("can't create subscription: %v", err)
 	}
 	return &NatsSubscriber{nc, sub, file}, nil
 }
@@ -57,25 +68,28 @@ func (n *NatsSubscriber) Close() {
 	os.Remove(n.credsFile.Name())
 }
 
-// Next returns the next message from the subscription.
-// If no message is available, it returns nil.
-// returns the message payload, subject, error
-func (n *NatsSubscriber) Next(timeout time.Duration) (*msg.Message, string, error) {
-	m, err := n.sub.NextMsg(timeout)
+// NextBatch verifies the next batch of messages.
+func (n *NatsSubscriber) NextBatch(nMessages int, timeout time.Duration, verifier VeriferFunc) error {
+	messages, err := n.sub.Fetch(nMessages, nats.PullOpt(nats.MaxWait(timeout)))
 	if err == nats.ErrTimeout {
-		return nil, "", nil
+		fmt.Print("Timeout reading stream\n")
+		return nil
 	} else if err != nil {
-		return nil, "", err
+		return err
 	} else {
-		var data messageEnvelope
-		err := json.Unmarshal(m.Data, &data)
-		if err != nil {
-			return nil, "", err
+		for _, m := range messages {
+			var data messageEnvelope
+			err := json.Unmarshal(m.Data, &data)
+			if err != nil {
+				return err
+			}
+			//g.GinkgoWriter.Printf("Got message: %v\n", data.Data)
+			err = m.Ack()
+			if err != nil {
+				return err
+			}
+			verifier(m.Subject, data.Data)
 		}
-		err = m.Ack()
-		if err != nil {
-			return nil, "", err
-		}
-		return &data.Data, m.Subject, nil
+		return nil
 	}
 }

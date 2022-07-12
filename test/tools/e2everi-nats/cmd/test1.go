@@ -50,40 +50,50 @@ func runTest1(cmd *cobra.Command, args []string) {
 		log.Fatalf("Error connecting to NATS: %v\n", err)
 	}
 	log.Printf("Connected to %s\n", address)
-	js, err := nc.JetStream(nats.PublishAsyncMaxPending(256))
+	js, err := nc.JetStream()
 	if err != nil {
 		log.Fatalf("Error creating jetstream context: %v\n", err)
 	}
+	subjectFilter := ">"
 
-	sub, err := js.SubscribeSync("EXPORT.>", nats.Durable(consumerName), nats.MaxDeliver(3), nats.BindStream(stream))
+	cinfo, err := js.AddConsumer(stream, &nats.ConsumerConfig{Durable: consumerName, AckPolicy: nats.AckExplicitPolicy, ReplayPolicy: nats.ReplayInstantPolicy})
 	if err != nil {
 		log.Fatalf("Error creating consumer: %v\n", err)
+	}
+	log.Printf("consumer created: %v\n", cinfo)
+
+	sub, err := js.PullSubscribe(subjectFilter, consumerName, nats.Bind(stream, consumerName))
+	if err != nil {
+		log.Fatalf("Error creating subscription: %v\n", err)
 	}
 
 	verifier := msg.NewVerifier(t1OkThreshold)
 
 	for {
-		m, err := sub.NextMsg(time.Second * 10)
+		messages, err := sub.Fetch(100, nats.PullOpt(nats.MaxWait(time.Second*10)))
 		if err == nats.ErrTimeout {
-			log.Printf("timeout reading messages\n")
+			log.Fatalf("Timeout reading stream: %v\n", err)
 		} else if err != nil {
 			log.Fatalf("Error reading stream: %v\n", err)
 		} else {
-			var data messageEnvelope
-			err := json.Unmarshal(m.Data, &data)
-			if err != nil {
-				log.Fatalf("Error unmarshal: %v\n", err)
-			}
+			log.Printf("Fetched %d messages\n", len(messages))
+			for _, m := range messages {
+				var data messageEnvelope
+				err := json.Unmarshal(m.Data, &data)
+				if err != nil {
+					log.Fatalf("Error unmarshal: %v\n", err)
+				}
 
-			log.Printf("got message on subject %s  %s: %v\n", m.Data, m.Subject, data)
-			err = verifier.VerifyMessage(m.Subject, data.Data)
-			if err != nil {
-				log.Println(err)
-			}
+				log.Printf("got message on subject %s: %v\n",  m.Subject, data)
+				err = verifier.VerifyMessage(m.Subject, data.Data)
+				if err != nil {
+					log.Println(err)
+				}
 
-			err = m.Ack()
-			if err != nil {
-				log.Fatalf("Error ack message: %v\n", err)
+				err = m.Ack()
+				if err != nil {
+					log.Fatalf("Error ack message: %v\n", err)
+				}
 			}
 		}
 		dumpProducers(verifier)

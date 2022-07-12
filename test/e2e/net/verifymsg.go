@@ -18,19 +18,12 @@ func verifyPublishers(sub *NatsSubscriber, expectedPublishers []publisherExpect,
 	verifier := msg.NewVerifier(expectedMessages)
 	start := time.Now()
 	for {
-		m, subject, err := sub.Next(time.Second * 1)
+		err := sub.NextBatch(100, time.Second*5, verifier.VerifyMessage)
 		if err != nil {
-			g.GinkgoWriter.Printf("error getting message from nats %v\n", err)
+			g.GinkgoWriter.Printf("error getting message batch %v\n", err)
 			time.Sleep(time.Second * 1)
 			continue
 		}
-
-		if m == nil {
-			g.GinkgoWriter.Printf("no message received\n")
-		} else {
-			verifier.VerifyMessage(subject, *m)
-		}
-
 		finishCount := int(0)
 		for _, p := range expectedPublishers {
 			_, state := verifier.PublisherStatus(p.subject, p.id)

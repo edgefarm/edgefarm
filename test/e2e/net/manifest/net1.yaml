@@ -24,7 +24,7 @@ spec:
               retention: limits
               maxMsgsPerSubject: -1
               maxMsgs: -1
-              maxBytes: 800000
+              maxBytes: 10000000
               maxAge: 10d
               maxMsgSize: -1
               discard: old
@@ -35,7 +35,7 @@ spec:
               retention: limits
               maxMsgsPerSubject: -1
               maxMsgs: -1
-              maxBytes: 100000
+              maxBytes: 10000000
               maxAge: 10d
               maxMsgSize: -1
               discard: old
@@ -48,7 +48,7 @@ spec:
               retention: limits
               maxMsgsPerSubject: -1
               maxMsgs: -1
-              maxBytes: 8000000
+              maxBytes: 800000000
               maxAge: 10d
               maxMsgSize: -1
               discard: old

@@ -35,33 +35,43 @@ var _ = g.Describe("Edgefarm.Network Basic", g.Serial, func() {
 			fw.ExpectNoError(f.WaitForNoPodsInNamespace(testingNameSpace, dsPollTimeout))
 		})
 
-		g.It("Single network app can publish data to main nats", func() {
-			numNodes := 1
-			fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
+		g.DescribeTable("Edge app pushing data to main nats",
+			func(numNodes int) {
 
-			// randomize the publisher ID
-			pubID := rand.Intn(1000)
-			fmt.Printf("using publisher ID %d\n", pubID)
+				fw.ExpectNoError(f.LabelReadyEdgeNodes(testingNameSpace, numNodes, nodeLabelKey))
 
-			manifest, err := makePublisherManifest("net/manifest/app1.yaml", "test1", net1Name, 10, pubID)
-			fw.ExpectNoError(err)
+				// randomize the publisher ID
+				pubID := rand.Intn(1000)
+				fmt.Printf("using publisher ID %d\n", pubID)
 
-			fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/net1.yaml")
-			fw.RunKubectlOrDieInput(kubeConfig, testingNameSpace, manifest, "apply", "-f", "-")
+				manifest, err := makePublisherManifest("net/manifest/app1.yaml", "test1", net1Name, 10, pubID)
+				fw.ExpectNoError(err)
 
-			waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, comp1Name, numNodes)
+				fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/net1.yaml")
+				fw.RunKubectlOrDieInput(kubeConfig, testingNameSpace, manifest, "apply", "-f", "-")
 
-			sub, err := startupNatsSubscriber(testingNameSpace, app1Name, comp1Name, net1Name)
-			fw.ExpectNoError(err)
-			defer sub.Close()
+				waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, comp1Name, numNodes)
 
-			taggedNodes, _ := f.GetTaggedNodes(nodeLabelKey)
-			nodeName := taggedNodes[0]
-			subject := fmt.Sprintf("EXPORT.%s.foo.bar", nodeName)
+				sub, err := startupNatsSubscriber(testingNameSpace, app1Name, comp1Name, net1Name)
+				fw.ExpectNoError(err)
+				defer sub.Close()
 
-			err = verifyPublishers(sub, []publisherExpect{{subject, pubID}}, 1000)
-			fw.ExpectNoError(err)
-		})
+				taggedNodes, _ := f.GetTaggedNodes(nodeLabelKey)
+				pubExpect := make([]publisherExpect, 0)
+
+				for _, nodeName := range taggedNodes {
+					subject := fmt.Sprintf("%s.EXPORT.foo.bar", nodeName)
+					pubExpect = append(pubExpect, publisherExpect{subject, pubID})
+				}
+
+				err = verifyPublishers(sub, pubExpect, 1000)
+				fw.ExpectNoError(err)
+				g.Fail("Stop")
+			},
+			//g.Entry("1 node", 1),
+			g.Entry("2 nodes", 2),
+			//g.Entry("3 nodes", 3),
+		)
 	})
 })
 
@@ -88,7 +98,7 @@ func makePublisherManifest(yamlName string, testName string, network string, del
 
 	// Marshal our updated interface into YAML
 	b, err := yaml.Marshal(raw)
-	fmt.Printf("MANIFEST %s\n", string(b))
+	//fmt.Printf("MANIFEST %s\n", string(b))
 	if err != nil {
 		return "", err
 	}

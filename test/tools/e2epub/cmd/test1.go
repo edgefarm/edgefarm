@@ -57,8 +57,9 @@ func runTest1(cmd *cobra.Command, args []string) {
 
 	subject := t1Subject
 	if t1PrefixNodeID {
-		subject = fmt.Sprintf("EXPORT.%s.%s", nodeID, t1Subject)
+		subject = fmt.Sprintf("%s.EXPORT.%s", nodeID, t1Subject)
 	}
+	time.Sleep(time.Second * 25)
 	log.Printf("publishing to subject %s\n", subject)
 
 	seq := int(0)
@@ -69,7 +70,6 @@ func runTest1(cmd *cobra.Command, args []string) {
 			Id:          t1Id,
 			Seq:         seq,
 		}
-		seq++
 		data, err := json.Marshal(m)
 
 		if err != nil {
@@ -80,8 +80,13 @@ func runTest1(cmd *cobra.Command, args []string) {
 				log.Printf("ERR: publish: %v\n", err)
 			} else {
 				log.Printf("published %v\n", string(data))
+				seq++
 			}
 		}
+		if seq > 5000 {
+			time.Sleep(time.Hour * 5000)
+		}
+
 		time.Sleep(time.Millisecond * time.Duration(t1Delay))
 	}
 }
