@@ -8,14 +8,11 @@ import (
 	g "github.com/onsi/ginkgo/v2"
 )
 
-type publisherExpect struct {
-	subject string
-	id      int
-}
 
-func verifyPublishers(sub *NatsSubscriber, expectedPublishers []publisherExpect, expectedMessages int) error {
 
-	verifier := msg.NewVerifier(expectedMessages)
+func verifyPublishers(sub *NatsSubscriber, expectedProducers []msg.ExpectedProducer, expectedMessages int) error {
+
+	verifier := msg.NewVerifier(expectedProducers, expectedMessages)
 	start := time.Now()
 	for {
 		err := sub.NextBatch(100, time.Second*5, verifier.VerifyMessage)
@@ -25,24 +22,24 @@ func verifyPublishers(sub *NatsSubscriber, expectedPublishers []publisherExpect,
 			continue
 		}
 		finishCount := int(0)
-		for _, p := range expectedPublishers {
-			_, state := verifier.PublisherStatus(p.subject, p.id)
+		for _, p := range expectedProducers {
+			_, state := verifier.PublisherStatus(p.Subject, p.Id)
 
 			if state == msg.FinishedOk || state == msg.FinishedError {
 				finishCount++
 			}
 		}
-		if finishCount == len(expectedPublishers) {
+		if finishCount == len(expectedProducers) {
 			break
 		}
 		if time.Since(start) > dsPollTimeout {
 			return fmt.Errorf("publisher verification timed out")
 		}
 	}
-	for _, p := range expectedPublishers {
-		pub, state := verifier.PublisherStatus(p.subject, p.id)
+	for _, p := range expectedProducers {
+		pub, state := verifier.PublisherStatus(p.Subject, p.Id)
 		if state != msg.FinishedOk {
-			return fmt.Errorf("publisher %s %d verification failed: %v", p.subject, p.id, pub.Err)
+			return fmt.Errorf("publisher %s %d verification failed: %v", p.Subject, p.Id, pub.Err)
 		}
 	}
 	return nil

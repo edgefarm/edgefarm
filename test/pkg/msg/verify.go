@@ -29,8 +29,14 @@ func (s VerifierState) String() string {
 type Verifier struct {
 	// ProducerMap is a map with the detected producers together with their state
 	// key "<subject>-<id>"
-	ProducerMap map[string]*Producer
-	okThreshold int
+	ProducerMap       map[string]*Producer
+	expectedProducers []ExpectedProducer
+	okThreshold       int
+}
+
+type ExpectedProducer struct {
+	Subject string
+	Id      int
 }
 
 type Producer struct {
@@ -42,35 +48,46 @@ type Producer struct {
 	Err              error
 }
 
-func NewVerifier(okThreshold int) *Verifier {
+func NewVerifier(expectedProducers []ExpectedProducer, okThreshold int) *Verifier {
+	log.Printf("New Message verifier. expecting producers\n")
+
+	for _, p := range expectedProducers {
+		log.Printf(" %s %d\n", p.Subject, p.Id)
+	}
+
 	return &Verifier{
-		ProducerMap: map[string]*Producer{},
-		okThreshold: okThreshold,
+		ProducerMap:       map[string]*Producer{},
+		expectedProducers: expectedProducers,
+		okThreshold:       okThreshold,
 	}
 }
 
 // VerifyMessage checks m against the states of the known producers
 func (v *Verifier) VerifyMessage(subject string, m Message) error {
 	key := keyName(subject, m.Id)
+	err := error(nil)
+	var p *Producer
 
-	p, ok := v.ProducerMap[key]
+	if v.isExpectedProducer(subject, m.Id) {
+		var ok bool
+		p, ok = v.ProducerMap[key]
 
-	if !ok {
-		// add a new producer
-		v.ProducerMap[key] = &Producer{
-			MessagesReceived: 0,
-			Seq:              m.Seq,
-			Subject:          subject,
-			LastTs:           m.UnixSeconds,
-			State:            Verifying,
+		if !ok {
+			// add a new producer
+			v.ProducerMap[key] = &Producer{
+				MessagesReceived: 0,
+				Seq:              -1,
+				Subject:          subject,
+				LastTs:           m.UnixSeconds,
+				State:            Verifying,
+			}
+			log.Printf("Adding new producer %s for verification. First seq %d\n", key, m.Seq)
+			p = v.ProducerMap[key]
 		}
-		log.Printf("Adding new producer %s for verification. First seq %d\n", key, m.Seq)
-	} else {
 		if p.State != Verifying {
 			// either in error state or verification already ok. Ignore message
 			return nil
 		} else {
-			err := error(nil)
 			p.MessagesReceived++
 			p.Seq++
 			p.LastTs = m.UnixSeconds
@@ -109,4 +126,13 @@ func (v *Verifier) PublisherStatus(subject string, id int) (*Producer, VerifierS
 
 func keyName(subject string, id int) string {
 	return fmt.Sprintf("%s-%d", subject, id)
+}
+
+func (v *Verifier) isExpectedProducer(subject string, id int) bool {
+	for _, p := range v.expectedProducers {
+		if p.Subject == subject && p.Id == id {
+			return true
+		}
+	}
+	return false
 }

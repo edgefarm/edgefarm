@@ -8,6 +8,7 @@ import (
 	"time"
 
 	fw "github.com/edgefarm/edgefarm.core/test/pkg/framework"
+	"github.com/edgefarm/edgefarm/test/pkg/msg"
 	g "github.com/onsi/ginkgo/v2"
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -50,27 +51,29 @@ var _ = g.Describe("Edgefarm.Network Basic", g.Serial, func() {
 				fw.RunKubectlOrDie(kubeConfig, testingNameSpace, "apply", "-f", "net/manifest/net1.yaml")
 				fw.RunKubectlOrDieInput(kubeConfig, testingNameSpace, manifest, "apply", "-f", "-")
 
-				waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, comp1Name, numNodes)
+				err = waitPodsAreAppliedToAllSelectedNodes(testingNameSpace, nodeLabelKey, comp1Name, numNodes)
+				fw.ExpectNoError(err)
 
 				sub, err := startupNatsSubscriber(testingNameSpace, app1Name, comp1Name, net1Name)
 				fw.ExpectNoError(err)
 				defer sub.Close()
 
 				taggedNodes, _ := f.GetTaggedNodes(nodeLabelKey)
-				pubExpect := make([]publisherExpect, 0)
+				expectedProducers := make([]msg.ExpectedProducer, 0)
 
 				for _, nodeName := range taggedNodes {
 					subject := fmt.Sprintf("%s.EXPORT.foo.bar", nodeName)
-					pubExpect = append(pubExpect, publisherExpect{subject, pubID})
+					expectedProducers = append(expectedProducers, msg.ExpectedProducer{
+						Subject: subject,
+						Id:      pubID})
 				}
 
-				err = verifyPublishers(sub, pubExpect, 1000)
+				err = verifyPublishers(sub, expectedProducers, 1000)
 				fw.ExpectNoError(err)
-				g.Fail("Stop")
 			},
-			//g.Entry("1 node", 1),
+			g.Entry("1 node", 1),
 			g.Entry("2 nodes", 2),
-			//g.Entry("3 nodes", 3),
+			g.Entry("3 nodes", 3),
 		)
 	})
 })
