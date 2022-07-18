@@ -48,7 +48,7 @@ spec:
               retention: limits
               maxMsgsPerSubject: -1
               maxMsgs: -1
-              maxBytes: 800000000
+              maxBytes: 500000000
               maxAge: 10d
               maxMsgSize: -1
               discard: old
