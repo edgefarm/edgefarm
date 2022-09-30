@@ -1,4 +1,4 @@
-# How to handle secrets in EdgeFarm
+# HOWTO handle secrets
 
 [sealed-secrets](https://github.com/bitnami-labs/sealed-secrets) is a
 great solution to store kubernetes (the base of
