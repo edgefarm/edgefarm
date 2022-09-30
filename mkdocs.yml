@@ -1,0 +1,32 @@
+site_name: EdgeFarm
+theme:
+  name: material
+  palette:
+    scheme: default
+    accent: amber
+  logo: assets/logo.png
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+extra_css:
+   - stylesheets/extra.css
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/slack
+      link: https://edgefarmworkspace.slack.com
+      name: Slack
+    - icon: fontawesome/regular/envelope
+      link: mailto:info@ci4rail.com
+      name: Contact
+  generator: false
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+repo_url: https://github.com/edgefarm/edgefarm
+copyright: Copyright &copy; 2022 Ci4Rail GmbH
