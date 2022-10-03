@@ -74,12 +74,18 @@ markdown_extensions:
 nav:
  - Home: index.md
  - Overview:
-     - Introduction: overview/introduction.md
-     - Components: overview/components.md
+    - Introduction: overview/introduction.md
+    - Components: overview/components.md
+ - Core:
+    -  Introduction: edgefarm.core/introduction.md
+ - Devices:
+    -  Introduction: edgefarm.devices/introduction.md
+ - Applications:
+    -  Introduction: edgefarm.applications/introduction.md
+ - Network:
+    -  Introduction: edgefarm.network/introduction.md
  - Architecture:
-    - Overview: architecture/index.md
-    - Requirements: architecture/requirements.md
-    - Design Goals: architecture/design-goals.md
+    - General: architecture/general.md
     - egdefarm.core: architecture/edgefarm.core.md
     - egdefarm.devices: architecture/edgefarm.devices.md
     - egdefarm.applications: architecture/edgefarm.applications.md
