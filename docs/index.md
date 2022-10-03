@@ -1,7 +1,8 @@
+# Seamless edge computing
+
 ![](../assets/EdgeFarmLogo_with_text.png)
 
-
-## Seamless edge computing
+## What is EdgeFarm?
 
 EdgeFarm is an open source cloud native development platform for hybrid applications where application assets can be freely moved between edge and cloud.
 
