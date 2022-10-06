@@ -1,39 +1,39 @@
-![](../assets/architecture-overview.drawio.png)
+!!! info "EdgeFarm is currently under heavy construction"
 
-## Backend System
+    EdgeFarm is currently under active development and the corresponding components are being released gradually.
 
-The backend system takes care of all management functions within EdgeFarm. It accepts configurations and takes care of creating the desired state.
+    Accordingly, the documentation is not yet complete. The functionalities described in the documentation refer to the final state after the release of all functions.
 
-The backend system, like all other software parts, are managed by Kubernetes. Accordingly, backend functions are accessed via the [Kubernetes API](https://kubernetes.io/docs/concepts/overview/kubernetes-api/). Depending on which EdgeFarm functionalities are installed, the API is extended with corresponding [controllers](https://kubernetes.io/docs/concepts/architecture/controller/) and [custom resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (CR).
+![](../assets/EdgeFarmLogo_with_text.png)
 
-These CR's are then available to EdgeFarm users to implement their functionality.
+## What is EdgeFarm
 
-I know, it's all very general at this point. It's just important to understand that the backend is where the magic happens.
+***Seamless edge computing***
 
-The exact details of the backend functionalities provided are covered in the corresponding components documentation.
+EdgeFarm is an open source cloud native development platform for edge- and hybrid applications where application assets can be freely moved between edge and cloud.
 
-## Nodes
+Edgefarm is heavily based on Kubernetes. EdgeFarm extends Kubernetes with a lot of great open source projects. EdgeFarm combines and extends these selectively to provide a platform that is hardly inferior to the comfort of native cloud development.
 
-From [Kubernetes Docs](https://kubernetes.io/docs/concepts/architecture/nodes/):
+EdgeFarm extends Kubernetes to provide the following functions:
 
-"Kubernetes runs your workload by placing containers into Pods to run on Nodes. A node may be a virtual or physical machine, depending on the cluster."
+* dynamic and secure registration of edge nodes (edgefarm.core)
+* life cycle management of edge node firmware (edgefarm.data)
+* life cycle management of edge- or hybrid applications (edgefarm.applications)
+* reliable communication with data retention in the event of network and providing secure access of  third party systems (edgefarm.network)
+* monitoring the whole stack (edgefarm.monitor)
 
-Nodes are the place/the machine/the compute where our applications run. In the case of EdgeFarm, kubernetes is extended to also support edge devices as kubernetes nodes on which workload can be deployed, just as with classic nodes.
+all done in a cloud native way.
 
-A typical Kubernets cluster consists of multiple nodes. Any workload can run on these nodes, such as the backend system or the developed applications.
+## Why EdgeFarm?
 
-### Edge Node
+How great would it be if I could develop edge software just like cloud software for my kubernetes based cloud backend? I'd be free to try out a new piece of software, I'd have access to a huge pool of open source software, I could use my existing ci/cd system to roll out my edge software, and so on.
 
-Edge nodes are special nodes, typically running on embedded hardware (or just server hardware) that access or provide information to local resources.
+But edge computing differs from cloud computing in one fundamental way. While compute in the cloud can be added or replaced automatically at any time, edge devices are tied to specific locations, and replacements or upgrades must be done manually on site. This means that network failures or disconnections cannot simply be bridged by redundancies and taken over by other compute.
 
-Due to their localization, edge nodes have various constraints such as unreliable connections, bandwidth limitations, or compute power that must be dealt with.
+This results in the requirement that egde devices must be able to run autonomously over a longer period of time and that the acquired data must be buffered until a connection is available again.
 
-EdgeFarm extends these nodes with software components that can handle these restrictions. These components can then be used by the corresponding end-user application.
+All software used on the edge devices must be able to handle unreliable network connections and synchronize with the backend system when the connection is restored.
 
-### Compute Node
+If this was solved, my edge device behaving like another kubernetes node, everything needed to deal with unreliable connections already integrated, it would make my programming day a lot nicer.
 
-A typical Kubernets cluster consists of multiple nodes. Any workload can run on these nodes, such as the backend system or the developed applications.
-
-When developing hybrid edge/cloud applications, it is often necessary to outsource certain parts of the application to the cloud, e.g. because certain information needs to be aggregated from different edge devices or because there is not enough computing power or hardware available in the edge.
-
-Using edgefarm, certain cloud nodes can be marked as "compute nodes" on which the corresponding application parts can then be rolled out.
+And that is the reason why EdgeFarm is being developed.
