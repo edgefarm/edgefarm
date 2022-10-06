@@ -8,6 +8,7 @@ theme:
   features:
     - navigation.instant
     - navigation.tracking
+    - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
 extra_css:
@@ -28,6 +29,8 @@ plugins:
   - search
   - git-revision-date-localized:
       enable_creation_date: true
+  - glightbox
+
 repo_url: https://github.com/edgefarm/edgefarm
 copyright: Copyright &copy; 2022 Ci4Rail GmbH
 
@@ -72,21 +75,25 @@ markdown_extensions:
   - pymdownx.tilde
 
 nav:
- - Home: index.md
- - Overview:
+ - Welcome:
     - Introduction: overview/introduction.md
+    - Use Cases: overview/usecases.md
+    - System Overview: overview/system.md
     - Components: overview/components.md
- - Core:
-    -  Introduction: edgefarm.core/introduction.md
- - Devices:
-    -  Introduction: edgefarm.devices/introduction.md
- - Applications:
-    -  Introduction: edgefarm.applications/introduction.md
- - Network:
-    -  Introduction: edgefarm.network/introduction.md
+ - Getting Started: gettingstarted/index.md
+ - User Guide: userguide/index.md
+ - Reference:
+    - edgefarm.core: reference/core.md
+    - edgefarm.devices: reference/devices.md
+    - edgefarm.applications: reference/applications.md
+    - edgefarm.network: reference/network.md
+    - edgefarm.monitor: reference/monitor.md
+ - Best Practices: bestpractices/index.md
  - Architecture:
-    - General: architecture/general.md
-    - egdefarm.core: architecture/edgefarm.core.md
-    - egdefarm.devices: architecture/edgefarm.devices.md
-    - egdefarm.applications: architecture/edgefarm.applications.md
-    - egdefarm.network: architecture/edgefarm.network.md
+    - Design Decissions: architecture/designdecissions.md
+    - Overview: architecture/overview.md
+    - edgefarm.core: architecture/edgefarm.core.md
+    - edgefarm.devices: architecture/edgefarm.devices.md
+    - edgefarm.applications: architecture/edgefarm.applications.md
+    - edgefarm.network: architecture/edgefarm.network.md
+    - edgefarm.monitor: architecture/edgefarm.monitor.md
