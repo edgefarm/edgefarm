@@ -76,7 +76,7 @@ markdown_extensions:
 
 nav:
  - Welcome:
-    - Introduction: overview/introduction.md
+    - Introduction: index.md
     - Use Cases: overview/usecases.md
     - System Overview: overview/system.md
     - Components: overview/components.md
