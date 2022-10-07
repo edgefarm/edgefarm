@@ -11,7 +11,7 @@ User creates and apply a network definition with network name, capacities and bu
 Network Operator receive the network definition, creates an account for the network and setup
 all defined buffers etc.
 
-## **(2)** Assigne node to network
+## **(2)** Assign node to network
 
 User extend his manifest with a node selector matching his node.
 Network Operator receive the updated network definition and deploys and configure a Nats Leaf Server to the node.
