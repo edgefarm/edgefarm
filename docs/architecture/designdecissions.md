@@ -68,7 +68,7 @@ This allows EdgeFarm can be deployed in different scenarios, from public cloud t
 Both our own software and all third-party software used in the form of
 libraries/frameworks are open source.
 
-All EdgeFarm components are licensed under open source license (either AGPL V3 or Apache 2.0).
+All EdgeFarm components are licensed under open source license (either AGPL V3 or MIT).
 
 ## Independent of industry/market
 
