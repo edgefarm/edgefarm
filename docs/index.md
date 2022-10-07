@@ -4,7 +4,7 @@
 
     Accordingly, the documentation is not yet complete. The functionalities described in the documentation refer to the final state after the release of all functions.
 
-![](../assets/EdgeFarmLogo_with_text.png)
+![](assets/EdgeFarmLogo_with_text.png)
 
 ## What is EdgeFarm
 
