@@ -13,10 +13,10 @@ Grafana Web Frontend is up and running. Dashboards for node metrics, networks, a
 
 ## **(1)** Assign node to monitoring system
 
-User assign a node to monitoring system by setting a tag.
-Monitoring Operator gets informed about this tag and deploys and setup Grafana Agent on the node.
+The User assigns a node to the monitoring system by setting a tag.
+The Monitoring Operator gets informed about this tag and deploys and setup Grafana Agent on the node.
 
-Grafana agent starts instantially to grap node metrics, which will be contiously transfered to Grafana mimir, using remote_write. Grafana Mimir stores metrics. Grafana Web Frontend receives metrics and visualize them in the Dashboard.
+Grafana agent starts immediately to scrape node metrics, which will be contiously transfered to Grafana mimir, using `remote_write`. Grafana Mimir stores metrics. Grafana Web Frontend receives metrics and visualize them in the Dashboard.
 
 ## **(2)** Assign network to monitoring system
 
@@ -27,5 +27,5 @@ Grafana Agents, both edge and backend, start scraping network informations from 
 ## **(3)** Assign workload to monitoring system
 
 User deploys workload with monitoring enabled.
-The Monitoring Operator get informed.
+The Monitoring Operator gets informed.
 Grafana Agents on all workload nodes start scraping metrics from this workload.
