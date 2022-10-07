@@ -1,7 +1,7 @@
 # HOWTO handle secrets
 
 [sealed-secrets](https://github.com/bitnami-labs/sealed-secrets) is a
-great solution to store kubernetes (the base of
+great solution to store Kubernetes (the base of
 EdgeFarm) secrets in source code management systems like git.
 
 The big advantage is that sealed-secrets can be added to EdgeFarm in
@@ -9,15 +9,15 @@ any way, either directly using kubectl or via a CI/CD system, but none
 of the systems need a key to the secrets (as in other solutions such as
 [SOPS](https://github.com/mozilla/sops)).
 Only the cluster owns the key and converts the sealed-secret back into
-a kubernetes secret, usable by your applications and processing pipelines.
+a Kubernetes secret, usable by your applications and processing pipelines.
 
 That is why sealed-secrets is installed by default with EdgeFarm.
 
-In the following steps, a "Sealed Secret" is created from a kubernetes
+In the following steps, a "Sealed Secret" is created from a Kubernetes
 Secret. This sealed secret contains only encrypted information and can be
 checked in without any problems. Only the sealed-secret operator
 installed in EdgeFarm has the necessary key to convert the sealed secret
-back into a Kubernetes secret. The actual kubernetes secret is not
+back into a Kubernetes secret. The actual Kubernetes secret is not
 published anywhere.
 
 It is important to understand that data encrypted using sealed-secrets can
@@ -38,7 +38,7 @@ storing also the "raw" secrets in a source code management system.
   [kubeseal](https://github.com/bitnami-labs/sealed-secrets/releases)
   needs to be installed into your system.
 
-## Step 1: Create a kubernetes secret
+## Step 1: Create a Kubernetes secret
 
 An initial secret can be created in many ways. A very convenient one is
 kustomize, which is used in the following example.
@@ -91,7 +91,7 @@ generatorOptions:
 This controls the generation of the secret. It is important that the
 correct namespace is selected in which the secret is to exist later.
 
-The secretGenerator creates a kubernetes secret with the name
+The secretGenerator creates a Kubernetes secret with the name
 example-secret and uses the `secrets.env` as well as the `secret.file`
 for the creation.
 

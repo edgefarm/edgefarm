@@ -43,7 +43,7 @@ EdgeFarm is developed from the start to support arm64 and x86 architectures.
 
 ## Declarative setup of all components
 
-Declarative setup in the form of manifest files have become established at the latest since the dominance of kubernetes.
+Declarative setup in the form of manifest files have become established at the latest since the dominance of Kubernetes.
 
 Here, the target state is defined in the form of .yaml manifests and made available to the system. The system takes care that the defined target state is established. The system configuration can be administered with it e.g. comfortably over git repositories, versioned, gereviewed and in the case of error also again turned back. This approach is called GitOps.
 
@@ -51,7 +51,7 @@ EdgeFarm adapts this approach for all system configurations brought in by the us
 
 ## Automation-first for all components
 
-EdgeFarm provides a basis for edge or hybrid applications.
+EdgeFarm provides a base for edge or hybrid applications.
 
 However, the added value of such an application is usually created outside of EdgeFarm by other application systems that use the derived data to realize e.g. a desktop application for end users.
 
@@ -59,7 +59,7 @@ Accordingly, it is important that EdgeFarm can be easily and fully integrated in
 
 ## Flexible hosting
 
-The backend is developed without dependencies on cloud providers or other cloud services. The only dependencies are kubernetes and open source software components.
+The backend is developed without dependencies on cloud providers or other cloud services. The only dependencies are Kubernetes and open source software components.
 
 This allows EdgeFarm can be deployed in different scenarios, from public cloud to hybrid cloud to private cloud in your own data center.
 

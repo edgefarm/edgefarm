@@ -28,7 +28,7 @@ There are some predefined handy commands that make the setup easier.
 
 `devspace run purge`: Remove all created resources, incl. clusters, virtual kubeedge nodes.
 
-`devspace run activate`: Set the kubernetes context pointing to the cluster.
+`devspace run activate`: Set the Kubernetes context pointing to the cluster.
 
 `devspace run update`: Update all dependencies.
 
