@@ -1,70 +1,77 @@
 # Getting Started
 
+Welcome to the Getting Started page for EdgeFarm.
+
 ## Overview
 
-The Edgefarm is built up declaratively according to GitOps standard. Whenever you want to add or change something, a manifest must be created or edited in Yaml format. These manifests are usually stored in a Git repository.
+Here you'll learn about the terminology and how to manage EdgeFarm components like Edge Nodes, Applications, Networks using the EdgeFarm Portal.
 
-## Terminology
+As a side note, EdgeFarm is GitOps ready. Commit your changes to your Git repository and let the CD system do the rest. You find more information about GitOps [here](https://www.cncf.io/blog/2021/09/28/gitops-101-whats-it-all-about/). 
 
-Here we explain some of the terms that are important for Edgefarm
+## Basic Terminology
 
-### Node
+Let's talk about basic terminology. 
 
-A node represents a Kubernetes node. Usually this is the edge instance running on one of your remote devices and is connected to the main node.
+### Edge Node
 
-### Network
-
-We have developed a sophisticated network layer that connects the main node and all edge nodes. Such a network contains one or more sub-networks, one or more NATS streams and one or more users.
-All these components together form a network
+A node represents a Kubernetes node. Thus, an Edge Node is a remote device e.g. Raspbrry Pi connected to the Kubernetes cluster running your workload. Edge Nodes are managed by `EdgeFarm.core`. 
 
 ### Application
 
-This important part of the Edgefarm is your application, which you can deploy into the Edgefarm. How such an application looks like is up to you. Mostly it will be an application that reads data from the remote device and sends it over the network to the cloud.
+Writing workload definitions can be hard. To make this more convinient there is `EdgeFarm.applications`. It allows you to define your workload in a very minimalist format that can be extended to your needs. Using `EdgeFarm.applications` you can roll out your custom OCI images to your Edge Nodes.
+
+### Network
+
+How to transfer application data? For this purpose `EdgeFarm.network` was developed. Create a Network and let your applications communicate no matter if running in Cloud, Edge or even exported to a third party system.
 
 ## Portal
 
-For the purpose of simplifying the configuration of your Edgefarm, we have developed a portal that will help you with the initial setup of your Edgefarm.
-
-You can find this portal at https://portal.edgefarm.io
+You can find the EdgeFarm Portal here: https://go.edgefarm.io
 
 ### The portal simply explained
 
-Portal is designed to make it as easy as possible for you to create new EdgeFarm components and to give you an overview of your EdgeFarm. In the portal you will find workflows to create new components as well as data and metrics about your existing components.
+The Portal is designed to make it as easy as possible to create new EdgeFarm components and to give an overview of the cluster. In the portal you will find workflows to create new components as well as information and metrics about existing components.
+Creating components, no matter which component, results in a code change in your upstream Git Repository - remember GitOps, right?
 
 ### How to start?
 
 Quick overview:
 
 1. Create a system
-2. Add node(s)
+2. Add edge node(s)
 3. Create network(s)
-4. Add application(s)
+4. Create application(s)
 
 ### 1. System
 
-First, you start by creating a system in the portal. The system is a kind of project or workspace that is specifically linked to a Git repository where your manifest files will be stored.
+First, you start by creating a `system` in the portal. The `system` is a kind of project or workspace that is specifically linked to a Git repository where your manifest files will be stored.
 
-To do this, navigate to https://portal.edgefarm.io/create and select the workflow to create a new system.
+To do this, navigate to https://go.edgefarm.io/create and select the workflow to create a new `system`.
 
-In the following a wizard will ask you for some information. Fill it out and click on 'Create' at the end of the wizard. After completing this wizard, a new Git repository is created, whose link you can find in the summary of the wizard. Also, an entry has now been created in the portal to represent your system.
+A wizard will ask you for some information. Fill it out and click on 'Create'. After completing this wizard, a new Git repository is created, whose link you can find in the summary of the wizard. Also, an entry has been created in the portal to represent your `system`.
 
-### 2. (Edge-) Nodes
+### 2. Edge Nodes
 
-Next, you have to make the (edge-) nodes known to the system. There is also a predefined workflow for this. Navigate to https://portal.edgefarm.io/create and select the workflow which creates a new node.
+Next, you have to make the `edge nodes` known to the `system`. There is also a predefined workflow for this. Navigate to https://go.edgefarm.io/create and select the workflow which creates a new node.
 
-As before, follow the wizard to the end. This workflow has now opened a pull request in your Git repository, which was created by building the system. Click on the link in the wizard summary or navigate to your pull request from the Git interface to merge it. Only after the merge of the pull request the node can be visible in the portal.
+As before follow the wizard to the end. This workflow has now opened a pull request in your Git repository, which was previously created byt the `system` component. Click on the link in the wizard summary or navigate to your pull request from the Git interface to merge it. After the merge of the pull request the node can be viewed in the portal.
 
 Note: After the merge it may take a few minutes until the node is visible in the portal.
 
-To display all nodes known to the portal, navigate to the menu item 'Nodes' in the page navigation.
+To display all `edge nodes` known to the portal, navigate to the menu item 'Nodes' in the page navigation.
 
 ### 3. Networks
 
-To ensure basic communication with the core node, you must now create at least one network. This process will drop a Kubernetes custom resource as a manifest file on the already mentioned Git repository and deploy it to the cluster.
-To do this, navigate to https://portal.edgefarm.io/create and select the workflow that adds a network. Follow the steps of the wizards to the end. Similar to creating a node, at the end the created pull request must be remembered before the network can be displayed in Portal.
+As mentioned before, a `network` is used to let `applications` communicate. Define which `edge node` shall be part of the `network` and define the `streams` and `users` that belong to that network. `users` have specific user defined rights to interact with `streams`. `streams` are used to either buffer your data e.g. during poor network connections or aggregate other `streams` to collect the data of many `streams`.
 
-To display all your networks that are known to the portal, navigate to the menu item 'Networks' in the page navigation.
+Note: if your application doesn't need to communicate or send data to other applications, you might want to skip the creation of the `network`. 
+
+To create a `network`, navigate to https://go.edgefarm.io/create and select the workflow that adds a `network`. Follow the steps of the wizards to the end. Merge the Pull-Request and see your `network` ocurring in the `Networks` section in the portal.
 
 ### 4. Applications
 
-Comming soon ...
+Define an `application` by providing a name and a OCI image. You can customize your application spec to your needs by e.g. adding envs, volumes, custom commands and args, ...
+
+If your application shall be allowed to communicate with a `network` define the network specific parts of the application.
+
+To create an `application`, navigate to https://go.edgefarm.io/create and select the workflow that adds a `application`. Follow the steps of the wizards to the end. Merge the Pull-Request and see your `application` ocurring in the `Applications` section in the portal.
