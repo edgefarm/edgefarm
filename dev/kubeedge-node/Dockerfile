@@ -1,4 +1,4 @@
-FROM cruizba/ubuntu-dind:19.03.11
+FROM cruizba/ubuntu-dind:24.0.2
 
 ENV KUBEEDGE_VERSION=v1.8.2
 ENV KUBEEDGE_ARCH=amd64
