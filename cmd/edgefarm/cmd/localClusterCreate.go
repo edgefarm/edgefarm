@@ -1,69 +1,3 @@
-// // /*
-// // Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-// // */
-// // package cmd
-
-// // import (
-// // 	"fmt"
-
-// // 	"github.com/spf13/cobra"
-// // )
-
-// // // locateCreateCmd represents the create command
-// // var locateCreateCmd = &cobra.Command{
-// // 	Use:   "create",
-// // 	Short: "Create a local edgefarm cluster",
-// // 	Long:  `Create a local edgefarm cluster`,
-// // 	Run: func(cmd *cobra.Command, args []string) {
-// // 		fmt.Println("create called")
-// // 	},
-// // }
-
-// // func init() {
-// // 	localCmd.AddCommand(locateCreateCmd)
-
-// // 	// Here you will define your flags and configuration settings.
-
-// // 	// Cobra supports Persistent Flags which will work for this command
-// // 	// and all subcommands, e.g.:
-// // 	// locateCreateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-// //		// Cobra supports local flags which will only run when this command
-// //		// is called directly, e.g.:
-// //		// locateCreateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-// //	}
-// package cmd
-
-// import (
-// 	goflag "flag"
-// 	"os"
-
-// 	"github.com/spf13/cobra"
-// 	flag "github.com/spf13/pflag"
-// 	"k8s.io/klog/v2"
-
-// 	yurtinit "github.com/edgefarm/edgefarm/pkg/init"
-// )
-
-// func NewCreateCommand() *cobra.Command {
-// 	cmds := &cobra.Command{
-// 		Use:   "create",
-// 		Short: "Create a local edgefarm cluster",
-// 	}
-
-// 	// add kubeconfig to persistent flags
-// 	cmds.PersistentFlags().String("kubeconfig", "", "The path to the kubeconfig file")
-// 	cmds.AddCommand(yurtinit.NewInitCMD(os.Stdout))
-// 	klog.InitFlags(nil)
-// 	flag.CommandLine.AddGoFlagSet(goflag.CommandLine)
-
-// 	return cmds
-// }
-
-// func init() {
-// 	localCmd.AddCommand(NewCreateCommand())
-// }
-
 /*
 Copyright 2022 The OpenYurt Authors.
 
@@ -109,7 +43,9 @@ import (
 	yurtinit "github.com/openyurtio/openyurt/test/e2e/cmd/init"
 
 	"github.com/edgefarm/edgefarm/pkg/constants"
+	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
+	"github.com/edgefarm/edgefarm/pkg/packages"
 )
 
 var (
@@ -423,6 +359,32 @@ func (ki *Initializer) Run() error {
 	if err := ki.configureAddons(); err != nil {
 		return err
 	}
+
+	klog.Infof("Patch coredns for edgefarm")
+	if err := k8s.PatchCoreDNSDeployment(); err != nil {
+		return err
+	}
+
+	klog.Infof("Deploy cluster bootstrap packages")
+	if err := packages.Install(packages.Bootstrap); err != nil {
+		return err
+	}
+
+	klog.Infof("Prepare edge nodes")
+	if err := k8s.PrepareEdgeNodes(); err != nil {
+		return err
+	}
+
+	klog.Infof("Deploy cluster dependency packages")
+	if err := packages.Install(packages.Dependencies); err != nil {
+		return err
+	}
+
+	klog.Infof("Deploy edgefarm base packages")
+	if err := packages.Install(packages.Base); err != nil {
+		return err
+	}
+
 	return nil
 }
 
