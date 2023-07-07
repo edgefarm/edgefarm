@@ -254,7 +254,8 @@ func (c *ClusterConverter) deployYurtManager() error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(renderedFile)
+	dir := filepath.Dir(renderedFile)
+	defer os.RemoveAll(dir)
 	if err := c.ComponentsBuilder.InstallComponents(renderedFile, false); err != nil {
 		return err
 	}
