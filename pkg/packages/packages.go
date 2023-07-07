@@ -190,11 +190,11 @@ xfn:
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "vault",
-								ChartName:   "/home/armin/edgefarm/edgefarm.network/charts/vault",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/vault",
 								Namespace:   "vault",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "v0.1.0",
+								Version:     "1.0.0",
 								Timeout:     time.Second * 300,
 							},
 						},
@@ -216,10 +216,10 @@ xfn:
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "edgefarm-network",
-								ChartName:   "/home/armin/edgefarm/edgefarm.network/charts/edgefarm-network",
+								ChartName:   "oci://ghcr.io/edgefarm/edgefarm.network/edgefarm-network",
 								Namespace:   "edgefarm-network",
 								UpgradeCRDs: true,
-								Version:     "v0.1.0",
+								Version:     "1.0.0-beta.27",
 								Wait:        true,
 								Timeout:     time.Second * 600,
 							},

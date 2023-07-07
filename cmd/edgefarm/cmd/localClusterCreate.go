@@ -385,6 +385,11 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
+	klog.Infof("Deploy edgefarm network packages")
+	if err := packages.Install(packages.Network); err != nil {
+		return err
+	}
+
 	return nil
 }
 

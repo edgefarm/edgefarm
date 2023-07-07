@@ -76,8 +76,12 @@ func TaintNodes(nodes []v1.Node, taint v1.Taint) error {
 		if CheckNodeTaint(node, taint) {
 			continue
 		}
-		node.Spec.Taints = append(node.Spec.Taints, taint)
-		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), &node, metav1.UpdateOptions{}); err != nil {
+		fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		fresh.Spec.Taints = append(fresh.Spec.Taints, taint)
+		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
 			return err
 		}
 	}
@@ -104,12 +108,16 @@ func HandleNodePool(node v1.Node) error {
 	if node.Labels == nil {
 		node.Labels = map[string]string{}
 	}
-	node.Labels["apps.openyurt.io/desired-nodepool"] = node.Name
 	client, err := GetClientset(nil)
 	if err != nil {
 		return err
 	}
-	if _, err := client.CoreV1().Nodes().Update(context.Background(), &node, metav1.UpdateOptions{}); err != nil {
+	fresh, err := client.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	fresh.Labels["apps.openyurt.io/desired-nodepool"] = fresh.Name
+	if _, err := client.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
 
