@@ -390,6 +390,11 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
+	klog.Infof("Deploy edgefarm applications packages")
+	if err := packages.Install(packages.Applications); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -230,6 +230,32 @@ xfn:
 			},
 		},
 	}
+
+	Applications = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "edgefarm-applications",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "applications",
+								ChartName:   "oci://ghcr.io/edgefarm/edgefarm.applications/edgefarm-applications",
+								Namespace:   "edgefarm-applications",
+								UpgradeCRDs: true,
+								Version:     "1.0.0-beta.27",
+								Wait:        true,
+								Timeout:     time.Second * 300,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
+			},
+		},
+	}
 )
 
 func (h *Helm) Install() error {
