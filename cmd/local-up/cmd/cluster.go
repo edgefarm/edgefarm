@@ -15,7 +15,7 @@ var localClusterCmd = &cobra.Command{
 }
 
 func init() {
-	localCmd.AddCommand(localClusterCmd)
+	rootCmd.AddCommand(localClusterCmd)
 
 	// Here you will define your flags and configuration settings.
 
