@@ -1,0 +1,17 @@
+before:
+  hooks:
+    - go mod download
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+release:
+  github:
+  name_template: "{{.Version}}"
+  prerelease: auto
+  mode: append
+changelog:
+  skip: true
