@@ -16,7 +16,7 @@ mod: ## go mod handling
 test: ## run tests
 	go test ./...
 
-build: mod test ## build local-up tool
+build: ## build local-up tool
 	cd cmd/local-up && GOOS=linux GOARCH=${GO_ARCH} go build $(GO_LDFLAGS) -o ../../${BIN_DIR}/${NAME}-${GO_ARCH} main.go
 
 clean: ## remove files created during build pipeline

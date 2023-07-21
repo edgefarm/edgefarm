@@ -13,6 +13,18 @@
     [
       "@semantic-release/exec",
       {
+        "prepareCmd": "make mod"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "make test"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
         "prepareCmd": "GOARCH=amd64 make build"
       }
     ],
