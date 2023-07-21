@@ -23,7 +23,7 @@ jobs:
       - uses: dorny/paths-filter@v2
         id: filter
         with:
-          base: ${{ github.ref }}
+          base: ${{ github.ref_name }},beta,main
           filters: |
             dockerfile:
               - 'build/kind/Dockerfile'
