@@ -2,7 +2,7 @@ NAME = local-up
 BIN_DIR ?= dist
 VERSION ?= $(shell git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty)
 GO_LDFLAGS = -tags 'netgo osusergo static_build' -ldflags "-X github.com/edgefarm/edgefarm/cmd/local-up/cmd.version=$(VERSION)"
-GO_ARCH = amd64
+GO_ARCH ?= amd64
 
 
 .PHONY: help

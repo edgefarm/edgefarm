@@ -19,10 +19,9 @@ jobs:
       - uses: dorny/paths-filter@v2
         id: filter
         with:
-          base: ${{ github.base_ref }}
           filters: |
             go_files:
-              - '**.go'
+              - '**/*.go'
               - 'go.mod'
               - 'go.sum'
               - 'Makefile'
