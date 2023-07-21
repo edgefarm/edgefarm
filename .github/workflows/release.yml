@@ -1,54 +1,54 @@
-name: release
+# name: release
 
-on:
-  workflow_run:
-    workflows: ["Lint Commit Messages"]
-    types:
-      - completed
-    branches:
-      - main
-      - beta
+# on:
+#   workflow_run:
+#     workflows: ["Lint Commit Messages"]
+#     types:
+#       - completed
+#     branches:
+#       - main
+#       - beta
 
-jobs:
-  check_paths:
-    runs-on: ubuntu-latest
-    outputs:
-      go_files_changed: ${{ steps.filter.outputs.go_files }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          base: ${{ github.ref_name }}
-          filters: |
-            go_files:
-              - '**/*.go'
-              - 'go.mod'
-              - 'go.sum'
-              - 'Makefile'
-  release:
-    needs: check_paths
-    if: needs.check_paths.outputs.go_files_changed == 'true'
-    permissions:
-      contents: write
-      packages: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+# jobs:
+#   check_paths:
+#     runs-on: ubuntu-latest
+#     outputs:
+#       go_files_changed: ${{ steps.filter.outputs.go_files }}
+#     steps:
+#       - uses: actions/checkout@v2
+#       - uses: dorny/paths-filter@v2
+#         id: filter
+#         with:
+#           base: ${{ github.ref_name }}
+#           filters: |
+#             go_files:
+#               - '**/*.go'
+#               - 'go.mod'
+#               - 'go.sum'
+#               - 'Makefile'
+#   release:
+#     needs: check_paths
+#     if: needs.check_paths.outputs.go_files_changed == 'true'
+#     permissions:
+#       contents: write
+#       packages: write
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0
 
-      - uses: actions/setup-go@v3
-        with:
-          go-version: "1.20"
+#       - uses: actions/setup-go@v3
+#         with:
+#           go-version: "1.20"
 
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_USER: ${{ github.actor }}
-        run: |-
-          #!/bin/bash
-          set -e
-          # add more plugins: https://semantic-release.gitbook.io/semantic-release/extending/plugins-list
-          npm install @semantic-release/exec @semantic-release/git -D
-          npx -c semantic-release
+#       - name: Release
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           GITHUB_USER: ${{ github.actor }}
+#         run: |-
+#           #!/bin/bash
+#           set -e
+#           # add more plugins: https://semantic-release.gitbook.io/semantic-release/extending/plugins-list
+#           npm install @semantic-release/exec @semantic-release/git -D
+#           npx -c semantic-release
