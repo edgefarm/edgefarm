@@ -16,7 +16,7 @@ env:
   KIND_NODE_VERSION: v1.22.7
 
 jobs:
-  goreleaser:
+  release-kind-image:
     permissions:
       contents: write
       packages: write

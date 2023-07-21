@@ -10,7 +10,7 @@ on:
       - beta
 
 jobs:
-  goreleaser:
+  release:
     permissions:
       contents: write
       packages: write
@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.20
+          go-version: "1.20"
 
       - name: Release
         env:
