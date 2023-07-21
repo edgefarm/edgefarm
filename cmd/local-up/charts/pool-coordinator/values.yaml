@@ -17,7 +17,7 @@ etcdMetricPort: 12381
 etcdImage:
   registry: registry.k8s.io
   repository: etcd
-  tag: 3.5.0-0
+  tag: 3.5.9-0
 etcdResources:
   limits:
     cpu: 200m
