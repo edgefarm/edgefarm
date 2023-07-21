@@ -25,13 +25,13 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "GO_ARCH=amd64 make build"
+        "prepareCmd": "VERSION=${nextRelease.version} GO_ARCH=amd64 make build"
       }
     ],
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "GO_ARCH=arm64 make build"
+        "prepareCmd": "VERSION=${nextRelease.version} GO_ARCH=arm64 make build"
       }
     ],
     "@semantic-release/release-notes-generator",
