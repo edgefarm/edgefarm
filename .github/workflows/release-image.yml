@@ -22,7 +22,7 @@ jobs:
       - name: Download a single artifact
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: first-action.yml
+          workflow: commitlint.yml
           name: original-refs
           workflow_conclusion: success
 
