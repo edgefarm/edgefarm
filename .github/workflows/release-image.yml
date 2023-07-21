@@ -5,8 +5,6 @@ on:
     workflows: ["Lint Commit Messages"]
     types:
       - completed
-    paths:
-      - "build/kind/Dockerfile"
     branches:
       - main
       - beta
@@ -16,7 +14,22 @@ env:
   KIND_NODE_VERSION: v1.22.7
 
 jobs:
+  check_paths:
+    runs-on: ubuntu-latest
+    outputs:
+      dockerfile_changed: ${{ steps.filter.outputs.dockerfile }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'build/kind/Dockerfile'
+
   release-kind-image:
+    needs: check_paths
+    if: needs.check_paths.outputs.dockerfile_changed == 'true'
     permissions:
       contents: write
       packages: write

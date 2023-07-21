@@ -10,7 +10,24 @@ on:
       - beta
 
 jobs:
+  check_paths:
+    runs-on: ubuntu-latest
+    outputs:
+      go_files_changed: ${{ steps.filter.outputs.go_files }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            go_files:
+              - '**.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'Makefile'
   release:
+    needs: check_paths
+    if: needs.check_paths.outputs.go_files_changed == 'true'
     permissions:
       contents: write
       packages: write
