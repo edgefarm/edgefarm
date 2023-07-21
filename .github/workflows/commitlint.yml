@@ -16,3 +16,24 @@ jobs:
         with:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v5
+      - name: Save base ref info
+        run: |
+          if [[ '${{ github.event_name }}' == 'push' ]]; then
+            BASE=${{ github.event.before }}
+            CURRENT_BRANCH=${{ github.ref }}
+          elif [[ '${{ github.event_name }}' == 'pull_request' ]]; then
+            BASE=${{ github.base_ref }}
+            CURRENT_BRANCH=${{ github.head_ref }}
+          fi
+          echo $BASE > base.txt
+          echo $CURRENT_BRANCH > current-branch.txt
+          cat base.txt
+          cat current-branch.txt
+      - name: Upload base ref info
+        uses: actions/upload-artifact@v3
+        with:
+          name: original-refs
+          path: |
+            base.txt
+            current-branch.txt
+          retention-days: 1

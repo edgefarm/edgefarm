@@ -14,11 +14,23 @@ jobs:
     outputs:
       docs_changed: ${{ steps.filter.outputs.docs }}
     steps:
+      - name: Download a single artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: first-action.yml
+          name: original-refs
+          workflow_conclusion: success
+      - name: set REF_BASE to env
+        run: |
+          echo "BASE=$(cat base.txt)" >> $GITHUB_ENV
+          echo "CURRENT_BRANCH=$(cat current-branch.txt)" >> $GITHUB_ENV
+
       - uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: filter
         with:
-          base: ${{ github.ref }}
+          base: ${{ env.BASE }}
+          ref: ${{ env.CURRENT_BRANCH }}
           filters: |
             docs:
               - 'docs/**'
