@@ -13,7 +13,7 @@ jobs:
   check_paths:
     runs-on: ubuntu-latest
     outputs:
-      go_files_changed: ${{ steps.filter.outputs.go_files }}
+      files_changed: ${{ steps.filter.outputs.files }}
     steps:
       - name: Download a single artifact
         uses: dawidd6/action-download-artifact@v2
@@ -34,14 +34,14 @@ jobs:
           base: ${{ env.BASE }}
           ref: ${{ env.CURRENT_BRANCH }}
           filters: |
-            go_files:
+            files:
               - '**/*.go'
               - 'go.mod'
               - 'go.sum'
               - 'Makefile'
   release:
     needs: check_paths
-    if: needs.check_paths.outputs.go_files_changed == 'true'
+    if: needs.check_paths.outputs.files_changed == 'true'
     permissions:
       contents: write
       packages: write
