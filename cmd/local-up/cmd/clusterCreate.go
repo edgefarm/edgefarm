@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The OpenYurt Authors.
+Copyright © 2023 EdgeFarm authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ var (
 			"v1.19": "kindest/node:v1.19.16@sha256:81f552397c1e6c1f293f967ecb1344d8857613fb978f963c30e907c32f598467",
 			"v1.20": "kindest/node:v1.20.15@sha256:393bb9096c6c4d723bb17bceb0896407d7db581532d11ea2839c80b28e5d8deb",
 			"v1.21": "kindest/node:v1.21.10@sha256:84709f09756ba4f863769bdcabe5edafc2ada72d3c8c44d6515fc581b66b029c",
-			"v1.22": "siredmar/node:v1.22.7@sha256:d91d1726173bdbc5b5de174884f5afabb602346bb0953b7dc02f27c4d23c1c5e",
+			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:d91d1726173bdbc5b5de174884f5afabb602346bb0953b7dc02f27c4d23c1c5e",
 			"v1.23": "kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9",
 		},
 	}

@@ -1,10 +1,13 @@
 name: release
 
 on:
-  push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Lint Commit Messages"]
+    types:
+      - completed
+    branches:
+      - main
+      - beta
 
 jobs:
   goreleaser:
@@ -19,23 +22,15 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.20
 
-      - run: make inst
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - run: goreleaser release 
+      - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload dist
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist
-          path: dist
+          GITHUB_USER: ${{ github.actor }}
+        run: |-
+          #!/bin/bash
+          set -e
+          # add more plugins: https://semantic-release.gitbook.io/semantic-release/extending/plugins-list
+          npm install @semantic-release/exec @semantic-release/git -D
+          npx -c semantic-release

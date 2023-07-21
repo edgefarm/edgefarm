@@ -14,10 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package cmd
 
-import "github.com/edgefarm/edgefarm/cmd/local-up/cmd"
+import (
+	"fmt"
 
-func main() {
-	cmd.Execute()
+	"github.com/spf13/cobra"
+)
+
+var version = "dev"
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Print version information",
+	Long: `Print version information
+
+This command displays version information for the local-up tool.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("local-up version %s\n", version)
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
 }
