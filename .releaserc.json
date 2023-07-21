@@ -1,0 +1,44 @@
+{
+  "branches": [
+    {
+      "name": "main"
+    },
+    {
+      "name": "beta",
+      "prerelease": true
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "GOARCH=amd64 make build"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "GOARCH=arm64 make build"
+      }
+    ],
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false,
+        "failTitle": false,
+        "assets": [
+          {
+            "path": "dist/local-up-amd64",
+            "label": "local-up-amd64"
+          },
+          {
+            "path": "dist/local-up-arm64",
+            "label": "local-up-arm64"
+          }
+        ]
+      }
+    ]
+  ]
+}
