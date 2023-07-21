@@ -1,7 +1,7 @@
 NAME = local-up
 BIN_DIR ?= dist
 VERSION ?= $(shell git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty)
-GO_LDFLAGS = -tags 'netgo osusergo static_build' -ldflags "-X github.com/edgefarm/edgefarm/cmd/local-up/cmd.version=$(VERSION)"
+GO_LDFLAGS = -gcflags "all=-N -l" -ldflags '-extldflags "-static"' -ldflags "-X github.com/edgefarm/edgefarm/cmd/local-up/cmd.version=$(VERSION)"
 GO_ARCH ?= amd64
 
 
@@ -17,7 +17,7 @@ test: ## run tests
 	go test ./...
 
 build: ## build local-up tool
-	cd cmd/local-up && GOOS=linux GOARCH=${GO_ARCH} go build $(GO_LDFLAGS) -o ../../${BIN_DIR}/${NAME}-${GO_ARCH} main.go
+	cd cmd/local-up && CGO_ENABLED=0 GOOS=linux GOARCH=${GO_ARCH} go build $(GO_LDFLAGS) -o ../../${BIN_DIR}/${NAME}-${GO_ARCH} main.go
 
 clean: ## remove files created during build pipeline
 	rm -rf ${BIN_DIR}
