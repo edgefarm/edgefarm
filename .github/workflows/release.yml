@@ -19,7 +19,7 @@ jobs:
       - uses: dorny/paths-filter@v2
         id: filter
         with:
-          base: ${{ github.ref_name }},beta,main
+          base: ${{ github.ref_name }}
           filters: |
             go_files:
               - '**/*.go'
