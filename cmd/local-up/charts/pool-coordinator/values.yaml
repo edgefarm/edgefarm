@@ -7,7 +7,7 @@ apiserverSecurePort: 10270
 apiserverImage:
   registry: registry.k8s.io
   repository: kube-apiserver
-  tag: v1.22.0
+  tag: v1.27.4
 apiserverResources:
   requests:
     cpu: 250m
