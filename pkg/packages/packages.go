@@ -272,7 +272,66 @@ xfn:
 			},
 		},
 	}
+
+	YurtManager = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "openyurt",
+						URL:  "https://openyurtio.github.io/openyurt-helm",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "yurt-manager",
+								ChartName:   "openyurt/yurt-manager",
+								Namespace:   "kube-system",
+								Version:     "1.3.4",
+								UpgradeCRDs: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 )
+
+func Template(h *Helm, index int) ([]byte, error) {
+	if h == nil {
+		return nil, fmt.Errorf("helm is nil")
+	}
+	if h.Spec == nil {
+		return nil, fmt.Errorf("helm spec is nil")
+	}
+	if h.Spec.Chart == nil {
+		return nil, fmt.Errorf("helm spec chart is nil")
+	}
+	if len(h.Spec.Chart) <= index {
+		return nil, fmt.Errorf("helm spec chart index out of range")
+	}
+
+	client, err := helmclient.New(&helmclient.Options{
+		Namespace: h.Spec.Chart[index].Namespace,
+		Debug:     true,
+		Linting:   false,
+		DebugLog:  klog.Infof,
+	})
+	if h.Repo.URL != "" {
+		if err := client.AddOrUpdateChartRepo(*h.Repo); err != nil {
+			return nil, err
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return client.TemplateChart(h.Spec.Chart[index])
+}
 
 func (h *Helm) Install() error {
 	for _, spec := range h.Spec.Chart {

@@ -40,9 +40,8 @@ import (
 	yurtconstantes "github.com/openyurtio/openyurt/test/e2e/cmd/init/constants"
 	kubeutil "github.com/openyurtio/openyurt/test/e2e/cmd/init/util/kubernetes"
 
-	yurtinit "github.com/openyurtio/openyurt/test/e2e/cmd/init"
-
 	"github.com/edgefarm/edgefarm/pkg/constants"
+	yurtinit "github.com/edgefarm/edgefarm/pkg/init"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/packages"
@@ -92,9 +91,9 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 		Use:   "create",
 		Short: "Create a loacl edgefarm cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := o.Validate(); err != nil {
-				return err
-			}
+			// if err := o.Validate(); err != nil {
+			// 	return err
+			// }
 			initializer := newKindInitializer(out, o.Config())
 			if err := initializer.Run(); err != nil {
 				return err
@@ -144,7 +143,7 @@ func newKindOptions() *kindOptions {
 		WorkerNodesNum:    1,
 		EdgeNodesNum:      2,
 		ClusterName:       "edgefarm",
-		OpenYurtVersion:   "v1.3.0",
+		OpenYurtVersion:   "v1.3.4",
 		KubernetesVersion: "v1.22",
 		UseLocalImages:    false,
 		IgnoreError:       true,
@@ -345,6 +344,16 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
+	klog.Infof("Deploy cluster bootstrap packages")
+	if err := packages.Install(packages.Bootstrap); err != nil {
+		return err
+	}
+
+	klog.Infof("Prepare edge nodes")
+	if err := k8s.PrepareEdgeNodes(); err != nil {
+		return err
+	}
+
 	klog.Info("Start to prepare OpenYurt images for kind cluster")
 	if err := ki.prepareImages(); err != nil {
 		return err
@@ -362,16 +371,6 @@ func (ki *Initializer) Run() error {
 
 	klog.Infof("Patch coredns for edgefarm")
 	if err := k8s.PatchCoreDNSDeployment(); err != nil {
-		return err
-	}
-
-	klog.Infof("Deploy cluster bootstrap packages")
-	if err := packages.Install(packages.Bootstrap); err != nil {
-		return err
-	}
-
-	klog.Infof("Prepare edge nodes")
-	if err := k8s.PrepareEdgeNodes(); err != nil {
 		return err
 	}
 
