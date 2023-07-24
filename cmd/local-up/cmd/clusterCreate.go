@@ -91,9 +91,9 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 		Use:   "create",
 		Short: "Create a loacl edgefarm cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// if err := o.Validate(); err != nil {
-			// 	return err
-			// }
+			if err := o.Validate(); err != nil {
+				return err
+			}
 			initializer := newKindInitializer(out, o.Config())
 			if err := initializer.Run(); err != nil {
 				return err
