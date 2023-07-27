@@ -29,7 +29,7 @@ spec:
               value: aggregate-stream
             - name: NATS_CREDS
               value: /creds/network.creds
-          image: docker.io/siredmar/consumer:v7
+          image: ghcr.io/edgefarm/edgefarm/example-basic-consumer:latest
           imagePullPolicy: IfNotPresent
           name: consumer
           resources:

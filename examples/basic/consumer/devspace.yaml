@@ -1,15 +1,8 @@
 version: v2beta1
 name: example-consumer
 
-functions:
-  wait_for: |-
-    #!/bin/bash
-    set -e
-    echo "wait for $1 $2 (ns: $3) for condition=$4"
-    until kubectl wait --for=condition=$4 $1 $2 -n $3 --timeout=60s 2>/dev/null; do echo -n "." && sleep 2; done
-
 deployments:
-  network-resource-info:
+  example-consumer:
     kubectl:
       manifests:
         - deploy/**/
@@ -18,14 +11,13 @@ pipelines:
   deploy: |-
     #!/bin/bash
     set -e
-    create_deployments network-resource-info
-    wait_for pod "-l app=network-resource-info" crossplane-system Ready
+    create_deployments example-consumer
 
 dev:
-  network-resource-info:
+  example-consumer:
     labelSelector:
       app.kubernetes.io/instance: example-consumer
-    devImage: docker.io/siredmar/consumer:v6
+    devImage: ghcr.io/edgefarm/edgefarm/example-basic-consumer:latest
     namespace: default
     terminal: {}
     ports:
