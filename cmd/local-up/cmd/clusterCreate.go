@@ -77,6 +77,9 @@ var (
 			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
 			"v1.23": "kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9",
 		},
+		"v0.20.0": {
+			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
+		},
 	}
 
 	yurtHubImageFormat     = "openyurt/yurthub:%s"
@@ -259,18 +262,8 @@ func (o *kindOptions) Config() *initializerConfig {
 }
 
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
-	// flagset.StringVar(&o.KindConfigPath, "kind-config-path", o.KindConfigPath,	"Specify the path where the kind config file will be generated.")
-	// flagset.IntVar(&o.WorkerNodesNum, "worker-node-num", o.WorkerNodesNum,	"Specify the worker node number of the kind cluster.")
 	flagset.IntVar(&o.EdgeNodesNum, "edge-node-num", o.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
-	// flagset.StringVar(&o.ClusterName, "cluster-name", o.ClusterName,	"The cluster name of the new-created kind cluster.")
-	// flagset.StringVar(&o.CloudNodes, "cloud-nodes", "", 	"Comma separated list of cloud nodes. The control-plane will always be cloud node. If no cloud node specified, the control-plane node will be the only one cloud node.")
-	// flagset.StringVar(&o.OpenYurtVersion, "openyurt-version", o.OpenYurtVersion, 	"The version of openyurt components.")
-	// flagset.StringVar(&o.KubernetesVersion, "kubernetes-version", o.KubernetesVersion, 	"The version of kubernetes that the openyurt cluster is based on.")
-	// flagset.BoolVar(&o.UseLocalImages, "use-local-images", o.UseLocalImages, 	"If set, local images stored by docker will be used first.")
 	flagset.StringVar(&o.KubeConfig, "kube-config", o.KubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
-	// flagset.BoolVar(&o.IgnoreError, "ignore-error", o.IgnoreError, 	"Ignore error when using openyurt version that is not officially released.")
-	// flagset.BoolVar(&o.EnableDummyIf, "enable-dummy-if", o.EnableDummyIf, 	"Enable dummy interface for yurthub component or not. and recommend to set false on mac env")
-	// flagset.BoolVar(&o.DisableDefaultCNI, "disable-default-cni", o.DisableDefaultCNI, 	"Disable the default cni of kind cluster which is kindnet. If this option is set, you should check the ready status of pods by yourself after installing your CNI.")
 	flagset.IntVar(&o.PortMappings.HostApiServerPort, "host-api-server-port", o.PortMappings.HostApiServerPort, "Specify the port of host api server.")
 	flagset.IntVar(&o.PortMappings.HostVaultPort, "host-vault-port", o.PortMappings.HostVaultPort, "Specify the port of vault to be mapped to.")
 	flagset.IntVar(&o.PortMappings.HostNatsPort, "host-nats-port", o.PortMappings.HostNatsPort, "Specify the port of nats to be mapped to.")
@@ -314,8 +307,8 @@ func newKindInitializer(out io.Writer, cfg *initializerConfig) *Initializer {
 }
 
 func (ki *Initializer) Run() error {
-	klog.Info("Start to install kind")
-	if err := ki.operator.KindInstall(); err != nil {
+	klog.Info("Check kind")
+	if err := ki.operator.GetKindPath(); err != nil {
 		return err
 	}
 
@@ -349,11 +342,6 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	klog.Infof("Prepare edge nodes")
-	if err := k8s.PrepareEdgeNodes(); err != nil {
-		return err
-	}
-
 	klog.Info("Start to prepare OpenYurt images for kind cluster")
 	if err := ki.prepareImages(); err != nil {
 		return err
@@ -371,6 +359,11 @@ func (ki *Initializer) Run() error {
 
 	klog.Infof("Patch coredns for edgefarm")
 	if err := k8s.PatchCoreDNSDeployment(); err != nil {
+		return err
+	}
+
+	klog.Infof("Prepare edge nodes")
+	if err := k8s.PrepareEdgeNodes(); err != nil {
 		return err
 	}
 

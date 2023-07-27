@@ -1,0 +1,60 @@
+apiVersion: streams.network.edgefarm.io/v1alpha1
+kind: Network
+metadata:
+  name: example-network
+spec:
+  compositeDeletePolicy: Foreground
+  parameters:
+    users:
+      - name: publish
+        limits:
+          payload: -1
+          data: -1
+          subscriptions: -1
+        permissions:
+          pub:
+            allow:
+              - "*.sensor"
+              - "$JS.API.CONSUMER.>"
+              - "$JS.ACK.>"
+          sub:
+            allow:
+              - "*.sensor"
+    subNetworks:
+      - name: edge-to-cloud
+        limits:
+          fileStorage: 1G
+          inMemoryStorage: 100M
+        nodepoolSelector:
+          matchLabels:
+            example: "producer"
+
+    streams:
+      - name: sensor-stream
+        type: Standard
+        subNetworkRef: edge-to-cloud
+        config:
+          subjects:
+            - "sensor"
+          discard: Old
+          retention: Limits
+          storage: File
+          maxConsumers: -1
+          maxMsgSize: -1
+          maxMsgs: -1
+          maxMsgsPerSubject: -1
+          maxBytes: 10000000
+
+      - name: aggregate-stream
+        type: Aggregate
+        config:
+          discard: Old
+          retention: Limits
+          storage: File
+          maxConsumers: -1
+          maxMsgSize: -1
+          maxMsgs: -1
+          maxMsgsPerSubject: -1
+          maxBytes: 500000000
+        references:
+          - sensor-stream

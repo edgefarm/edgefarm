@@ -235,7 +235,7 @@ xfn:
 								ChartName:   "oci://ghcr.io/edgefarm/edgefarm.network/edgefarm-network",
 								Namespace:   "edgefarm-network",
 								UpgradeCRDs: true,
-								Version:     "1.0.0-beta.29",
+								Version:     "1.0.0-beta.36",
 								Wait:        true,
 								Timeout:     time.Second * 600,
 							},

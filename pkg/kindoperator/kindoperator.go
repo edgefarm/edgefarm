@@ -20,8 +20,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"path/filepath"
-	"strconv"
 	"strings"
 
 	"k8s.io/klog/v2"
@@ -31,15 +29,12 @@ import (
 
 var (
 	// enableGO111MODULE will be used when 1.13 <= go version <= 1.16
-	enableGO111MODULE = "GO111MODULE=on"
-	kindInstallCmd    = "go install sigs.k8s.io/kind@%s"
-
 	defaultKubeConfigPath = "${HOME}/.kube/config"
-	defaultKindVersion    = "v0.12.0"
 
 	validKindVersions = []string{
 		"v0.11.1",
 		"v0.12.0",
+		"v0.20.0",
 	}
 )
 
@@ -63,6 +58,29 @@ func NewKindOperator(kindCMDPath string, kubeconfigPath string) *KindOperator {
 		kindCMDPath:    kindCMDPath,
 		execCommand:    exec.Command,
 	}
+}
+
+// GetKindPath returns the path of kind command.
+func (k *KindOperator) GetKindPath() error {
+	if k.kindCMDPath != "" {
+		return nil
+	}
+
+	kindPath, err := findKindPath()
+	if err != nil {
+		klog.Infof("no kind tool is found, so try to install. %v", err)
+	} else {
+		k.kindCMDPath = kindPath
+		return nil
+	}
+
+	kindPath, err = findKindPath()
+	if err != nil {
+		return err
+	}
+	k.kindCMDPath = kindPath
+
+	return nil
 }
 
 func (k *KindOperator) SetExecCommand(execCommand func(string, ...string) *exec.Cmd) {
@@ -121,74 +139,6 @@ func (k *KindOperator) KindDeleteCluster(out io.Writer, name string) error {
 	return nil
 }
 
-// KindInstall will install kind of default version.
-// If KindOperator has got kindCMDPath, it will do nothing.
-func (k *KindOperator) KindInstall() error {
-	if k.kindCMDPath != "" {
-		return nil
-	}
-
-	kindPath, err := findKindPath()
-	if err != nil {
-		klog.Infof("no kind tool is found, so try to install. %v", err)
-	} else {
-		k.kindCMDPath = kindPath
-		return nil
-	}
-
-	minorVer, err := k.goMinorVersion()
-	if err != nil {
-		return fmt.Errorf("failed to get go minor version, %w", err)
-	}
-	installCMD := k.getInstallCmd(minorVer, defaultKindVersion)
-	klog.V(1).Infof("start to install kind, running command: %s", installCMD)
-	if err := k.execCommand("bash", "-c", installCMD).Run(); err != nil {
-		return err
-	}
-
-	kindPath, err = findKindPath()
-	if err != nil {
-		return err
-	}
-	k.kindCMDPath = kindPath
-
-	return nil
-}
-
-func (k *KindOperator) getInstallCmd(minorVer int, kindVersion string) string {
-	installCMD := fmt.Sprintf(kindInstallCmd, kindVersion)
-	if minorVer <= 16 {
-		installCMD = strings.Join([]string{enableGO111MODULE, installCMD}, " ")
-	}
-	return installCMD
-}
-
-func (k *KindOperator) goMinorVersion() (int, error) {
-	goverInfo, err := k.execCommand("go", "version").CombinedOutput()
-	if err != nil {
-		return 0, err
-	}
-	klog.V(1).Infof("get go version: %v", goverInfo)
-
-	// the output of go version is like:
-	// go version go1.17.7 linux/amd64
-	gover := strings.Split(string(goverInfo), " ")[2]
-	minorVer, err := strconv.Atoi(strings.Split(gover[2:], ".")[1])
-	if err != nil {
-		return 0, err
-	}
-	return minorVer, nil
-}
-
-func getGoBinPath() (string, error) {
-	buf, err := exec.Command("bash", "-c", "go env GOPATH").CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to get GOPATH, %w", err)
-	}
-	gopath := strings.TrimSuffix(string(buf), "\n")
-	return filepath.Join(gopath, "bin"), nil
-}
-
 func checkIfKindAt(path string) (bool, string) {
 	if p, err := exec.LookPath(path); err == nil {
 		return true, p
@@ -201,15 +151,6 @@ func findKindPath() (string, error) {
 	var kindPath string
 	if exist, path := checkIfKindAt("kind"); exist {
 		kindPath = path
-	} else {
-		goBinPath, err := getGoBinPath()
-		if err != nil {
-			klog.Fatal("failed to get go bin path, %s", err)
-		}
-
-		if exist, path := checkIfKindAt(goBinPath + "/kind"); exist {
-			kindPath = path
-		}
 	}
 
 	if len(kindPath) == 0 {

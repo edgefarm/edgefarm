@@ -1,0 +1,5 @@
+protobuf==4.22.3
+bokeh
+nats-py==2.2.0
+numpy
+nkeys

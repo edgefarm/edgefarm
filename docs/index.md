@@ -12,7 +12,7 @@
 
 EdgeFarm is an open source cloud native development platform for edge- and hybrid applications where application assets can be freely moved between edge and cloud. Hybrid applications refer to applications that are partially deployed on edge devices and partially in the cloud.
 
-Edgefarm is heavily based on Kubernetes. EdgeFarm extends Kubernetes with a bunch of great open source projects. EdgeFarm combines and extends these selectively to provide a platform that is hardly inferior to the comfort of native cloud development.
+Edgefarm is heavily based on Kubernetes. EdgeFarm extends Kubernetes with a bunch of great open source projects. EdgeFarm selectively combines and extends these to provide a platform that offers the same comfort of native cloud development.
 
 EdgeFarm extends Kubernetes to provide the following functions:
 

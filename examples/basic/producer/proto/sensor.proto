@@ -1,0 +1,16 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+package sensor;
+option go_package = "sensor/v1";
+
+message Samples {
+  // trigger timestamp
+  google.protobuf.Timestamp triggerTimestamp = 1;
+
+  // sample rate in Hz
+  double sampleRate = 2;
+
+  // the meaurement samples
+  repeated float samples = 10;
+}

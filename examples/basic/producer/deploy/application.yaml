@@ -1,0 +1,23 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  name: example-producer
+spec:
+  components:
+    - name: producer
+      type: edgefarm-applications
+      properties:
+        image: ghcr.io/edgefarm/edgefarm/example-basic-producer:latest
+        nodepoolSelector:
+          matchLabels:
+            example: "producer"
+        name: producer
+        cpu: 0.25
+        memory: 256Mi
+      traits:
+        - type: edgefarm-network
+          properties:
+            network:
+              name: example-network
+              subnetwork: edge-to-cloud
+              user: publish

@@ -1,0 +1,8 @@
+Dockerfile
+.devspace/
+.devspace.yaml
+Makefile
+README.md
+.gitignore
+deploy/
+proto/

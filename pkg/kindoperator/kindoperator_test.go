@@ -27,7 +27,6 @@ import (
 
 const (
 	kindVersionOut = "kind v0.11.1 go1.17.7 linux/amd64"
-	goVersionOut   = "go version go1.17.7 linux/amd64"
 )
 
 var operator = NewKindOperator("kind", "")
@@ -59,7 +58,7 @@ func TestKindVersion(t *testing.T) {
 		want     string
 	}{
 		"normal case": {
-			"/go/bin/kind",
+			"/bin/kind",
 			"v0.11.1",
 		},
 	}
@@ -79,63 +78,6 @@ func TestKindVersionStub(t *testing.T) {
 
 	fmt.Fprint(os.Stdout, kindVersionOut)
 	os.Exit(0)
-}
-
-func TestGoMinorVersion(t *testing.T) {
-	fakeExecCommand := func(name string, args ...string) *exec.Cmd {
-		return execCommand("TestGoMinorVersionStub", map[string]string{
-			"TEST_GO_MINOR_VERSION": "1",
-		}, name, args...)
-	}
-	operator.SetExecCommand(fakeExecCommand)
-	defer operator.SetExecCommand(exec.Command)
-
-	cases := map[string]struct {
-		want int
-	}{
-		"normal case": {
-			17,
-		},
-	}
-
-	for name, c := range cases {
-		goMinorVer, _ := operator.goMinorVersion()
-		if goMinorVer != c.want {
-			t.Errorf("failed parse go version at case %s, want: %d, got: %d", name, c.want, goMinorVer)
-		}
-	}
-}
-
-func TestGoMinorVersionStub(t *testing.T) {
-	if os.Getenv("TEST_GO_MINOR_VERSION") != "1" {
-		return
-	}
-	fmt.Fprint(os.Stdout, goVersionOut)
-	os.Exit(0)
-}
-
-func TestGetInstallCmd(t *testing.T) {
-	kindVersion := "v0.11.1"
-	cases := map[string]struct {
-		goMinorVersion int
-		want           string
-	}{
-		"gover > 1.17": {
-			goMinorVersion: 17,
-			want:           "go install sigs.k8s.io/kind@v0.11.1",
-		},
-		"1.13 <= gover <= 1.17": {
-			goMinorVersion: 16,
-			want:           "GO111MODULE=on go install sigs.k8s.io/kind@v0.11.1",
-		},
-	}
-
-	for name, c := range cases {
-		cmd := operator.getInstallCmd(c.goMinorVersion, kindVersion)
-		if cmd != c.want {
-			t.Errorf("unexpected kind install command at case %s, want: %s, got: %s", name, c.want, kindInstallCmd)
-		}
-	}
 }
 
 func TestKindOperator_KindLoadDockerImage(t *testing.T) {
@@ -195,17 +137,10 @@ func fakeExeCommand(string, ...string) *exec.Cmd {
 	return cmd
 }
 
-func TestGetGoBinPath(t *testing.T) {
-	gopath, err := getGoBinPath()
-	if gopath == "" || err != nil {
-		t.Errorf("failed to get GOPATH")
-	}
-}
-
 func TestFindKindPath(t *testing.T) {
 	home := os.Getenv("HOME")
 	if home != "" {
-		cases := home + "/go/bin/kind"
+		cases := home + "/bin/kind"
 		kindPath, err := findKindPath()
 		if err != nil && kindPath != cases {
 			fmt.Println("failed to find kind")
