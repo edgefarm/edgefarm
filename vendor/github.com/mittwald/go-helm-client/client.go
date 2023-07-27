@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/api/errors"
+
 	"github.com/spf13/pflag"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
@@ -17,9 +19,9 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/downloader"
 	"helm.sh/helm/v3/pkg/getter"
+	"helm.sh/helm/v3/pkg/registry"
 	"helm.sh/helm/v3/pkg/release"
 	"helm.sh/helm/v3/pkg/repo"
-	"helm.sh/helm/v3/pkg/storage/driver"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -39,7 +41,7 @@ const (
 func New(options *Options) (Client, error) {
 	settings := cli.New()
 
-	err := setEnvSettings(options, settings)
+	err := setEnvSettings(&options, settings)
 	if err != nil {
 		return nil, err
 	}
@@ -47,18 +49,14 @@ func New(options *Options) (Client, error) {
 	return newClient(options, settings.RESTClientGetter(), settings)
 }
 
-// NewClientFromKubeConf returns a new Helm client constructed with the provided kubeconfig options
-func NewClientFromKubeConf(options *KubeConfClientOptions) (Client, error) {
+// NewClientFromKubeConf returns a new Helm client constructed with the provided kubeconfig & RESTClient (optional) options.
+func NewClientFromKubeConf(options *KubeConfClientOptions, restClientOpts ...RESTClientOption) (Client, error) {
 	settings := cli.New()
 	if options.KubeConfig == nil {
 		return nil, fmt.Errorf("kubeconfig missing")
 	}
 
-	clientGetter := NewRESTClientGetter(options.Namespace, options.KubeConfig, nil)
-	err := setEnvSettings(options.Options, settings)
-	if err != nil {
-		return nil, err
-	}
+	clientGetter := NewRESTClientGetter(options.Namespace, options.KubeConfig, nil, restClientOpts...)
 
 	if options.KubeContext != "" {
 		settings.KubeContext = options.KubeContext
@@ -67,23 +65,19 @@ func NewClientFromKubeConf(options *KubeConfClientOptions) (Client, error) {
 	return newClient(options.Options, clientGetter, settings)
 }
 
-// NewClientFromRestConf returns a new Helm client constructed with the provided REST config options
+// NewClientFromRestConf returns a new Helm client constructed with the provided REST config options.
 func NewClientFromRestConf(options *RestConfClientOptions) (Client, error) {
 	settings := cli.New()
 
 	clientGetter := NewRESTClientGetter(options.Namespace, nil, options.RestConfig)
 
-	err := setEnvSettings(options.Options, settings)
-	if err != nil {
-		return nil, err
-	}
-
 	return newClient(options.Options, clientGetter, settings)
 }
 
-// newClient returns a new Helm client via the provided options and REST config
+// newClient is used by both NewClientFromKubeConf and NewClientFromRestConf
+// and returns a new Helm client via the provided options and REST config.
 func newClient(options *Options, clientGetter genericclioptions.RESTClientGetter, settings *cli.EnvSettings) (Client, error) {
-	err := setEnvSettings(options, settings)
+	err := setEnvSettings(&options, settings)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +87,10 @@ func newClient(options *Options, clientGetter genericclioptions.RESTClientGetter
 		debugLog = func(format string, v ...interface{}) {
 			log.Printf(format, v...)
 		}
+	}
+
+	if options.Output == nil {
+		options.Output = os.Stdout
 	}
 
 	actionConfig := new(action.Configuration)
@@ -106,6 +104,15 @@ func newClient(options *Options, clientGetter genericclioptions.RESTClientGetter
 		return nil, err
 	}
 
+	registryClient, err := registry.NewClient(
+		registry.ClientOptDebug(settings.Debug),
+		registry.ClientOptCredentialsFile(settings.RegistryConfig),
+	)
+	if err != nil {
+		return nil, err
+	}
+	actionConfig.RegistryClient = registryClient
+
 	return &HelmClient{
 		Settings:     settings,
 		Providers:    getter.All(settings),
@@ -113,18 +120,21 @@ func newClient(options *Options, clientGetter genericclioptions.RESTClientGetter
 		ActionConfig: actionConfig,
 		linting:      options.Linting,
 		DebugLog:     debugLog,
+		output:       options.Output,
 	}, nil
 }
 
-// setEnvSettings sets the client's environment settings based on the provided client configuration
-func setEnvSettings(options *Options, settings *cli.EnvSettings) error {
-	if options == nil {
-		options = &Options{
+// setEnvSettings sets the client's environment settings based on the provided client configuration.
+func setEnvSettings(ppOptions **Options, settings *cli.EnvSettings) error {
+	if *ppOptions == nil {
+		*ppOptions = &Options{
 			RepositoryConfig: defaultRepositoryConfigPath,
 			RepositoryCache:  defaultCachePath,
 			Linting:          true,
 		}
 	}
+
+	options := *ppOptions
 
 	// set the namespace with this ugly workaround because cli.EnvSettings.namespace is private
 	// thank you helm!
@@ -146,13 +156,17 @@ func setEnvSettings(options *Options, settings *cli.EnvSettings) error {
 	}
 
 	settings.RepositoryCache = options.RepositoryCache
-	settings.RepositoryConfig = defaultRepositoryConfigPath
+	settings.RepositoryConfig = options.RepositoryConfig
 	settings.Debug = options.Debug
+
+	if options.RegistryConfig != "" {
+		settings.RegistryConfig = options.RegistryConfig
+	}
 
 	return nil
 }
 
-// AddOrUpdateChartRepo adds or updates the provided helm chart repository
+// AddOrUpdateChartRepo adds or updates the provided helm chart repository.
 func (c *HelmClient) AddOrUpdateChartRepo(entry repo.Entry) error {
 	chartRepo, err := repo.NewChartRepository(&entry, c.Providers)
 	if err != nil {
@@ -161,14 +175,16 @@ func (c *HelmClient) AddOrUpdateChartRepo(entry repo.Entry) error {
 
 	chartRepo.CachePath = c.Settings.RepositoryCache
 
-	_, err = chartRepo.DownloadIndexFile()
-	if err != nil {
-		return err
-	}
-
 	if c.storage.Has(entry.Name) {
 		c.DebugLog("WARNING: repository name %q already exists", entry.Name)
 		return nil
+	}
+
+	if !registry.IsOCI(entry.URL) {
+		_, err = chartRepo.DownloadIndexFile()
+		if err != nil {
+			return err
+		}
 	}
 
 	c.storage.Update(&entry)
@@ -180,7 +196,7 @@ func (c *HelmClient) AddOrUpdateChartRepo(entry repo.Entry) error {
 	return nil
 }
 
-// UpdateChartRepos updates the list of chart repositories stored in the client's cache
+// UpdateChartRepos updates the list of chart repositories stored in the client's cache.
 func (c *HelmClient) UpdateChartRepos() error {
 	for _, entry := range c.storage.Repositories {
 		chartRepo, err := repo.NewChartRepository(entry, c.Providers)
@@ -200,26 +216,43 @@ func (c *HelmClient) UpdateChartRepos() error {
 	return c.storage.WriteFile(c.Settings.RepositoryConfig, 0o644)
 }
 
-// InstallOrUpgradeChart triggers the installation of the provided
-// chart and returns the installed / upgraded release.
-// If the chart is already installed, trigger an upgrade instead.
-func (c *HelmClient) InstallOrUpgradeChart(ctx context.Context, spec *ChartSpec) (*release.Release, error) {
-	installed, err := c.chartIsInstalled(spec.ReleaseName)
+// InstallOrUpgradeChart installs or upgrades the provided chart and returns the corresponding release.
+// Namespace and other context is provided via the helmclient.Options struct when instantiating a client.
+func (c *HelmClient) InstallOrUpgradeChart(ctx context.Context, spec *ChartSpec, opts *GenericHelmOptions) (*release.Release, error) {
+	exists, err := c.chartExists(spec)
 	if err != nil {
 		return nil, err
 	}
 
-	if installed {
-		return c.upgrade(ctx, spec)
+	if exists {
+		return c.upgrade(ctx, spec, opts)
 	}
 
-	return c.install(spec)
+	return c.install(ctx, spec, opts)
+}
+
+// InstallChart installs the provided chart and returns the corresponding release.
+// Namespace and other context is provided via the helmclient.Options struct when instantiating a client.
+func (c *HelmClient) InstallChart(ctx context.Context, spec *ChartSpec, opts *GenericHelmOptions) (*release.Release, error) {
+	return c.install(ctx, spec, opts)
+}
+
+// UpgradeChart upgrades the provided chart and returns the corresponding release.
+// Namespace and other context is provided via the helmclient.Options struct when instantiating a client.
+func (c *HelmClient) UpgradeChart(ctx context.Context, spec *ChartSpec, opts *GenericHelmOptions) (*release.Release, error) {
+	return c.upgrade(ctx, spec, opts)
 }
 
 // ListDeployedReleases lists all deployed releases.
-// Namespace and other context is provided via the Options struct when instantiating a client.
+// Namespace and other context is provided via the helmclient.Options struct when instantiating a client.
 func (c *HelmClient) ListDeployedReleases() ([]*release.Release, error) {
-	return c.listDeployedReleases()
+	return c.listReleases(action.ListDeployed)
+}
+
+// ListReleasesByStateMask lists all releases filtered by stateMask.
+// Namespace and other context is provided via the helmclient.Options struct when instantiating a client.
+func (c *HelmClient) ListReleasesByStateMask(states action.ListStates) ([]*release.Release, error) {
+	return c.listReleases(states)
 }
 
 // GetReleaseValues returns the (optionally, all computed) values for the specified release.
@@ -232,10 +265,9 @@ func (c *HelmClient) GetRelease(name string) (*release.Release, error) {
 	return c.getRelease(name)
 }
 
-// RollbackRelease rollbacks a release to a specific version.
-// Specifying '0' as the value for 'version' will result in a rollback to the previous release version.
-func (c *HelmClient) RollbackRelease(spec *ChartSpec, version int) error {
-	return c.rollbackRelease(spec, version)
+// RollbackRelease implicitly rolls back a release to the last revision.
+func (c *HelmClient) RollbackRelease(spec *ChartSpec) error {
+	return c.rollbackRelease(spec)
 }
 
 // UninstallRelease uninstalls the provided release
@@ -248,16 +280,31 @@ func (c *HelmClient) UninstallReleaseByName(name string) error {
 	return c.uninstallReleaseByName(name)
 }
 
-// install lints and installs the provided chart
-func (c *HelmClient) install(spec *ChartSpec) (*release.Release, error) {
+// install installs the provided chart.
+// Optionally lints the chart if the linting flag is set.
+func (c *HelmClient) install(ctx context.Context, spec *ChartSpec, opts *GenericHelmOptions) (*release.Release, error) {
 	client := action.NewInstall(c.ActionConfig)
 	mergeInstallOptions(spec, client)
+
+	// NameAndChart returns either the TemplateName if set,
+	// the ReleaseName if set or the generatedName as the first return value.
+	releaseName, _, err := client.NameAndChart([]string{spec.ChartName})
+	if err != nil {
+		return nil, err
+	}
+	client.ReleaseName = releaseName
 
 	if client.Version == "" {
 		client.Version = ">0.0.0-0"
 	}
 
-	helmChart, chartPath, err := c.getChart(spec.ChartName, &client.ChartPathOptions)
+	if opts != nil {
+		if opts.PostRenderer != nil {
+			client.PostRenderer = opts.PostRenderer
+		}
+	}
+
+	helmChart, chartPath, err := c.GetChart(spec.ChartName, &client.ChartPathOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -270,27 +317,13 @@ func (c *HelmClient) install(spec *ChartSpec) (*release.Release, error) {
 		)
 	}
 
-	if req := helmChart.Metadata.Dependencies; req != nil {
-		if err := action.CheckDependencies(helmChart, req); err != nil {
-			if client.DependencyUpdate {
-				man := &downloader.Manager{
-					ChartPath:        chartPath,
-					Keyring:          client.ChartPathOptions.Keyring,
-					SkipUpdate:       false,
-					Getters:          c.Providers,
-					RepositoryConfig: c.Settings.RepositoryConfig,
-					RepositoryCache:  c.Settings.RepositoryCache,
-				}
-				if err := man.Update(); err != nil {
-					return nil, err
-				}
-			} else {
-				return nil, err
-			}
-		}
+	helmChart, err = updateDependencies(helmChart, &client.ChartPathOptions, chartPath, c, client.DependencyUpdate, spec)
+	if err != nil {
+		return nil, err
 	}
 
-	values, err := spec.GetValuesMap()
+	p := getter.All(c.Settings)
+	values, err := spec.GetValuesMap(p)
 	if err != nil {
 		return nil, err
 	}
@@ -302,37 +335,45 @@ func (c *HelmClient) install(spec *ChartSpec) (*release.Release, error) {
 		}
 	}
 
-	rel, err := client.Run(helmChart, values)
+	rel, err := client.RunWithContext(ctx, helmChart, values)
 	if err != nil {
 		return rel, err
 	}
 
-	c.DebugLog("release installed successfully: %s/%s-%s", rel.Name, rel.Name, rel.Chart.Metadata.Version)
+	c.DebugLog("release installed successfully: %s/%s-%s", rel.Name, rel.Chart.Metadata.Name, rel.Chart.Metadata.Version)
 
 	return rel, nil
 }
 
-// upgrade upgrades a chart and CRDs
-func (c *HelmClient) upgrade(ctx context.Context, spec *ChartSpec) (*release.Release, error) {
+// upgrade upgrades a chart and CRDs.
+// Optionally lints the chart if the linting flag is set.
+func (c *HelmClient) upgrade(ctx context.Context, spec *ChartSpec, opts *GenericHelmOptions) (*release.Release, error) {
 	client := action.NewUpgrade(c.ActionConfig)
 	mergeUpgradeOptions(spec, client)
+	client.Install = true
 
 	if client.Version == "" {
 		client.Version = ">0.0.0-0"
 	}
 
-	helmChart, chartPath, err := c.getChart(spec.ChartName, &client.ChartPathOptions)
+	if opts != nil {
+		if opts.PostRenderer != nil {
+			client.PostRenderer = opts.PostRenderer
+		}
+	}
+
+	helmChart, chartPath, err := c.GetChart(spec.ChartName, &client.ChartPathOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	if req := helmChart.Metadata.Dependencies; req != nil {
-		if err := action.CheckDependencies(helmChart, req); err != nil {
-			return nil, err
-		}
+	helmChart, err = updateDependencies(helmChart, &client.ChartPathOptions, chartPath, c, client.DependencyUpdate, spec)
+	if err != nil {
+		return nil, err
 	}
 
-	values, err := spec.GetValuesMap()
+	p := getter.All(c.Settings)
+	values, err := spec.GetValuesMap(p)
 	if err != nil {
 		return nil, err
 	}
@@ -352,17 +393,27 @@ func (c *HelmClient) upgrade(ctx context.Context, spec *ChartSpec) (*release.Rel
 		}
 	}
 
-	rel, err := client.Run(spec.ReleaseName, helmChart, values)
-	if err != nil {
-		return rel, err
+	upgradedRelease, upgradeErr := client.RunWithContext(ctx, spec.ReleaseName, helmChart, values)
+	if upgradeErr != nil {
+		resultErr := upgradeErr
+		if upgradedRelease == nil && opts != nil && opts.RollBack != nil {
+			rollbackErr := opts.RollBack.RollbackRelease(spec)
+			if rollbackErr != nil {
+				resultErr = fmt.Errorf("release failed, rollback failed: release error: %w, rollback error: %v", upgradeErr, rollbackErr)
+			} else {
+				resultErr = fmt.Errorf("release failed, rollback succeeded: release error: %w", upgradeErr)
+			}
+		}
+		c.DebugLog("release upgrade failed: %s", resultErr)
+		return nil, resultErr
 	}
 
-	c.DebugLog("release upgraded successfully: %s/%s-%s", rel.Name, rel.Name, rel.Chart.Metadata.Version)
+	c.DebugLog("release upgraded successfully: %s/%s-%s", upgradedRelease.Name, upgradedRelease.Chart.Metadata.Name, upgradedRelease.Chart.Metadata.Version)
 
-	return rel, nil
+	return upgradedRelease, nil
 }
 
-// uninstallRelease uninstalls the provided release
+// uninstallRelease uninstalls the provided release.
 func (c *HelmClient) uninstallRelease(spec *ChartSpec) error {
 	client := action.NewUninstall(c.ActionConfig)
 
@@ -392,7 +443,7 @@ func (c *HelmClient) uninstallReleaseByName(name string) error {
 	return nil
 }
 
-// lint lints a chart's values
+// lint lints a chart's values.
 func (c *HelmClient) lint(chartPath string, values map[string]interface{}) error {
 	client := action.NewLint()
 
@@ -409,23 +460,35 @@ func (c *HelmClient) lint(chartPath string, values map[string]interface{}) error
 	return nil
 }
 
-// TemplateChart returns a rendered version of the provided ChartSpec 'spec' by performing a "dry-run" install
-func (c *HelmClient) TemplateChart(spec *ChartSpec) ([]byte, error) {
+// TemplateChart returns a rendered version of the provided ChartSpec 'spec' by performing a "dry-run" install.
+func (c *HelmClient) TemplateChart(spec *ChartSpec, options *HelmTemplateOptions) ([]byte, error) {
 	client := action.NewInstall(c.ActionConfig)
 	mergeInstallOptions(spec, client)
 
 	client.DryRun = true
-	client.ReleaseName = "RELEASE-NAME"
+	client.ReleaseName = spec.ReleaseName
 	client.Replace = true // Skip the name check
 	client.ClientOnly = true
-	client.APIVersions = []string{}
 	client.IncludeCRDs = true
+
+	if options != nil {
+		client.KubeVersion = options.KubeVersion
+		client.APIVersions = options.APIVersions
+	}
+
+	// NameAndChart returns either the TemplateName if set,
+	// the ReleaseName if set or the generatedName as the first return value.
+	releaseName, _, err := client.NameAndChart([]string{spec.ChartName})
+	if err != nil {
+		return nil, err
+	}
+	client.ReleaseName = releaseName
 
 	if client.Version == "" {
 		client.Version = ">0.0.0-0"
 	}
 
-	helmChart, chartPath, err := c.getChart(spec.ChartName, &client.ChartPathOptions)
+	helmChart, chartPath, err := c.GetChart(spec.ChartName, &client.ChartPathOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -438,27 +501,13 @@ func (c *HelmClient) TemplateChart(spec *ChartSpec) ([]byte, error) {
 		)
 	}
 
-	if req := helmChart.Metadata.Dependencies; req != nil {
-		if err := action.CheckDependencies(helmChart, req); err != nil {
-			if client.DependencyUpdate {
-				man := &downloader.Manager{
-					ChartPath:        chartPath,
-					Keyring:          client.ChartPathOptions.Keyring,
-					SkipUpdate:       false,
-					Getters:          c.Providers,
-					RepositoryConfig: c.Settings.RepositoryConfig,
-					RepositoryCache:  c.Settings.RepositoryCache,
-				}
-				if err := man.Update(); err != nil {
-					return nil, err
-				}
-			} else {
-				return nil, err
-			}
-		}
+	helmChart, err = updateDependencies(helmChart, &client.ChartPathOptions, chartPath, c, client.DependencyUpdate, spec)
+	if err != nil {
+		return nil, err
 	}
 
-	values, err := spec.GetValuesMap()
+	p := getter.All(c.Settings)
+	values, err := spec.GetValuesMap(p)
 	if err != nil {
 		return nil, err
 	}
@@ -487,12 +536,15 @@ func (c *HelmClient) TemplateChart(spec *ChartSpec) ([]byte, error) {
 
 // LintChart fetches a chart using the provided ChartSpec 'spec' and lints it's values.
 func (c *HelmClient) LintChart(spec *ChartSpec) error {
-	_, chartPath, err := c.getChart(spec.ChartName, &action.ChartPathOptions{})
+	_, chartPath, err := c.GetChart(spec.ChartName, &action.ChartPathOptions{
+		Version: spec.Version,
+	})
 	if err != nil {
 		return err
 	}
 
-	values, err := spec.GetValuesMap()
+	p := getter.All(c.Settings)
+	values, err := spec.GetValuesMap(p)
 	if err != nil {
 		return err
 	}
@@ -515,7 +567,7 @@ func (c *HelmClient) ListReleaseHistory(name string, max int) ([]*release.Releas
 	return client.Run(name)
 }
 
-// upgradeCRDs upgrades the CRDs of the provided chart
+// upgradeCRDs upgrades the CRDs of the provided chart.
 func (c *HelmClient) upgradeCRDs(ctx context.Context, chartInstance *chart.Chart) error {
 	cfg, err := c.ActionConfig.RESTClientGetter.ToRESTConfig()
 	if err != nil {
@@ -537,6 +589,7 @@ func (c *HelmClient) upgradeCRDs(ctx context.Context, chartInstance *chart.Chart
 	return nil
 }
 
+// upgradeCRD upgrades the CRD 'crd' using the provided k8s client.
 func (c *HelmClient) upgradeCRD(ctx context.Context, k8sClient *clientset.Clientset, crd chart.CRD) error {
 	// use this ugly detour to parse the crdYaml to a CustomResourceDefinitions-Object because direct
 	// yaml-unmarshalling does not find the correct keys
@@ -561,13 +614,37 @@ func (c *HelmClient) upgradeCRD(ctx context.Context, k8sClient *clientset.Client
 	}
 }
 
+func (c *HelmClient) createCRDV1(ctx context.Context, cl *clientset.Clientset, crd *v1.CustomResourceDefinition) error {
+	if _, err := cl.ApiextensionsV1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
+		return err
+	}
+
+	c.DebugLog("create ran successful for CRD: %s", crd.Name)
+	return nil
+}
+
+func (c *HelmClient) createCRDV1Beta1(ctx context.Context, cl *clientset.Clientset, crd *v1beta1.CustomResourceDefinition) error {
+	if _, err := cl.ApiextensionsV1beta1().CustomResourceDefinitions().Create(ctx, crd, metav1.CreateOptions{}); err != nil {
+		return err
+	}
+
+	c.DebugLog("create ran successful for CRD: %s", crd.Name)
+	return nil
+}
+
+// upgradeCRDV1Beta1 upgrades a CRD of the v1beta1 API version using the provided k8s client and CRD yaml.
 func (c *HelmClient) upgradeCRDV1Beta1(ctx context.Context, cl *clientset.Clientset, rawCRD []byte) error {
 	var crdObj v1beta1.CustomResourceDefinition
 	if err := json.Unmarshal(rawCRD, &crdObj); err != nil {
 		return err
 	}
+
 	existingCRDObj, err := cl.ApiextensionsV1beta1().CustomResourceDefinitions().Get(ctx, crdObj.Name, metav1.GetOptions{})
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return c.createCRDV1Beta1(ctx, cl, &crdObj)
+		}
+
 		return err
 	}
 
@@ -613,6 +690,7 @@ func (c *HelmClient) upgradeCRDV1Beta1(ctx context.Context, cl *clientset.Client
 	return nil
 }
 
+// upgradeCRDV1Beta1 upgrades a CRD of the v1 API version using the provided k8s client and CRD yaml.
 func (c *HelmClient) upgradeCRDV1(ctx context.Context, cl *clientset.Clientset, rawCRD []byte) error {
 	var crdObj v1.CustomResourceDefinition
 	if err := json.Unmarshal(rawCRD, &crdObj); err != nil {
@@ -621,6 +699,10 @@ func (c *HelmClient) upgradeCRDV1(ctx context.Context, cl *clientset.Clientset, 
 
 	existingCRDObj, err := cl.ApiextensionsV1().CustomResourceDefinitions().Get(ctx, crdObj.Name, metav1.GetOptions{})
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return c.createCRDV1(ctx, cl, &crdObj)
+		}
+
 		return err
 	}
 
@@ -672,8 +754,8 @@ func (c *HelmClient) upgradeCRDV1(ctx context.Context, cl *clientset.Clientset, 
 	return nil
 }
 
-// getChart returns a chart matching the provided chart name and options
-func (c *HelmClient) getChart(chartName string, chartPathOptions *action.ChartPathOptions) (*chart.Chart, string, error) {
+// GetChart returns a chart matching the provided chart name and options.
+func (c *HelmClient) GetChart(chartName string, chartPathOptions *action.ChartPathOptions) (*chart.Chart, string, error) {
 	chartPath, err := chartPathOptions.LocateChart(chartName, c.Settings)
 	if err != nil {
 		return nil, "", err
@@ -691,22 +773,28 @@ func (c *HelmClient) getChart(chartName string, chartPathOptions *action.ChartPa
 	return helmChart, chartPath, err
 }
 
-// chartIsInstalled checks whether a chart is already installed or not by the provided release name
-func (c *HelmClient) chartIsInstalled(release string) (bool, error) {
-	if _, err := c.ListReleaseHistory(release, 1); err == driver.ErrReleaseNotFound {
-		return false, nil
-	} else if err != nil {
+// chartExists checks whether a chart is already installed
+// in a namespace or not based on the provided chart spec.
+// Note that this function only considers the contained chart name and namespace.
+func (c *HelmClient) chartExists(spec *ChartSpec) (bool, error) {
+	releases, err := c.listReleases(action.ListAll)
+	if err != nil {
 		return false, err
 	}
 
-	return true, nil
+	for _, r := range releases {
+		if r.Name == spec.ReleaseName && r.Namespace == spec.Namespace {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
-// listDeployedReleases lists all deployed helm releases
-func (c *HelmClient) listDeployedReleases() ([]*release.Release, error) {
+// listReleases lists all releases that match the given state.
+func (c *HelmClient) listReleases(state action.ListStates) ([]*release.Release, error) {
 	listClient := action.NewList(c.ActionConfig)
-
-	listClient.StateMask = action.ListDeployed
+	listClient.StateMask = state
 
 	return listClient.Run()
 }
@@ -728,19 +816,47 @@ func (c *HelmClient) getRelease(name string) (*release.Release, error) {
 	return getReleaseClient.Run(name)
 }
 
-// rollbackRelease rolls back a release matching the ChartSpec 'spec' to a specific version.
-// Specifying version = 0 will roll back a release to the latest revision.
-func (c *HelmClient) rollbackRelease(spec *ChartSpec, version int) error {
+// rollbackRelease implicitly rolls back a release to the last revision.
+func (c *HelmClient) rollbackRelease(spec *ChartSpec) error {
 	client := action.NewRollback(c.ActionConfig)
 
 	mergeRollbackOptions(spec, client)
 
-	client.Version = version
-
 	return client.Run(spec.ReleaseName)
 }
 
-// mergeRollbackOptions merges values of the provided chart to helm rollback options used by the client
+// updateDependencies checks dependencies for given helmChart and updates dependencies with metadata if dependencyUpdate is true. returns updated HelmChart
+func updateDependencies(helmChart *chart.Chart, chartPathOptions *action.ChartPathOptions, chartPath string, c *HelmClient, dependencyUpdate bool, spec *ChartSpec) (*chart.Chart, error) {
+	if req := helmChart.Metadata.Dependencies; req != nil {
+		if err := action.CheckDependencies(helmChart, req); err != nil {
+			if dependencyUpdate {
+				man := &downloader.Manager{
+					ChartPath:        chartPath,
+					Keyring:          chartPathOptions.Keyring,
+					SkipUpdate:       false,
+					Getters:          c.Providers,
+					RepositoryConfig: c.Settings.RepositoryConfig,
+					RepositoryCache:  c.Settings.RepositoryCache,
+					Out:              c.output,
+				}
+				if err := man.Update(); err != nil {
+					return nil, err
+				}
+
+				helmChart, _, err = c.GetChart(spec.ChartName, chartPathOptions)
+				if err != nil {
+					return nil, err
+				}
+
+			} else {
+				return nil, err
+			}
+		}
+	}
+	return helmChart, nil
+}
+
+// mergeRollbackOptions merges values of the provided chart to helm rollback options used by the client.
 func mergeRollbackOptions(chartSpec *ChartSpec, rollbackOptions *action.Rollback) {
 	rollbackOptions.DisableHooks = chartSpec.DisableHooks
 	rollbackOptions.DryRun = chartSpec.DryRun
@@ -750,10 +866,12 @@ func mergeRollbackOptions(chartSpec *ChartSpec, rollbackOptions *action.Rollback
 	rollbackOptions.MaxHistory = chartSpec.MaxHistory
 	rollbackOptions.Recreate = chartSpec.Recreate
 	rollbackOptions.Wait = chartSpec.Wait
+	rollbackOptions.WaitForJobs = chartSpec.WaitForJobs
 }
 
-// mergeInstallOptions merges values of the provided chart to helm install options used by the client
+// mergeInstallOptions merges values of the provided chart to helm install options used by the client.
 func mergeInstallOptions(chartSpec *ChartSpec, installOptions *action.Install) {
+	installOptions.CreateNamespace = chartSpec.CreateNamespace
 	installOptions.DisableHooks = chartSpec.DisableHooks
 	installOptions.Replace = chartSpec.Replace
 	installOptions.Wait = chartSpec.Wait
@@ -768,14 +886,16 @@ func mergeInstallOptions(chartSpec *ChartSpec, installOptions *action.Install) {
 	installOptions.SkipCRDs = chartSpec.SkipCRDs
 	installOptions.DryRun = chartSpec.DryRun
 	installOptions.SubNotes = chartSpec.SubNotes
+	installOptions.WaitForJobs = chartSpec.WaitForJobs
 }
 
-// mergeUpgradeOptions merges values of the provided chart to helm upgrade options used by the client
+// mergeUpgradeOptions merges values of the provided chart to helm upgrade options used by the client.
 func mergeUpgradeOptions(chartSpec *ChartSpec, upgradeOptions *action.Upgrade) {
 	upgradeOptions.Version = chartSpec.Version
 	upgradeOptions.Namespace = chartSpec.Namespace
 	upgradeOptions.Timeout = chartSpec.Timeout
 	upgradeOptions.Wait = chartSpec.Wait
+	upgradeOptions.DependencyUpdate = chartSpec.DependencyUpdate
 	upgradeOptions.DisableHooks = chartSpec.DisableHooks
 	upgradeOptions.Force = chartSpec.Force
 	upgradeOptions.ResetValues = chartSpec.ResetValues
@@ -786,10 +906,15 @@ func mergeUpgradeOptions(chartSpec *ChartSpec, upgradeOptions *action.Upgrade) {
 	upgradeOptions.CleanupOnFail = chartSpec.CleanupOnFail
 	upgradeOptions.DryRun = chartSpec.DryRun
 	upgradeOptions.SubNotes = chartSpec.SubNotes
+	upgradeOptions.WaitForJobs = chartSpec.WaitForJobs
 }
 
-// mergeUninstallReleaseOptions merges values of the provided chart to helm uninstall options used by the client
+// mergeUninstallReleaseOptions merges values of the provided chart to helm uninstall options used by the client.
 func mergeUninstallReleaseOptions(chartSpec *ChartSpec, uninstallReleaseOptions *action.Uninstall) {
 	uninstallReleaseOptions.DisableHooks = chartSpec.DisableHooks
 	uninstallReleaseOptions.Timeout = chartSpec.Timeout
+	uninstallReleaseOptions.DryRun = chartSpec.DryRun
+	uninstallReleaseOptions.Description = chartSpec.Description
+	uninstallReleaseOptions.KeepHistory = chartSpec.KeepHistory
+	uninstallReleaseOptions.Wait = chartSpec.Wait
 }
