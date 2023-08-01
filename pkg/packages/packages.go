@@ -48,7 +48,7 @@ type Packages struct {
 }
 
 var (
-	Bootstrap = []Packages{
+	ClusterBootstrap = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -75,9 +75,47 @@ var (
 		},
 	}
 
-	Dependencies = []Packages{
+	ClusterDependencies = []Packages{
 		{
 			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "ingress-nginx",
+						URL:  "https://kubernetes.github.io/ingress-nginx",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "ingress-nginx",
+								ChartName:   "ingress-nginx/ingress-nginx",
+								Namespace:   "ingress-nginx",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Version:     "4.7.1",
+								Timeout:     time.Second * 300,
+								ValuesYaml: `controller:
+  extraArgs:
+    publish-status-address: "localhost"
+  publishService:
+    enabled: false
+  watchIngressWithoutClass: true
+  terminationGracePeriodSeconds: 0
+  nodeSelector:
+    ingress-ready: "true"
+  service:
+    internal:
+      enabled: false
+    type: "NodePort"
+    nodePorts:
+      http: 32080
+      https: 32443
+  hostPort:
+    enabled: true`,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
 				{
 					Repo: &repo.Entry{
 						Name: "cert-manager",
@@ -114,10 +152,9 @@ var (
 								Version:     "1.12.2",
 								Wait:        true,
 								Timeout:     time.Second * 300,
-								ValuesYaml: `
-args:
-- --enable-composition-functions
-- --debug
+								ValuesYaml: `args:
+  - --enable-composition-functions
+  - --debug
 resourcesCrossplane:
   limits:
     cpu: 100m
@@ -135,14 +172,14 @@ resourcesRBACManager:
 xfn:
   enabled: true
   args:
-  - --debug
+    - --debug
   resources:
-    limits:
-      cpu: 500m
-      memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi`,
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi`,
 							},
 						},
 						CreateNamespace: true,
@@ -262,6 +299,32 @@ xfn:
 								Namespace:   "edgefarm-applications",
 								UpgradeCRDs: true,
 								Version:     "1.0.0-beta.27",
+								Wait:        true,
+								Timeout:     time.Second * 300,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
+			},
+		},
+	}
+
+	Monitor = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "edgefarm-monitor",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "edgefarm-monitor",
+								ChartName:   "oci://ghcr.io/edgefarm/edgefarm.monitor/edgefarm-monitor",
+								Namespace:   "edgefarm-monitor",
+								UpgradeCRDs: true,
+								Version:     "1.0.0-beta.14 ",
 								Wait:        true,
 								Timeout:     time.Second * 300,
 							},
@@ -404,7 +467,7 @@ func InstallBase() error {
 }
 
 func InstallDependencies() error {
-	for _, pkg := range Dependencies {
+	for _, pkg := range ClusterDependencies {
 		if err := pkg.Install(); err != nil {
 			return err
 		}
@@ -475,7 +538,7 @@ func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 }
 
 func InstallAndWaitBootstrap() error {
-	for _, pkg := range Bootstrap {
+	for _, pkg := range ClusterBootstrap {
 		if err := pkg.Install(); err != nil {
 			return err
 		}

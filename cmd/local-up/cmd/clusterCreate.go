@@ -135,7 +135,6 @@ type portMappings struct {
 	HostApiServerPort    int
 	HostNatsPort         int
 	HostNatsLeafnodePort int
-	HostVaultPort        int
 	HostHttpPort         int
 	HostHttpsPort        int
 }
@@ -157,20 +156,22 @@ func newKindOptions() *kindOptions {
 			HostApiServerPort:    6443,
 			HostNatsPort:         4222,
 			HostNatsLeafnodePort: 7422,
-			HostVaultPort:        8200,
-			HostHttpPort:         8080,
-			HostHttpsPort:        8443,
+			HostHttpPort:         80,
+			HostHttpsPort:        443,
 		},
 	}
 }
 
 func checkFreePort(port int) bool {
-	ln, err := net.Listen("tcp", ":"+fmt.Sprintf("%d", port))
+	timeout := time.Second
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", fmt.Sprintf("%d", port)), timeout)
 	if err != nil {
-		fmt.Println(err)
+		return true
+	}
+	if conn != nil {
+		conn.Close()
 		return false
 	}
-	defer ln.Close()
 	return true
 }
 
@@ -192,9 +193,6 @@ func (o *kindOptions) Validate() error {
 	}
 	if !checkFreePort(o.PortMappings.HostNatsLeafnodePort) {
 		return fmt.Errorf("port %d is already used", o.PortMappings.HostNatsLeafnodePort)
-	}
-	if !checkFreePort(o.PortMappings.HostVaultPort) {
-		return fmt.Errorf("port %d is already used", o.PortMappings.HostVaultPort)
 	}
 	if !checkFreePort(o.PortMappings.HostHttpPort) {
 		return fmt.Errorf("port %d is already used", o.PortMappings.HostHttpPort)
@@ -265,7 +263,6 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&o.EdgeNodesNum, "edge-node-num", o.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
 	flagset.StringVar(&o.KubeConfig, "kube-config", o.KubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 	flagset.IntVar(&o.PortMappings.HostApiServerPort, "host-api-server-port", o.PortMappings.HostApiServerPort, "Specify the port of host api server.")
-	flagset.IntVar(&o.PortMappings.HostVaultPort, "host-vault-port", o.PortMappings.HostVaultPort, "Specify the port of vault to be mapped to.")
 	flagset.IntVar(&o.PortMappings.HostNatsPort, "host-nats-port", o.PortMappings.HostNatsPort, "Specify the port of nats to be mapped to.")
 	flagset.IntVar(&o.PortMappings.HostNatsLeafnodePort, "host-nats-leafnode-port", o.PortMappings.HostNatsLeafnodePort, "Specify the port of nats leafnode to be mapped to.")
 	flagset.IntVar(&o.PortMappings.HostHttpPort, "host-http-port", o.PortMappings.HostHttpPort, "Specify the port of http server to be mapped to.")
@@ -338,7 +335,7 @@ func (ki *Initializer) Run() error {
 	}
 
 	klog.Infof("Deploy cluster bootstrap packages")
-	if err := packages.Install(packages.Bootstrap); err != nil {
+	if err := packages.Install(packages.ClusterBootstrap); err != nil {
 		return err
 	}
 
@@ -367,8 +364,8 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	klog.Infof("Deploy cluster dependency packages")
-	if err := packages.Install(packages.Dependencies); err != nil {
+	klog.Infof("Deploy cluster dependencies")
+	if err := packages.Install(packages.ClusterDependencies); err != nil {
 		return err
 	}
 
@@ -384,6 +381,11 @@ func (ki *Initializer) Run() error {
 
 	klog.Infof("Deploy edgefarm applications packages")
 	if err := packages.Install(packages.Applications); err != nil {
+		return err
+	}
+
+	klog.Infof("Deploy edgefarm monitor packages")
+	if err := packages.Install(packages.Monitor); err != nil {
 		return err
 	}
 
@@ -448,7 +450,6 @@ func (ki *Initializer) prepareKindConfigFile(kindConfigPath string) error {
 			"kind_node_image":         ki.NodeImage,
 			"host_nats_port":          fmt.Sprintf("%d", ki.PortMappings.HostNatsPort),
 			"host_nats_leafnode_port": fmt.Sprintf("%d", ki.PortMappings.HostNatsLeafnodePort),
-			"host_vault_port":         fmt.Sprintf("%d", ki.PortMappings.HostVaultPort),
 			"host_http_port":          fmt.Sprintf("%d", ki.PortMappings.HostHttpPort),
 			"host_https_port":         fmt.Sprintf("%d", ki.PortMappings.HostHttpsPort),
 		})
