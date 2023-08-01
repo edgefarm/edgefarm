@@ -109,8 +109,8 @@ const (
 kind: NodePool
 metadata: 
   labels: 
-  monitor.edgefarm.io/metrics: default
-  openyurt.io/node-pool-type: edge
+	monitor.edgefarm.io/metrics: default
+	openyurt.io/node-pool-type: edge
   name: {{.Name}}
 spec: 
   selector: 

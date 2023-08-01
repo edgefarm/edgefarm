@@ -36,6 +36,10 @@ nodes:
       hostPort: {{.host_nats_port}}
     - containerPort: 7422
       hostPort: {{.host_nats_leafnode_port}}
+    - containerPort: 80
+      hostPort: {{.host_http_port}}
+    - containerPort: 443
+      hostPort: {{.host_https_port}}
     labels:
       ingress-ready: "true"`
 
