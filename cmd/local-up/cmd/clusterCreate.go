@@ -92,7 +92,7 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a loacl edgefarm cluster",
+		Short: "Create a local edgefarm cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := o.Validate(); err != nil {
 				return err

@@ -35,7 +35,6 @@ var (
 var localDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a local edgefarm cluster",
-	Long:  `Delete a local edgefarm cluster`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Deleting local edgefarm cluster")
 		ki := kindoperator.NewKindOperator("", kubeConfig)
