@@ -25,13 +25,25 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "VERSION=${nextRelease.version} GO_ARCH=amd64 make build"
+        "prepareCmd": "VERSION=${nextRelease.version} GO_OS=linux GO_ARCH=amd64 make build"
       }
     ],
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "VERSION=${nextRelease.version} GO_ARCH=arm64 make build"
+        "prepareCmd": "VERSION=${nextRelease.version} GO_OS=linux GO_ARCH=arm64 make build"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "VERSION=${nextRelease.version} GO_OS=darwin GO_ARCH=amd64 make build"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "VERSION=${nextRelease.version} GO_OS=darwin GO_ARCH=arm64 make build"
       }
     ],
     "@semantic-release/release-notes-generator",
@@ -42,12 +54,20 @@
         "failTitle": false,
         "assets": [
           {
-            "path": "dist/local-up-amd64",
-            "label": "local-up-amd64"
+            "path": "dist/local-up-linux-amd64",
+            "label": "local-up-linux-amd64"
           },
           {
-            "path": "dist/local-up-arm64",
-            "label": "local-up-arm64"
+            "path": "dist/local-up-linux-arm64",
+            "label": "local-up-linux-arm64"
+          },
+          {
+            "path": "dist/local-up-darwin-amd64",
+            "label": "local-up-darwin-amd64"
+          },
+          {
+            "path": "dist/local-up-darwin-arm64",
+            "label": "local-up-darwin-arm64"
           }
         ]
       }

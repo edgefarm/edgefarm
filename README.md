@@ -77,7 +77,7 @@ Time to get the cluster rolling! Execute these commands:
 
 ```console
 # This step is gonna take a minute, because we're creating a full-blown Kubernetes cluster. So, hang tight and let it do its thing!
-$ ./local-up-amd64 cluster create
+$ ./local-up-linux-amd64 cluster create
 
 # Once it's all set, fire up `kubectl` and give the cluster a quick check to see if it's ready to roll.
 $ kubectl get nodes
