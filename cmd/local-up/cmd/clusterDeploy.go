@@ -20,7 +20,9 @@ package cmd
 // 	"io"
 // 	"os"
 
+// 	"github.com/edgefarm/edgefarm/pkg/k8s"
 // 	"github.com/spf13/cobra"
+// 	"k8s.io/klog/v2"
 // )
 
 // func NewDeployCommand(out io.Writer) *cobra.Command {
@@ -44,6 +46,11 @@ package cmd
 // }
 
 // func Run() error {
+
+// 	// klog.Infof("Prepare edge nodes")
+// 	// if err := k8s.PrepareEdgeNodes(); err != nil {
+// 	// 	return err
+// 	// }
 // 	// klog.Infof("Deploy cluster initial packages")
 // 	// if err := packages.Install(packages.Init); err != nil {
 // 	// 	return err
@@ -60,7 +67,7 @@ package cmd
 // 	// }
 
 // 	// klog.Infof("Deploy cluster dependencies packages")
-// 	// if err := packages.Install(packages.Dependencies); err != nil {
+// 	// if err := packages.Install(packages.ClusterDependencies); err != nil {
 // 	// 	return err
 // 	// }
 
