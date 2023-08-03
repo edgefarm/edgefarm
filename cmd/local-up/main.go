@@ -16,8 +16,20 @@ limitations under the License.
 
 package main
 
-import "github.com/edgefarm/edgefarm/cmd/local-up/cmd"
+import (
+	"fmt"
+
+	"github.com/edgefarm/edgefarm/cmd/local-up/cmd"
+	"github.com/edgefarm/edgefarm/pkg/selfupdate"
+)
 
 func main() {
+	current, latest, new, err := selfupdate.CheckNewVersion()
+	if err != nil {
+		fmt.Println(err)
+	}
+	if new {
+		selfupdate.InformAboutNewVersion(current, latest)
+	}
 	cmd.Execute()
 }
