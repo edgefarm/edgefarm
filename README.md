@@ -68,7 +68,7 @@ If you're planning to run EdgeFarm in a real production setup, you gotta stick t
 Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command:
 
 ```console
-curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/setup-script/install.sh | sh -s -- -b ~/bin
+curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin
 ```
 
 Once you've got everything set up, go ahead and run that `local-up` tool! Enjoy exploring EdgeFarm!
