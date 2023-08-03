@@ -83,7 +83,7 @@ To delete the local cluster again run
 local-up cluster delete
 ```
 
-# Quick Start
+# ⏰ Quick Start
 
 Here's the deal: The `local-up` tool will hook you up with an awesome local EdgeFarm cluster running on [kind](https://kind.sigs.k8s.io/). The whole thing will be popping up in a docker environment, and all those EdgeFarm goodies will be deployed right there. You'll even get two virtual edge nodes, going by the names of `edgefarm-worker2` and `edgefarm-worker3`, and they'll act just like the real deal edge nodes. How cool is that?!
 
