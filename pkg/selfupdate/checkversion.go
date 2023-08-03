@@ -38,5 +38,5 @@ func InformAboutNewVersion(current, latest string) {
 	c.Printf("Current version is '%s'. A new version is available (%s). Please consider updating to the latest version.\n", current, latest)
 	c.Printf("Go to https://github.com/edgefarm/edgefarm/releases/latest to download the latest version.\n\n")
 	c.Printf("You can also use the following command to update to the latest version:\n")
-	c.Printf("curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/setup-script/install.sh | sh -s -- -b ~/bin\n\n")
+	c.Printf("curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin\n\n")
 }
