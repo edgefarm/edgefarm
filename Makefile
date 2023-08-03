@@ -1,7 +1,7 @@
 NAME = local-up
 BIN_DIR ?= dist
 VERSION ?= $(shell git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty)
-GO_LDFLAGS = -gcflags "all=-N -l" -ldflags '-extldflags "-static"' -ldflags "-X github.com/edgefarm/edgefarm/cmd/local-up/cmd.version=$(VERSION)"
+GO_LDFLAGS = -gcflags "all=-N -l" -ldflags '-extldflags "-static"' -ldflags "-X github.com/edgefarm/edgefarm/cmd/local-up/cmd.Version=$(VERSION)"
 GO_ARCH ?= amd64
 GO_OS ?= linux
 

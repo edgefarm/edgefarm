@@ -22,7 +22,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "dev"
+const (
+	DevVersion = "dev"
+)
+
+// Version gets overwritten by the linker during build
+var Version = DevVersion
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -31,7 +36,7 @@ var versionCmd = &cobra.Command{
 
 This command displays version information for the local-up tool.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("local-up version %s\n", version)
+		fmt.Printf("local-up version %s\n", Version)
 	},
 }
 
