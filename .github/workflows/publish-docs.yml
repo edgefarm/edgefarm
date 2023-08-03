@@ -25,7 +25,7 @@ jobs:
           echo "BASE=$(cat base.txt)" >> $GITHUB_ENV
           echo "CURRENT_BRANCH=$(cat current-branch.txt)" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -40,7 +40,7 @@ jobs:
     needs: check_paths
     if: needs.check_paths.outputs.docs_changed == 'true'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
