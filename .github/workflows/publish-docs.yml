@@ -41,7 +41,7 @@ jobs:
     if: needs.check_paths.outputs.docs_changed == 'true'
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.x
       - run: pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-glightbox
