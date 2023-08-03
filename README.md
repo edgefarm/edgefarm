@@ -65,7 +65,7 @@ Overall, being able to write edge software just like cloud software for your Kub
 
 If you're planning to run EdgeFarm in a real production setup, you gotta stick to the [installation guide](TODO). But, if you just wanna give it a try it out, no worries! Just grab the `local-up` tool and give it a shot locally. Have fun experimenting!
 
-Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command:
+Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command. This will install `local-up` in `$HOME/bin`. 
 
 ```console
 curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin
@@ -75,6 +75,12 @@ Once you've got everything set up, go ahead and run that `local-up` tool! Enjoy 
 
 ```console
 local-up cluster create
+```
+
+To delete the local cluster again run
+  
+```console
+local-up cluster delete
 ```
 
 # Quick Start
@@ -151,22 +157,6 @@ $ kubectl port-forward service/example-consumer 5006:5006
 ```
 
 No sweat at all! Getting the EdgeFarm cluster up and running was a walk in the park. Your local machine is now rocking with a fully functional EdgeFarm cluster, piece of cake!
-
-## 🎯 Installation
-
-If you're planning to run EdgeFarm in a real production setup, you gotta stick to the [installation guide](TODO). But, if you just wanna give it a try it out, no worries! Just grab the `local-up` tool and give it a shot locally. Have fun experimenting!
-
-Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command:
-
-```console
-curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin
-```
-
-Once you've got everything set up, go ahead and run that `local-up` tool! Enjoy exploring EdgeFarm!
-
-```console
-local-up cluster create
-```
 
 # 💡 Usage
 
