@@ -19,7 +19,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/edgefarm/edgefarm">
-    <img src="https://github.com/edgefarm/edgefarm/raw/beta/.images/EdgefarmLogoWithText.png" alt="Logo" height="112">
+    <img src="https://github.com/edgefarm/edgefarm/raw/main/.images/EdgefarmLogoWithText.png" alt="Logo" height="112">
   </a>
 
   <h2 align="center">edgefarm</h2>
@@ -61,6 +61,22 @@ It would be absolutely fantastic! Imagine being able to write edge software with
 
 Overall, being able to write edge software just like cloud software for your Kubernetes-based cloud backend empowers you with unmatched freedom, efficiency, and adaptability. It's a game-changer that opens up exciting possibilities for your edge infrastructure!
 
+## 🎯 Installation
+
+If you're planning to run EdgeFarm in a real production setup, you gotta stick to the [installation guide](TODO). But, if you just wanna give it a try it out, no worries! Just grab the `local-up` tool and give it a shot locally. Have fun experimenting!
+
+Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command:
+
+```console
+curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/setup-script/install.sh | sh -s -- -b ~/bin
+```
+
+Once you've got everything set up, go ahead and run that `local-up` tool! Enjoy exploring EdgeFarm!
+
+```console
+local-up cluster create
+```
+
 # Quick Start
 
 Here's the deal: The `local-up` tool will hook you up with an awesome local EdgeFarm cluster running on [kind](https://kind.sigs.k8s.io/). The whole thing will be popping up in a docker environment, and all those EdgeFarm goodies will be deployed right there. You'll even get two virtual edge nodes, going by the names of `edgefarm-worker2` and `edgefarm-worker3`, and they'll act just like the real deal edge nodes. How cool is that?!
@@ -69,7 +85,7 @@ Before you move on, make sure you've got the following stuff installed:
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [docker](https://docs.docker.com/get-docker/)
-- [kind](https://kind.sigs.k8s.io/)
+- [kind v0.20.0](https://github.com/kubernetes-sigs/kind/releases/tag/v0.20.0)
 
 Hop over to [releases](https://github.com/edgefarm/edgefarm/releases) and grab the freshest release of the EdgeFarm `local-up` binary for your operating system.
 
@@ -100,6 +116,8 @@ service/example-consumer created
 ```
 
 What next? We're gonna deploy the example producer on an edge node, and the consumer will kick it on a cloud node. It's gonna be a perfect match!
+The producer creates simulated sensor data and sends it over to the consumer using EdgeFarm.network. The consumer then displays the data in a browser.
+
 You're the boss now! Label the right node pool to run that edge application. Show 'em who's in charge!
 
 ```console
@@ -134,31 +152,29 @@ $ kubectl port-forward service/example-consumer 5006:5006
 
 No sweat at all! Getting the EdgeFarm cluster up and running was a walk in the park. Your local machine is now rocking with a fully functional EdgeFarm cluster, piece of cake!
 
-## ⚙️ Configuration
-
 ## 🎯 Installation
 
-TODO
+If you're planning to run EdgeFarm in a real production setup, you gotta stick to the [installation guide](TODO). But, if you just wanna give it a try it out, no worries! Just grab the `local-up` tool and give it a shot locally. Have fun experimenting!
 
-## 🧪 Testing
+Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command:
 
-TODO
+```console
+curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin
+```
+
+Once you've got everything set up, go ahead and run that `local-up` tool! Enjoy exploring EdgeFarm!
+
+```console
+local-up cluster create
+```
 
 # 💡 Usage
 
-TODO
+Follow the [docs](edgefarm.github.io/edgefarm) to learn how to use EdgeFarm.
 
 # 📖 Examples
 
-TODO
-
-# 🐞 Debugging
-
-TODO
-
-# 📜 History
-
-TODO
+See [examples](https://github.com/edgefarm/edgefarm/tree/main/examples) for more examples.
 
 # 🤝🏽 Contributing
 
@@ -169,7 +185,3 @@ Code contributions are very much **welcome** 🔥🚀
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature")
 4. Push to the Branch (`git push origin AmazingFeature`)
 5. Open a Pull Request targetting the `beta` branch.
-
-# 🫶 Acknowledgements
-
-TODO

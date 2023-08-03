@@ -1,0 +1,1 @@
+Images can be loaded and edited via draw.io
