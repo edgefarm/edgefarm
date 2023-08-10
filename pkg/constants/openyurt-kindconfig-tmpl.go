@@ -27,19 +27,26 @@ nodes:
     image: {{.kind_node_image}}
     extraPortMappings:
     - containerPort: 6443
-      hostPort: {{.host_api_server_port}}`
+      hostPort: {{.host_api_server_port}}
+    - containerPort: 6555
+      hostPort: 6555
+      listenAddress: "0.0.0.0"`
 
 	KindWorkerRole = `  - role: worker
     image: {{.kind_node_image}}
     extraPortMappings:
     - containerPort: 4222
       hostPort: {{.host_nats_port}}
+      listenAddress: "0.0.0.0"
     - containerPort: 7422
       hostPort: {{.host_nats_leafnode_port}}
+      listenAddress: "0.0.0.0"
     - containerPort: 80
       hostPort: {{.host_http_port}}
+      listenAddress: "0.0.0.0"
     - containerPort: 443
       hostPort: {{.host_https_port}}
+      listenAddress: "0.0.0.0"
     labels:
       ingress-ready: "true"`
 

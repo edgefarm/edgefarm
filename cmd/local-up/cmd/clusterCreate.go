@@ -45,6 +45,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/packages"
+	"github.com/edgefarm/edgefarm/pkg/route"
 )
 
 var (
@@ -259,6 +260,14 @@ func (o *kindOptions) Config() *initializerConfig {
 	}
 }
 
+var (
+	skipApplications        bool
+	skipNetwork             bool
+	skipMonitor             bool
+	skipClusterDependencies bool
+	skipBase                bool
+)
+
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&o.EdgeNodesNum, "edge-node-num", o.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
 	flagset.StringVar(&o.KubeConfig, "kube-config", o.KubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
@@ -267,6 +276,12 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&o.PortMappings.HostNatsLeafnodePort, "host-nats-leafnode-port", o.PortMappings.HostNatsLeafnodePort, "Specify the port of nats leafnode to be mapped to.")
 	flagset.IntVar(&o.PortMappings.HostHttpPort, "host-http-port", o.PortMappings.HostHttpPort, "Specify the port of http server to be mapped to.")
 	flagset.IntVar(&o.PortMappings.HostHttpsPort, "host-https-port", o.PortMappings.HostHttpsPort, "Specify the port of https server to be mapped to.")
+	flagset.BoolVar(&skipApplications, "skip-applications", false, "Skip installing edgefarm.applications.")
+	flagset.BoolVar(&skipNetwork, "skip-network", false, "Skip installing edgefarm.network.")
+	flagset.BoolVar(&skipMonitor, "skip-monitor", false, "Skip installing edgefarm.monitor.")
+	flagset.BoolVar(&skipClusterDependencies, "skip-cluster-dependencies", false, "Skip installing edgefarm.cluster-dependencies.")
+	flagset.BoolVar(&skipBase, "skip-base", false, "Skip installing base packages for edgefarm.")
+	flagset.StringVar(&route.Interface, "interface", "", "Network interface to connect to physical edge nodes. This is probably the same interface that is used to connect to the internet. If unset, defaults to the first default routes' interface.")
 }
 
 type initializerConfig struct {
@@ -333,9 +348,8 @@ func (ki *Initializer) Run() error {
 	if err != nil {
 		return err
 	}
-
-	klog.Infof("Deploy cluster bootstrap packages")
-	if err := packages.Install(packages.ClusterBootstrap); err != nil {
+	klog.Infof("Deploy cluster bootstrap stage 1 packages")
+	if err := packages.InstallAndWaitBootstrapStage1(); err != nil {
 		return err
 	}
 
@@ -354,39 +368,49 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	klog.Infof("Patch coredns for edgefarm")
-	if err := k8s.PatchCoreDNSDeployment(); err != nil {
-		return err
-	}
-
 	klog.Infof("Prepare edge nodes")
 	if err := k8s.PrepareEdgeNodes(); err != nil {
 		return err
 	}
 
-	klog.Infof("Deploy cluster dependencies")
-	if err := packages.Install(packages.ClusterDependencies); err != nil {
+	klog.Infof("Deploy cluster bootstrap stage 2 packages")
+	if err := packages.Install(packages.ClusterBootstrapStage2); err != nil {
 		return err
 	}
 
-	klog.Infof("Deploy edgefarm base packages")
-	if err := packages.Install(packages.Base); err != nil {
-		return err
+	if !skipClusterDependencies {
+		klog.Infof("Deploy cluster dependencies")
+		if err := packages.Install(packages.ClusterDependencies); err != nil {
+			return err
+		}
 	}
 
-	klog.Infof("Deploy edgefarm network packages")
-	if err := packages.Install(packages.Network); err != nil {
-		return err
+	if !skipBase {
+		klog.Infof("Deploy edgefarm base packages")
+		if err := packages.Install(packages.Base); err != nil {
+			return err
+		}
 	}
 
-	klog.Infof("Deploy edgefarm applications packages")
-	if err := packages.Install(packages.Applications); err != nil {
-		return err
+	if !skipNetwork {
+		klog.Infof("Deploy edgefarm network packages")
+		if err := packages.Install(packages.Network); err != nil {
+			return err
+		}
 	}
 
-	klog.Infof("Deploy edgefarm monitor packages")
-	if err := packages.Install(packages.Monitor); err != nil {
-		return err
+	if !skipApplications {
+		klog.Infof("Deploy edgefarm applications packages")
+		if err := packages.Install(packages.Applications); err != nil {
+			return err
+		}
+	}
+
+	if !skipMonitor {
+		klog.Infof("Deploy edgefarm monitor packages")
+		if err := packages.Install(packages.Monitor); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -531,32 +555,6 @@ func (ki *Initializer) configureAddons() error {
 }
 
 func (ki *Initializer) configureCoreDnsAddon() error {
-	dp, err := ki.kubeClient.AppsV1().Deployments("kube-system").Get(context.TODO(), "coredns", metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-
-	if dp != nil {
-		nodeList, err := ki.kubeClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
-		if err != nil {
-			return err
-		} else if nodeList == nil {
-			return fmt.Errorf("failed to list nodes")
-		}
-
-		if dp.Spec.Replicas == nil || len(nodeList.Items) != int(*dp.Spec.Replicas) {
-			replicas := int32(len(nodeList.Items))
-			dp.Spec.Replicas = &replicas
-		}
-
-		dp.Spec.Template.Spec.HostNetwork = true
-
-		_, err = ki.kubeClient.AppsV1().Deployments("kube-system").Update(context.TODO(), dp, metav1.UpdateOptions{})
-		if err != nil {
-			return err
-		}
-	}
-
 	// configure hostname service topology for kube-dns service
 	svc, err := ki.kubeClient.CoreV1().Services("kube-system").Get(context.TODO(), "kube-dns", metav1.GetOptions{})
 	if err != nil {

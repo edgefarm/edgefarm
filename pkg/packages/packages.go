@@ -31,6 +31,7 @@ import (
 	"tideland.dev/go/wait"
 
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	"github.com/edgefarm/edgefarm/pkg/route"
 )
 
 type Spec struct {
@@ -48,24 +49,82 @@ type Packages struct {
 }
 
 var (
-	ClusterBootstrap = []Packages{
+	ClusterBootstrapFlannel = []Packages{
 		{
 			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
 						Name: "flannel",
-						URL:  "https://flannel-io.github.io/flannel/",
+						// URL:  "https://flannel-io.github.io/flannel/",
 					},
 					Spec: &Spec{
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "flannel",
-								ChartName:   "flannel/flannel",
+								ChartName:   "/home/armin/edgefarm/helm-charts/charts/kube-flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "v0.22.0",
+								Version:     "v0.22.1",
 								Timeout:     time.Second * 90,
+								ValuesYaml: `flannel:
+  command:
+  - "bash"
+  - "-c"
+  - "/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$c; fi; sleep 5; done"
+  args: []`,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
+			},
+		},
+	}
+
+	ClusterBootstrapStage2 = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "headscale",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "headscale",
+								ChartName:   "/home/armin/edgefarm/helm-charts/charts/headscale",
+								Namespace:   "vpn",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Version:     "1.2.0",
+								Timeout:     time.Second * 90,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
+				{
+					Repo: &repo.Entry{
+						Name: "tailscale",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "tailscale",
+								ChartName:   "/home/armin/edgefarm/helm-charts/charts/tailscale",
+								Namespace:   "vpn",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Version:     "1.2.0",
+								Timeout:     time.Second * 90,
+								ValuesYaml: func(i string) string {
+									r, err := route.GetRoute(i)
+									if err != nil {
+										panic(err)
+									}
+									return fmt.Sprintf("config:\n  loginServer: http://%s:6555", r.IP)
+								}(route.Interface),
 							},
 						},
 						CreateNamespace: true,
@@ -502,20 +561,20 @@ func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 	}
 	wait.Poll(context.Background(), ticker, flannelCondition)
 
-	// Checks for core-dns pods to be ready on all nodes
-	corednsCondition := func() (bool, error) {
-		pods, err := k8s.GetPods("kube-system", "k8s-app=kube-dns")
-		if err != nil {
-			return false, err
-		}
-		for _, pod := range pods {
-			if pod.Status.Phase != v1.PodRunning {
-				return false, nil
-			}
-		}
-		return true, nil
-	}
-	wait.Poll(context.Background(), ticker, corednsCondition)
+	// // Checks for core-dns pods to be ready on all nodes
+	// corednsCondition := func() (bool, error) {
+	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-dns")
+	// 	if err != nil {
+	// 		return false, err
+	// 	}
+	// 	for _, pod := range pods {
+	// 		if pod.Status.Phase != v1.PodRunning {
+	// 			return false, nil
+	// 		}
+	// 	}
+	// 	return true, nil
+	// }
+	// wait.Poll(context.Background(), ticker, corednsCondition)
 
 	// Checks for ready state of all nodes
 	nodesCondition := func() (bool, error) {
@@ -537,14 +596,19 @@ func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 	return nil
 }
 
-func InstallAndWaitBootstrap() error {
-	for _, pkg := range ClusterBootstrap {
+func InstallAndWaitBootstrapStage1() error {
+	err := k8s.ReplaceCoreDNS()
+	if err != nil {
+		return err
+	}
+
+	for _, pkg := range ClusterBootstrapFlannel {
 		if err := pkg.Install(); err != nil {
 			return err
 		}
 	}
 
-	err := WaitForBootstrapConditions(time.Minute * 5)
+	err = WaitForBootstrapConditions(time.Minute * 5)
 	if err != nil {
 		return err
 	}
