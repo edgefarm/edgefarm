@@ -28,8 +28,8 @@ nodes:
     extraPortMappings:
     - containerPort: 6443
       hostPort: {{.host_api_server_port}}
-    - containerPort: 6555
-      hostPort: 6555
+    - containerPort: {{.host_vpn_port}}
+      hostPort: {{.host_vpn_port}}
       listenAddress: "0.0.0.0"`
 
 	KindWorkerRole = `  - role: worker
@@ -37,9 +37,6 @@ nodes:
     extraPortMappings:
     - containerPort: 4222
       hostPort: {{.host_nats_port}}
-      listenAddress: "0.0.0.0"
-    - containerPort: 7422
-      hostPort: {{.host_nats_leafnode_port}}
       listenAddress: "0.0.0.0"
     - containerPort: 80
       hostPort: {{.host_http_port}}
