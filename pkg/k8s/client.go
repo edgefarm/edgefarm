@@ -19,6 +19,7 @@ package k8s
 import (
 	"path/filepath"
 
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -47,7 +48,7 @@ func GetClientset(kubeconfig *string) (*kubernetes.Clientset, error) {
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(getConfig(kubeconfig))
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 	return clientset, nil
 }
@@ -56,8 +57,16 @@ func GetClientset(kubeconfig *string) (*kubernetes.Clientset, error) {
 func GetDynamicClient(kubeconfig *string) (dynamic.Interface, error) {
 	client, err := dynamic.NewForConfig(getConfig(kubeconfig))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return client, nil
+}
+
+func GetDiscoveryClient(kubeconfig *string) (*discovery.DiscoveryClient, error) {
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(getConfig(kubeconfig))
+	if err != nil {
+		return nil, err
+	}
+	return discoveryClient, nil
 }
