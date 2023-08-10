@@ -40,12 +40,12 @@ import (
 	yurtconstantes "github.com/openyurtio/openyurt/test/e2e/cmd/init/constants"
 	kubeutil "github.com/openyurtio/openyurt/test/e2e/cmd/init/util/kubernetes"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	yurtinit "github.com/edgefarm/edgefarm/pkg/init"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/packages"
-	"github.com/edgefarm/edgefarm/pkg/route"
 )
 
 var (
@@ -129,15 +129,6 @@ type kindOptions struct {
 	IgnoreError       bool
 	EnableDummyIf     bool
 	DisableDefaultCNI bool
-	PortMappings      portMappings
-}
-
-type portMappings struct {
-	HostApiServerPort    int
-	HostNatsPort         int
-	HostNatsLeafnodePort int
-	HostHttpPort         int
-	HostHttpsPort        int
 }
 
 func newKindOptions() *kindOptions {
@@ -153,13 +144,6 @@ func newKindOptions() *kindOptions {
 		EnableDummyIf:     true,
 		DisableDefaultCNI: true,
 		CloudNodes:        "edgefarm-control-plane,edgefarm-worker",
-		PortMappings: portMappings{
-			HostApiServerPort:    6443,
-			HostNatsPort:         4222,
-			HostNatsLeafnodePort: 7422,
-			HostHttpPort:         80,
-			HostHttpsPort:        443,
-		},
 	}
 }
 
@@ -186,20 +170,20 @@ func (o *kindOptions) Validate() error {
 	if err := validateOpenYurtVersion(o.OpenYurtVersion, o.IgnoreError); err != nil {
 		return err
 	}
-	if !checkFreePort(o.PortMappings.HostApiServerPort) {
-		return fmt.Errorf("port %d is already used", o.PortMappings.HostApiServerPort)
+	if !checkFreePort(args.Ports.HostApiServerPort) {
+		return fmt.Errorf("port %d is already used", args.Ports.HostApiServerPort)
 	}
-	if !checkFreePort(o.PortMappings.HostNatsPort) {
-		return fmt.Errorf("port %d is already used", o.PortMappings.HostNatsPort)
+	if !checkFreePort(args.Ports.HostNatsPort) {
+		return fmt.Errorf("port %d is already used", args.Ports.HostNatsPort)
 	}
-	if !checkFreePort(o.PortMappings.HostNatsLeafnodePort) {
-		return fmt.Errorf("port %d is already used", o.PortMappings.HostNatsLeafnodePort)
+	if !checkFreePort(args.Ports.HostHttpPort) {
+		return fmt.Errorf("port %d is already used", args.Ports.HostHttpPort)
 	}
-	if !checkFreePort(o.PortMappings.HostHttpPort) {
-		return fmt.Errorf("port %d is already used", o.PortMappings.HostHttpPort)
+	if !checkFreePort(args.Ports.HostHttpsPort) {
+		return fmt.Errorf("port %d is already used", args.Ports.HostHttpsPort)
 	}
-	if !checkFreePort(o.PortMappings.HostHttpsPort) {
-		return fmt.Errorf("port %d is already used", o.PortMappings.HostHttpsPort)
+	if !checkFreePort(args.Ports.HostVPNPort) {
+		return fmt.Errorf("port %d is already used", args.Ports.HostVPNPort)
 	}
 	return nil
 }
@@ -256,7 +240,6 @@ func (o *kindOptions) Config() *initializerConfig {
 		NodeServantImage:  fmt.Sprintf(nodeServantImageFormat, o.OpenYurtVersion),
 		EnableDummyIf:     o.EnableDummyIf,
 		DisableDefaultCNI: o.DisableDefaultCNI,
-		PortMappings:      o.PortMappings,
 	}
 }
 
@@ -271,17 +254,17 @@ var (
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&o.EdgeNodesNum, "edge-node-num", o.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
 	flagset.StringVar(&o.KubeConfig, "kube-config", o.KubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
-	flagset.IntVar(&o.PortMappings.HostApiServerPort, "host-api-server-port", o.PortMappings.HostApiServerPort, "Specify the port of host api server.")
-	flagset.IntVar(&o.PortMappings.HostNatsPort, "host-nats-port", o.PortMappings.HostNatsPort, "Specify the port of nats to be mapped to.")
-	flagset.IntVar(&o.PortMappings.HostNatsLeafnodePort, "host-nats-leafnode-port", o.PortMappings.HostNatsLeafnodePort, "Specify the port of nats leafnode to be mapped to.")
-	flagset.IntVar(&o.PortMappings.HostHttpPort, "host-http-port", o.PortMappings.HostHttpPort, "Specify the port of http server to be mapped to.")
-	flagset.IntVar(&o.PortMappings.HostHttpsPort, "host-https-port", o.PortMappings.HostHttpsPort, "Specify the port of https server to be mapped to.")
+	flagset.IntVar(&args.Ports.HostApiServerPort, "host-api-server-port", args.Ports.HostApiServerPort, "Specify the port of host api server.")
+	flagset.IntVar(&args.Ports.HostNatsPort, "host-nats-port", args.Ports.HostNatsPort, "Specify the port of nats to be mapped to.")
+	flagset.IntVar(&args.Ports.HostHttpPort, "host-http-port", args.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
+	flagset.IntVar(&args.Ports.HostHttpsPort, "host-https-port", args.Ports.HostHttpsPort, "Specify the port of https server to be mapped to.")
+	flagset.IntVar(&args.Ports.HostVPNPort, "host-vpn-port", args.Ports.HostVPNPort, "Specify the port for the local VPN.")
+	flagset.StringVar(&args.Interface, "interface", "", "Network interface to connect to physical edge nodes. This is probably the same interface that is used to connect to the internet. If unset, defaults to the first default routes' interface.")
 	flagset.BoolVar(&skipApplications, "skip-applications", false, "Skip installing edgefarm.applications.")
 	flagset.BoolVar(&skipNetwork, "skip-network", false, "Skip installing edgefarm.network.")
 	flagset.BoolVar(&skipMonitor, "skip-monitor", false, "Skip installing edgefarm.monitor.")
 	flagset.BoolVar(&skipClusterDependencies, "skip-cluster-dependencies", false, "Skip installing edgefarm.cluster-dependencies.")
 	flagset.BoolVar(&skipBase, "skip-base", false, "Skip installing base packages for edgefarm.")
-	flagset.StringVar(&route.Interface, "interface", "", "Network interface to connect to physical edge nodes. This is probably the same interface that is used to connect to the internet. If unset, defaults to the first default routes' interface.")
 }
 
 type initializerConfig struct {
@@ -300,7 +283,6 @@ type initializerConfig struct {
 	NodeServantImage  string
 	EnableDummyIf     bool
 	DisableDefaultCNI bool
-	PortMappings      portMappings
 }
 
 type Initializer struct {
@@ -462,7 +444,8 @@ func (ki *Initializer) prepareKindConfigFile(kindConfigPath string) error {
 		"kind_node_image":      ki.NodeImage,
 		"cluster_name":         ki.ClusterName,
 		"disable_default_cni":  fmt.Sprintf("%v", ki.DisableDefaultCNI),
-		"host_api_server_port": fmt.Sprintf("%d", ki.PortMappings.HostApiServerPort),
+		"host_api_server_port": fmt.Sprintf("%d", args.Ports.HostApiServerPort),
+		"host_vpn_port":        fmt.Sprintf("%d", args.Ports.HostVPNPort),
 	})
 	if err != nil {
 		return err
@@ -471,11 +454,10 @@ func (ki *Initializer) prepareKindConfigFile(kindConfigPath string) error {
 	// add additional worker entries into kind config file according to NodesNum
 	for num := 0; num < ki.WorkerNodesNum; num++ {
 		worker, err := tmplutil.SubsituteTemplate(constants.KindWorkerRole, map[string]string{
-			"kind_node_image":         ki.NodeImage,
-			"host_nats_port":          fmt.Sprintf("%d", ki.PortMappings.HostNatsPort),
-			"host_nats_leafnode_port": fmt.Sprintf("%d", ki.PortMappings.HostNatsLeafnodePort),
-			"host_http_port":          fmt.Sprintf("%d", ki.PortMappings.HostHttpPort),
-			"host_https_port":         fmt.Sprintf("%d", ki.PortMappings.HostHttpsPort),
+			"kind_node_image": ki.NodeImage,
+			"host_nats_port":  fmt.Sprintf("%d", args.Ports.HostNatsPort),
+			"host_http_port":  fmt.Sprintf("%d", args.Ports.HostHttpPort),
+			"host_https_port": fmt.Sprintf("%d", args.Ports.HostHttpsPort),
 		})
 		if err != nil {
 			return err

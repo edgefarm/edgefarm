@@ -30,6 +30,7 @@ import (
 	"k8s.io/klog/v2"
 	"tideland.dev/go/wait"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/route"
 )
@@ -37,6 +38,7 @@ import (
 type Spec struct {
 	Chart           []*helmclient.ChartSpec
 	CreateNamespace bool
+	ValuesFunc      func() string
 }
 
 type Helm struct {
@@ -102,6 +104,9 @@ var (
 							},
 						},
 						CreateNamespace: true,
+						ValuesFunc: func() string {
+							return fmt.Sprintf("config:\n  port: %d\n  hostPort:\n    enabled: true", args.Ports.HostVPNPort)
+						},
 					},
 				},
 				{
@@ -118,16 +123,16 @@ var (
 								Wait:        true,
 								Version:     "1.2.0",
 								Timeout:     time.Second * 90,
-								ValuesYaml: func(i string) string {
-									r, err := route.GetRoute(i)
-									if err != nil {
-										panic(err)
-									}
-									return fmt.Sprintf("config:\n  loginServer: http://%s:6555", r.IP)
-								}(route.Interface),
 							},
 						},
 						CreateNamespace: true,
+						ValuesFunc: func() string {
+							r, err := route.GetRoute(args.Interface)
+							if err != nil {
+								panic(err)
+							}
+							return fmt.Sprintf("config:\n  loginServer: http://%s:%d", r.IP, args.Ports.HostVPNPort)
+						},
 					},
 				},
 			},
@@ -411,6 +416,10 @@ xfn:
 								Namespace:   "kube-system",
 								Version:     "1.3.4",
 								UpgradeCRDs: true,
+								// 								ValuesYaml: `image:
+								//   registry: ghcr.io/openyurtio
+								//   repository: openyurt/yurt-manager
+								//   tag: v1.3.4`,
 							},
 						},
 					},
@@ -473,6 +482,11 @@ func (h *Helm) Install() error {
 		if err != nil {
 			return err
 		}
+
+		if h.Spec.ValuesFunc != nil {
+			spec.ValuesYaml = h.Spec.ValuesFunc()
+		}
+
 		if h.Spec.CreateNamespace {
 			klog.Infof("chart: %s: creating namespace %s", spec.ChartName, spec.Namespace)
 			_, err := k8s.CreateNamespaceIfNotExist(spec.Namespace)
