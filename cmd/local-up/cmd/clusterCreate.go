@@ -26,6 +26,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -395,6 +396,11 @@ func (ki *Initializer) Run() error {
 		}
 	}
 
+	green := color.New(color.FgHiGreen)
+	yellow := color.New(color.FgHiYellow)
+	green.Printf("The local EdgeFarm cluster is ready to use! Have fun exploring EdgeFarm.\n")
+	green.Println("To access the cluster use 'kubectl', e.g.")
+	yellow.Println("  $ kubectl get nodes")
 	return nil
 }
 

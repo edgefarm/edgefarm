@@ -33,7 +33,7 @@ jobs:
           ref: ${{ env.CURRENT_BRANCH }}
           filters: |
             docs:
-              - 'docs/**'
+              - 'docs/**/*'
 
   deploy:
     runs-on: ubuntu-latest
