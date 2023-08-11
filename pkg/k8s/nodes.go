@@ -19,9 +19,12 @@ package k8s
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"html/template"
+	"regexp"
 
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -42,6 +45,26 @@ var (
 	}
 )
 
+func DeleteNodepool(name string) error {
+	dynamic, err := GetDynamicClient(nil)
+	if err != nil {
+		return err
+	}
+	return dynamic.Resource(schema.GroupVersionResource{
+		Group:    "apps.openyurt.io",
+		Version:  "v1beta1",
+		Resource: "nodepools",
+	}).Delete(context.Background(), name, metav1.DeleteOptions{})
+}
+
+func DeleteNode(name string) error {
+	clientset, err := GetClientset(nil)
+	if err != nil {
+		return err
+	}
+	return clientset.CoreV1().Nodes().Delete(context.Background(), name, metav1.DeleteOptions{})
+}
+
 // GetNodes returns a slice of nodes matching the given selector.
 func GetNodes(selector metav1.LabelSelector) ([]v1.Node, error) {
 	clientset, err := GetClientset(nil)
@@ -56,6 +79,39 @@ func GetNodes(selector metav1.LabelSelector) ([]v1.Node, error) {
 		return nil, err
 	}
 	return nodes.Items, nil
+}
+
+func NodeExists(name string) (bool, error) {
+	clientset, err := GetClientset(nil)
+	if err != nil {
+		return false, err
+
+	}
+	_, err = clientset.CoreV1().Nodes().Get(context.Background(), name, metav1.GetOptions{})
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// ValidatePhysicalNodeName validates the given name not to be anything like regex `edgefarm-control-plane` or `edgefarm-worker.*`
+func ValidatePhysicalNodeName(name string) error {
+	if name == "edgefarm-control-plane" {
+		return fmt.Errorf("cannot delete node '%s'", name)
+	}
+
+	re, err := regexp.Compile(`edgefarm-worker.*`)
+	if err != nil {
+		return err
+	}
+
+	if re.MatchString(name) {
+		return fmt.Errorf("cannot delete node '%s'", name)
+	}
+	return nil
 }
 
 func GetEdgeNodes() ([]v1.Node, error) {
