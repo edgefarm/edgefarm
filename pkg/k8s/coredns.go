@@ -20,8 +20,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/pytimer/k8sutil/apply"
-
 	"gopkg.in/yaml.v2"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -165,18 +163,8 @@ func ReplaceCoreDNS() error {
 		return err
 	}
 
-	dynamicClient, err := GetDynamicClient(nil)
+	err = Apply(coreDNSDaemonSet)
 	if err != nil {
-		return err
-	}
-
-	discoveryClient, err := GetDiscoveryClient(nil)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	applyOptions := apply.NewApplyOptions(dynamicClient, discoveryClient)
-	if err := applyOptions.Apply(context.TODO(), []byte(coreDNSDaemonSet)); err != nil {
 		return err
 	}
 	return nil
