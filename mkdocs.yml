@@ -11,8 +11,9 @@ theme:
     - navigation.sections
     - navigation.tabs
     - navigation.tabs.sticky
+    - content.code.copy
 extra_css:
-   - stylesheets/extra.css
+  - stylesheets/extra.css
 extra:
   version:
     provider: mike
@@ -48,7 +49,6 @@ markdown_extensions:
       generic: true
   - pymdownx.betterem:
       smart_enable: all
-  - pymdownx.caret
   - pymdownx.details
   - pymdownx.emoji:
       emoji_generator: !!python/name:materialx.emoji.to_svg
@@ -56,12 +56,10 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.keys
   - pymdownx.magiclink:
       repo_url_shorthand: true
       user: squidfunk
       repo: mkdocs-material
-  - pymdownx.mark
   - pymdownx.smartsymbols
   - pymdownx.superfences:
       custom_fences:
@@ -73,27 +71,36 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.tilde
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
 
 nav:
- - Welcome:
-    - Introduction: index.md
-    - Use Cases: overview/usecases.md
-    - System Overview: overview/system.md
-    - Components: overview/components.md
- - Getting Started: gettingstarted/index.md
- - User Guide: userguide/index.md
- - Reference:
-    - edgefarm.core: reference/core.md
-    - edgefarm.devices: reference/devices.md
-    - edgefarm.applications: reference/applications.md
-    - edgefarm.network: reference/network.md
-    - edgefarm.monitor: reference/monitor.md
- - Best Practices: bestpractices/index.md
- - Architecture:
-    - Design Decissions: architecture/designdecissions.md
-    - Overview: architecture/overview.md
-    - edgefarm.core: architecture/edgefarm.core.md
-    - edgefarm.devices: architecture/edgefarm.devices.md
-    - edgefarm.applications: architecture/edgefarm.applications.md
-    - edgefarm.network: architecture/edgefarm.network.md
-    - edgefarm.monitor: architecture/edgefarm.monitor.md
+  - Welcome:
+      - Introduction: index.md
+      - Use Cases: overview/usecases.md
+      - System Overview: overview/system.md
+      - Components: overview/components.md
+  - Getting Started: gettingstarted/index.md
+  - Knowledge Base:
+      - Introduction: knowledge-base/index.md
+      - How To's:
+          - ... create a local test cluster: knowledge-base/howtos/create-local-cluster.md
+          - ... join a physical edge node to the local test cluster: knowledge-base/howtos/join-a-physical-node-to-local-cluster.md
+  - Reference:
+      - edgefarm.core: reference/core.md
+      - edgefarm.devices: reference/devices.md
+      - edgefarm.applications: reference/applications.md
+      - edgefarm.network: reference/network.md
+      - edgefarm.monitor: reference/monitor.md
+  #  - Best Practices: bestpractices/index.md
+  - User How To's: userguide/index.md
+  - Architecture:
+      - Design Decissions: architecture/designdecissions.md
+      - Overview: architecture/overview.md
+      - edgefarm.core: architecture/edgefarm.core.md
+      - edgefarm.devices: architecture/edgefarm.devices.md
+      - edgefarm.applications: architecture/edgefarm.applications.md
+      - edgefarm.network: architecture/edgefarm.network.md
+      - edgefarm.monitor: architecture/edgefarm.monitor.md

@@ -1,8 +1,7 @@
 !!! info "EdgeFarm is currently under heavy construction"
 
-    EdgeFarm is currently under active development and the corresponding components are being released gradually.
-
-    Accordingly, the documentation is not yet complete. The functionalities described in the documentation refer to the final state after the release of all functions.
+EdgeFarm is currently under active development and the corresponding components are being released gradually.
+Accordingly, the documentation is not yet complete. The functionalities described in the documentation refer to the final state after the release of all functions.
 
 ![](assets/EdgeFarmLogo_with_text.png)
 
