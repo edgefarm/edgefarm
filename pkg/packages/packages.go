@@ -74,7 +74,7 @@ var (
   command:
   - "bash"
   - "-c"
-  - "/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$c; fi; sleep 5; done"
+  - "/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 --iface=yurthub-dummy0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 --iface=yurthub-dummy0 & p=$c; fi; sleep 5; done"
   args: []`,
 							},
 						},
