@@ -57,17 +57,16 @@ var (
 				{
 					Repo: &repo.Entry{
 						Name: "flannel",
-						// URL:  "https://flannel-io.github.io/flannel/",
 					},
 					Spec: &Spec{
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "flannel",
-								ChartName:   "/home/armin/edgefarm/helm-charts/charts/kube-flannel",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "v0.22.1",
+								Version:     "1.4.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `flannel:
   command:
@@ -95,11 +94,11 @@ var (
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "headscale",
-								ChartName:   "/home/armin/edgefarm/helm-charts/charts/headscale",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/headscale",
 								Namespace:   "vpn",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.2.0",
+								Version:     "1.4.0",
 								Timeout:     time.Second * 90,
 							},
 						},
@@ -117,11 +116,11 @@ var (
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "tailscale",
-								ChartName:   "/home/armin/edgefarm/helm-charts/charts/tailscale",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/tailscale",
 								Namespace:   "vpn",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.2.0",
+								Version:     "1.4.0",
 								Timeout:     time.Second * 90,
 							},
 						},
@@ -311,7 +310,7 @@ xfn:
 								Namespace:   "vault",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.2.0",
+								Version:     "1.4.0",
 								Timeout:     time.Second * 300,
 							},
 						},
