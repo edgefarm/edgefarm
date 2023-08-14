@@ -253,7 +253,7 @@ func (c *ClusterConverter) deployYurtManager() error {
 	}
 
 	// waiting yurt-manager pod ready
-	return wait.PollImmediate(10*time.Second, 2*time.Minute, func() (bool, error) {
+	return wait.PollImmediate(10*time.Second, 5*time.Minute, func() (bool, error) {
 		podList, err := c.ClientSet.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{
 			LabelSelector: labels.SelectorFromSet(map[string]string{"app.kubernetes.io/name": "yurt-manager"}).String(),
 		})
