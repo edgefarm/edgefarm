@@ -15,6 +15,9 @@ mod: ## go mod handling
 test: ## run tests
 	go test ./...
 
+e2e: ## run e2e tests
+	cd cmd/local-up && go run main.go cluster create --edge-node-num 1 && go run main.go cluster delete -y
+
 build: ## build local-up tool
 	cd cmd/local-up && CGO_ENABLED=0 GOOS=${GO_OS} GOARCH=${GO_ARCH} go build $(GO_LDFLAGS) -o ../../${BIN_DIR}/${NAME}-${GO_OS}-${GO_ARCH} main.go
 
