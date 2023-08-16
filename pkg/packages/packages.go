@@ -61,24 +61,69 @@ var (
 					Spec: &Spec{
 						Chart: []*helmclient.ChartSpec{
 							{
-								ReleaseName: "flannel",
-								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/flannel",
+								ReleaseName: "flannel-edge",
+								ChartName:   "/home/armin/edgefarm/helm-charts/charts/kube-flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
 								Version:     "1.16.0",
 								Timeout:     time.Second * 90,
-								ValuesYaml: `flannel:
-  installCNIPlugin: false
-  installCNIConfig: true
+								ValuesYaml: `nameOverride: flannel-edge
+cni:
+  flannel:
+    delegate:
+      ipMasq: true
+flannel:
+  installCNI: false
   image:
     repository: docker.io/openyurt/flannel-edge
     tag: v0.14.0-1
   command:
   - "bash"
   - "-c"
-  - "/opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=wt0 -iface=eth0 -iface=yurthub-dummy0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=wt0 -iface=eth0 -iface=yurthub-dummy0 & p=$c; fi; sleep 5; done"
-  args: []`,
+  - "/opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=edgefarm0"
+  args: []
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node.edgefarm.io/core
+                operator: In
+                values:
+                  - physical`,
+							},
+							{
+								ReleaseName: "flannel-cloud",
+								ChartName:   "/home/armin/edgefarm/helm-charts/charts/kube-flannel",
+								Namespace:   "kube-flannel",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Version:     "1.4.0",
+								Timeout:     time.Second * 90,
+								ValuesYaml: `nameOverride: flannel-cloud
+cni:
+  flannel:
+    delegate:
+      ipMasq: true
+flannel:
+  image:
+    repository: docker.io/openyurt/flannel-edge
+    tag: v0.14.0-1
+  command:
+  - "bash"
+  - "-c"
+  - "/opt/bin/flanneld -ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=wt0 -iface=eth0 & p=$c; fi; sleep 5; done"
+  args: []
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node.edgefarm.io/core
+                operator: NotIn
+                values:
+                  - physical`,
 							},
 						},
 						CreateNamespace: true,
@@ -88,7 +133,7 @@ var (
 		},
 	}
 
-	ClusterBootstrapStage2 = []Packages{
+	ClusterBootstrapVPN = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -120,7 +165,7 @@ var (
 					Spec: &Spec{
 						Chart: []*helmclient.ChartSpec{
 							{
-								ReleaseName: "tailscale",
+								ReleaseName: "tailscale-cloud",
 								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/tailscale",
 								Namespace:   "vpn",
 								UpgradeCRDs: true,
@@ -135,7 +180,33 @@ var (
 							if err != nil {
 								panic(err)
 							}
-							return fmt.Sprintf("config:\n  loginServer: http://%s:%d", r.IP, args.Ports.HostVPNPort)
+							return fmt.Sprintf("nameOverride: tailscale-cloud\nconfig:\n  loginServer: http://%s:%d\naffinity:\n    nodeAffinity:\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n          - matchExpressions:\n              - key: node.edgefarm.io/core\n                operator: NotIn\n                values:\n                  - physical", r.IP, args.Ports.HostVPNPort)
+						},
+					},
+				},
+				{
+					Repo: &repo.Entry{
+						Name: "tailscale",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "tailscale-edge",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/tailscale",
+								Namespace:   "vpn",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Version:     "1.4.0",
+								Timeout:     time.Second * 90,
+							},
+						},
+						CreateNamespace: true,
+						ValuesFunc: func() string {
+							r, err := route.GetRoute(args.Interface)
+							if err != nil {
+								panic(err)
+							}
+							return fmt.Sprintf("nameOverride: tailscale-edge\nconfig:\n  loginServer: http://%s:%d\naffinity:\n    nodeAffinity:\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n          - matchExpressions:\n              - key: node.edgefarm.io/core\n                operator: In\n                values:\n                  - physical", r.IP, args.Ports.HostVPNPort)
 						},
 					},
 				},
@@ -631,11 +702,11 @@ func InstallAndWaitBootstrapStage1() error {
 		return err
 	}
 
-	for _, pkg := range ClusterBootstrapFlannel {
-		if err := pkg.Install(); err != nil {
-			return err
-		}
-	}
+	// for _, pkg := range ClusterBootstrapFlannel {
+	// 	if err := pkg.Install(); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	err = WaitForBootstrapConditions(time.Minute * 5)
 	if err != nil {

@@ -28,6 +28,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	kubeclientset "k8s.io/client-go/kubernetes"
@@ -79,8 +80,15 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 		Use:   "create",
 		Short: "Create the local edgefarm cluster",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := o.Validate(); err != nil {
+			err := handleArgsSkipAndOnly()
+			if err != nil {
 				return err
+			}
+
+			if !skipClusterCreation {
+				if err := o.Validate(); err != nil {
+					return err
+				}
 			}
 			initializer := newKindInitializer(out, o.Config())
 			if err := initializer.Run(); err != nil {
@@ -233,6 +241,12 @@ var (
 	skipMonitor             bool
 	skipClusterDependencies bool
 	skipBase                bool
+	skipClusterCreation     bool
+	skipOpenyurt            bool
+	skipVPN                 bool
+	skipConfigureAddons     bool
+	vpnOnly                 bool
+	flannelOnly             bool
 )
 
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
@@ -249,6 +263,14 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.BoolVar(&skipMonitor, "skip-monitor", false, "Skip installing edgefarm.monitor.")
 	flagset.BoolVar(&skipClusterDependencies, "skip-cluster-dependencies", false, "Skip installing edgefarm.cluster-dependencies.")
 	flagset.BoolVar(&skipBase, "skip-base", false, "Skip installing base packages for edgefarm.")
+	if os.Getenv("LOCAL_UP_EXPERIMENTAL") == "true" {
+		flagset.BoolVar(&skipClusterCreation, "skip-cluster-creation", false, "Skip creation of the cluster. WARNING: HERE BE DRAGONS. Your kube context might be wrong when using this flag. Use at your own risk.")
+		flagset.BoolVar(&skipOpenyurt, "skip-openyurt", false, "Skip installaing of openyurt components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&skipVPN, "skip-vpn", false, "Skip installaing of VPN components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&skipConfigureAddons, "skip-configure-addons", false, "Skip configuring addons to cluster components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&vpnOnly, "vpn-only", false, "Only install VPN components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&flannelOnly, "flannel-only", false, "Only install flannel. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+	}
 }
 
 type initializerConfig struct {
@@ -284,25 +306,56 @@ func newKindInitializer(out io.Writer, cfg *initializerConfig) *Initializer {
 	}
 }
 
+func handleArgsSkipAndOnly() error {
+	if vpnOnly && skipVPN {
+		return fmt.Errorf("cannot use --vpn-only and --skip-vpn at the same time")
+	}
+	if flannelOnly {
+		skipNetwork = true
+		skipApplications = true
+		skipMonitor = true
+		skipClusterCreation = true
+		skipClusterDependencies = true
+		skipBase = true
+		skipOpenyurt = true
+		skipConfigureAddons = true
+		skipVPN = true
+	}
+	if vpnOnly {
+		skipVPN = false
+		skipApplications = true
+		skipNetwork = true
+		skipMonitor = true
+		skipClusterCreation = true
+		skipClusterDependencies = true
+		skipBase = true
+		skipOpenyurt = true
+		skipConfigureAddons = true
+	}
+	return nil
+}
+
 func (ki *Initializer) Run() error {
-	klog.Info("Check kind")
-	if err := ki.operator.GetKindPath(); err != nil {
-		return err
-	}
+	if !skipClusterCreation {
+		klog.Info("Check kind")
+		if err := ki.operator.GetKindPath(); err != nil {
+			return err
+		}
 
-	klog.Info("Start to prepare kind node image")
-	if err := ki.prepareKindNodeImage(); err != nil {
-		return err
-	}
+		klog.Info("Start to prepare kind node image")
+		if err := ki.prepareKindNodeImage(); err != nil {
+			return err
+		}
 
-	klog.Info("Start to prepare config file for kind")
-	if err := ki.prepareKindConfigFile(ki.KindConfigPath); err != nil {
-		return err
-	}
+		klog.Info("Start to prepare config file for kind")
+		if err := ki.prepareKindConfigFile(ki.KindConfigPath); err != nil {
+			return err
+		}
 
-	klog.Info("Start to create cluster with kind")
-	if err := ki.operator.KindCreateClusterWithConfig(ki.out, ki.KindConfigPath); err != nil {
-		return err
+		klog.Info("Start to create cluster with kind")
+		if err := ki.operator.KindCreateClusterWithConfig(ki.out, ki.KindConfigPath); err != nil {
+			return err
+		}
 	}
 
 	klog.Info("Start to prepare kube client")
@@ -314,34 +367,46 @@ func (ki *Initializer) Run() error {
 	if err != nil {
 		return err
 	}
-	klog.Infof("Deploy cluster bootstrap stage 1 packages")
-	if err := packages.InstallAndWaitBootstrapStage1(); err != nil {
-		return err
-	}
 
-	klog.Info("Start to prepare OpenYurt images for kind cluster")
-	if err := ki.prepareImages(); err != nil {
-		return err
+	if !skipClusterCreation || flannelOnly {
+		klog.Infof("Deploy cluster flannel packages")
+		if err := packages.Install(packages.ClusterBootstrapFlannel); err != nil {
+			return err
+		}
 	}
+	if !skipClusterCreation {
+		klog.Infof("Deploy cluster bootstrap stage 1 packages")
+		if err := packages.InstallAndWaitBootstrapStage1(); err != nil {
+			return err
+		}
 
-	klog.Info("Start to deploy OpenYurt components")
-	if err := ki.deployOpenYurt(); err != nil {
-		return err
+		klog.Info("Start to prepare OpenYurt images for kind cluster")
+		if err := ki.prepareImages(); err != nil {
+			return err
+		}
 	}
+	if !skipOpenyurt {
+		klog.Info("Start to deploy OpenYurt components")
+		if err := ki.deployOpenYurt(); err != nil {
+			return err
+		}
 
-	klog.Infof("Start to configure coredns to adapt OpenYurt")
-	if err := ki.configureAddons(); err != nil {
-		return err
+		klog.Infof("Prepare edge nodes")
+		if err := k8s.PrepareEdgeNodes(); err != nil {
+			return err
+		}
 	}
-
-	klog.Infof("Prepare edge nodes")
-	if err := k8s.PrepareEdgeNodes(); err != nil {
-		return err
+	if !skipConfigureAddons {
+		klog.Infof("Start to configure cluster components (coredns, kube-proxy) to adapt OpenYurt")
+		if err := ki.configureAddons(); err != nil {
+			return err
+		}
 	}
-
-	klog.Infof("Deploy cluster bootstrap stage 2 packages")
-	if err := packages.Install(packages.ClusterBootstrapStage2); err != nil {
-		return err
+	if !skipVPN {
+		klog.Infof("Deploy cluster bootstrap VPN packages")
+		if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
+			return err
+		}
 	}
 
 	if !skipClusterDependencies {
@@ -467,7 +532,7 @@ func (ki *Initializer) prepareKindConfigFile(kindConfigPath string) error {
 }
 
 func (ki *Initializer) configureAddons() error {
-	if err := ki.configureCoreDnsAddon(); err != nil {
+	if err := ki.configureKubeProxyAddon(); err != nil {
 		return err
 	}
 
@@ -489,6 +554,10 @@ func (ki *Initializer) configureAddons() error {
 			}
 		default:
 		}
+	}
+
+	if err := ki.configureCoreDnsAddon(); err != nil {
+		return err
 	}
 
 	// If we disable default cni, nodes will not be ready and the coredns pod always be in pending.
@@ -520,6 +589,46 @@ func (ki *Initializer) configureAddons() error {
 	return nil
 }
 
+// configureKubeProxyAddon configures kube-proxy addon like described here
+// https://openyurt.io/docs/user-manuals/network/service-topology#configure-kube-proxy
+func (ki *Initializer) configureKubeProxyAddon() error {
+	err := k8s.PollForConfigMap("kube-system", "kube-proxy", time.Minute*2)
+	if err != nil {
+		return err
+	}
+
+	config, err := k8s.GetConfigMapValue("kube-system", "kube-proxy", "config.conf")
+	if err != nil {
+		return err
+	}
+	configMap := make(map[string]interface{})
+	err = yaml.Unmarshal([]byte(config), &configMap)
+	if err != nil {
+		return err
+	}
+
+	if configMap["featureGates"] == nil {
+		configMap["featureGates"] = make(map[interface{}]interface{})
+	}
+	configMap["featureGates"].(map[interface{}]interface{})["EndpointSliceProxying"] = true
+	if configMap["clientConnection"] != nil {
+		if configMap["clientConnection"].(map[interface{}]interface{})["kubeconfig"] != nil {
+			delete(configMap["clientConnection"].(map[interface{}]interface{}), "kubeconfig")
+		}
+	}
+
+	updatedConfig, err := yaml.Marshal(configMap)
+	if err != nil {
+		return err
+	}
+
+	return k8s.UpdateConfigMapValue("kube-system", "kube-proxy", "config.conf", string(updatedConfig))
+
+}
+
+// configureCoreDnsAddon configures coredns addon like described here
+// https://openyurt.io/docs/user-manuals/network/service-topology#create-service-with-topologykeys
+// coreDNS will shall use the service topology 'hostname' to resolve using the locally running coredns instance
 func (ki *Initializer) configureCoreDnsAddon() error {
 	// configure hostname service topology for kube-dns service
 	svc, err := ki.kubeClient.CoreV1().Services("kube-system").Get(context.TODO(), "kube-dns", metav1.GetOptions{})
