@@ -62,7 +62,7 @@ var (
 						Chart: []*helmclient.ChartSpec{
 							{
 								ReleaseName: "flannel-edge",
-								ChartName:   "/home/armin/edgefarm/helm-charts/charts/kube-flannel",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
@@ -95,11 +95,11 @@ flannel:
 							},
 							{
 								ReleaseName: "flannel-cloud",
-								ChartName:   "/home/armin/edgefarm/helm-charts/charts/kube-flannel",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.4.0",
+								Version:     "1.5.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-cloud
 cni:
