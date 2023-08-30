@@ -18,16 +18,39 @@ package k8s
 
 import (
 	"context"
-	"log"
 
-	"gopkg.in/yaml.v2"
-	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8syaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 )
 
 const (
+	coreDNSConfigMap = `apiVersion: v1
+  data: 
+    Corefile: |
+      .:53 {
+          errors
+          health {
+             lameduck 5s
+          }
+          ready
+          kubernetes cluster.local in-addr.arpa ip6.arpa {
+             pods insecure
+             fallthrough in-addr.arpa ip6.arpa
+             ttl 30
+          }
+          prometheus :9153
+          forward . 8.8.8.8 {
+             max_concurrent 1000
+          }
+          cache 30
+          loop
+          reload
+          loadbalance
+      }
+  kind: ConfigMap
+  metadata: 
+    name: coredns
+    namespace: kube-system`
+
 	coreDNSDaemonSet = `apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -136,24 +159,6 @@ spec:
         name: config-volume`
 )
 
-func convertYamlToDaemonSet(manifest string) (*unstructured.Unstructured, error) {
-	ds := &appsv1.DaemonSet{}
-	err := yaml.Unmarshal([]byte(manifest), ds)
-	if err != nil {
-		return nil, err
-	}
-
-	// Decode the DaemonSet manifest into an unstructured object
-	obj := &unstructured.Unstructured{}
-	dec := k8syaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
-	_, _, err = dec.Decode([]byte(manifest), nil, obj)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return obj, nil
-}
-
 // ReplaceCoreDNS deletes the CoreDNS deployment and replace it with a DaemonSet
 func ReplaceCoreDNS() error {
 	clientset, err := GetClientset(nil)
@@ -166,9 +171,20 @@ func ReplaceCoreDNS() error {
 		return err
 	}
 
+	err = clientset.CoreV1().ConfigMaps("kube-system").Delete(context.Background(), "coredns", metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = Apply(coreDNSConfigMap)
+	if err != nil {
+		return err
+	}
+
 	err = Apply(coreDNSDaemonSet)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
