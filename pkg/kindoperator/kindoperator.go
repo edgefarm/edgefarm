@@ -19,12 +19,18 @@ package kindoperator
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 
 	"k8s.io/klog/v2"
 
 	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
+)
+
+const (
+	KindNetworkName   = "edgefarm"
+	KindNetworkSubnet = "172.254.0.0/16"
 )
 
 var (
@@ -114,7 +120,19 @@ func (k *KindOperator) KindLoadDockerImage(out io.Writer, clusterName, image str
 }
 
 func (k *KindOperator) KindCreateClusterWithConfig(out io.Writer, configPath string) error {
-	cmd := k.execCommand(k.kindCMDPath, "create", "cluster", "--config", configPath, "--kubeconfig", k.kubeconfigPath, "--retain")
+	exists, err := networkExists(KindNetworkName)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		err := createNetwork(KindNetworkName, KindNetworkSubnet)
+		if err != nil {
+			return err
+		}
+	}
+	cmd := k.execCommand(k.kindCMDPath, "create", "cluster", "--config", configPath, "--kubeconfig", k.kubeconfigPath)
+	cmd.Env = append(cmd.Env, fmt.Sprintf("KIND_EXPERIMENTAL_DOCKER_NETWORK=%s", KindNetworkName))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("PATH=%s", os.Getenv("PATH")))
 	if out != nil {
 		cmd.Stdout = out
 		cmd.Stderr = out
@@ -133,6 +151,16 @@ func (k *KindOperator) KindDeleteCluster(out io.Writer, name string) error {
 	}
 	if err := cmd.Run(); err != nil {
 		return err
+	}
+	exists, err := networkExists(KindNetworkName)
+	if err != nil {
+		return err
+	}
+	if exists {
+		err = deleteNetwork(KindNetworkName)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
