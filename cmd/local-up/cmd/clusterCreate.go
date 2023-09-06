@@ -66,6 +66,9 @@ var (
 		"v0.12.0": {
 			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7",
 		},
+		"v0.21.0-alpha": {
+			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
+		},
 	}
 
 	yurtHubImageFormat     = "openyurt/yurthub:%s"

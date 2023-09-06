@@ -74,7 +74,8 @@ cni:
     delegate:
       ipMasq: true
 flannel:
-  installCNI: false
+  installCNIPlugin: false
+  installCNIConfig: true
   image:
     repository: docker.io/openyurt/flannel-edge
     tag: v0.14.0-1
@@ -99,7 +100,7 @@ flannel:
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.5.0",
+								Version:     "1.6.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-cloud
 cni:
@@ -107,6 +108,8 @@ cni:
     delegate:
       ipMasq: true
 flannel:
+  installCNIPlugin: true
+  installCNIConfig: true
   image:
     repository: docker.io/openyurt/flannel-edge
     tag: v0.14.0-1

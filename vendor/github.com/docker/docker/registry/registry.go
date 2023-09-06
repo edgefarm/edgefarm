@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -14,12 +13,8 @@ import (
 	"time"
 
 	"github.com/docker/distribution/registry/client/transport"
-	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/sirupsen/logrus"
-
-	"github.com/docker/docker/pkg/homedir"
-	"github.com/docker/docker/rootless"
 )
 
 var (
@@ -28,25 +23,26 @@ var (
 	ErrAlreadyExists = errors.New("Image already exists")
 )
 
+// HostCertsDir returns the config directory for a specific host
+func HostCertsDir(hostname string) (string, error) {
+	certsDir := CertsDir()
+
+	hostDir := filepath.Join(certsDir, cleanPath(hostname))
+
+	return hostDir, nil
+}
+
 func newTLSConfig(hostname string, isSecure bool) (*tls.Config, error) {
 	// PreferredServerCipherSuites should have no effect
 	tlsConfig := tlsconfig.ServerDefault()
 
 	tlsConfig.InsecureSkipVerify = !isSecure
 
-	if isSecure && CertsDir != "" {
-		certsDir := CertsDir
-
-		if rootless.RunningWithRootlessKit() {
-			configHome, err := homedir.GetConfigHome()
-			if err != nil {
-				return nil, err
-			}
-
-			certsDir = filepath.Join(configHome, "docker/certs.d")
+	if isSecure && CertsDir() != "" {
+		hostDir, err := HostCertsDir(hostname)
+		if err != nil {
+			return nil, err
 		}
-
-		hostDir := filepath.Join(certsDir, cleanPath(hostname))
 
 		logrus.Debugf("hostDir: %s", hostDir)
 		if err := ReadCertsDirectory(tlsConfig, hostDir); err != nil {
@@ -57,7 +53,7 @@ func newTLSConfig(hostname string, isSecure bool) (*tls.Config, error) {
 	return tlsConfig, nil
 }
 
-func hasFile(files []os.FileInfo, name string) bool {
+func hasFile(files []os.DirEntry, name string) bool {
 	for _, f := range files {
 		if f.Name() == name {
 			return true
@@ -70,7 +66,7 @@ func hasFile(files []os.FileInfo, name string) bool {
 // including roots and certificate pairs and updates the
 // provided TLS configuration.
 func ReadCertsDirectory(tlsConfig *tls.Config, directory string) error {
-	fs, err := ioutil.ReadDir(directory)
+	fs, err := os.ReadDir(directory)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -85,7 +81,7 @@ func ReadCertsDirectory(tlsConfig *tls.Config, directory string) error {
 				tlsConfig.RootCAs = systemPool
 			}
 			logrus.Debugf("crt: %s", filepath.Join(directory, f.Name()))
-			data, err := ioutil.ReadFile(filepath.Join(directory, f.Name()))
+			data, err := os.ReadFile(filepath.Join(directory, f.Name()))
 			if err != nil {
 				return err
 			}
@@ -191,16 +187,12 @@ func NewTransport(tlsConfig *tls.Config) *http.Transport {
 
 	base := &http.Transport{
 		Proxy:               http.ProxyFromEnvironment,
-		Dial:                direct.Dial,
+		DialContext:         direct.DialContext,
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     tlsConfig,
 		// TODO(dmcgowan): Call close idle connections when complete and use keep alive
 		DisableKeepAlives: true,
 	}
 
-	proxyDialer, err := sockets.DialerFromEnvironment(direct)
-	if err == nil {
-		base.Dial = proxyDialer.Dial
-	}
 	return base
 }
