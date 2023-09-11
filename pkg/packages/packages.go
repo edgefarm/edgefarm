@@ -82,7 +82,7 @@ flannel:
   command:
   - "bash"
   - "-c"
-  - "/opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=edgefarm0"
+  - "/opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=edge0"
   args: []
   affinity:
     nodeAffinity:
