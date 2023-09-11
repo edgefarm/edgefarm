@@ -24,6 +24,12 @@ networking:
   disableDefaultCNI: {{.disable_default_cni}}
 nodes:
   - role: control-plane
+    kubeadmConfigPatches:
+    - |
+      kind: ClusterConfiguration
+      apiServer:
+        extraArgs:
+          kubelet-preferred-address-types: Hostname,InternalDNS,InternalIP,ExternalDNS,ExternalIP
     image: {{.kind_node_image}}
     extraPortMappings:
     - containerPort: 6443
