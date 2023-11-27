@@ -1,0 +1,14 @@
+[Unit]
+Description=Create edgefarm edge0 Dummy Device with Unique MAC Address
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/add-edge0.sh
+Restart=always
+RestartSec=5
+StartLimitInterval=0
+StartLimitBurst=10
+SuccessExitStatus=0
+
+[Install]
+WantedBy=default.target
