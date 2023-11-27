@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="net", KERNEL=="wt0", RUN+="/usr/local/bin/add-wt0.sh"
+ACTION=="remove", SUBSYSTEM=="net" KERNEL=="wt0", RUN+="/usr/local/bin/remove-wt0.sh"
