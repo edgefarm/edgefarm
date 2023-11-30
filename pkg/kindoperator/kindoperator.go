@@ -17,18 +17,14 @@ limitations under the License.
 package kindoperator
 
 import (
-	"fmt"
-	"io"
 	"os"
-	"os/exec"
-	"strings"
 
-	"k8s.io/klog/v2"
-
-	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
+	"sigs.k8s.io/kind/pkg/cluster"
+	"sigs.k8s.io/kind/pkg/log"
 )
 
 const (
+	KindClusterName   = "edgefarm"
 	KindNetworkName   = "edgefarm"
 	KindNetworkSubnet = "172.254.0.0/16"
 )
@@ -43,83 +39,22 @@ var (
 )
 
 type KindOperator struct {
-	// kubeconfig represents where to store the kubeconfig of the new created cluster.
-	kindCMDPath    string
 	kubeconfigPath string
-
-	// KindOperator will use this function to get command.
-	// For the convenience of stub in unit tests.
-	execCommand func(string, ...string) *exec.Cmd
+	logger         log.Logger
 }
 
-func NewKindOperator(kindCMDPath string, kubeconfigPath string) *KindOperator {
+func NewKindOperator(kubeconfigPath string) *KindOperator {
 	path := defaultKubeConfigPath
 	if kubeconfigPath != "" {
 		path = kubeconfigPath
 	}
 	return &KindOperator{
 		kubeconfigPath: path,
-		kindCMDPath:    kindCMDPath,
-		execCommand:    exec.Command,
+		logger:         NewLogger(os.Stdout, 0),
 	}
 }
 
-// GetKindPath returns the path of kind command.
-func (k *KindOperator) GetKindPath() error {
-	if k.kindCMDPath != "" {
-		return nil
-	}
-
-	kindPath, err := findKindPath()
-	if err != nil {
-		klog.Infof("no kind tool is found, so try to install. %v", err)
-	} else {
-		k.kindCMDPath = kindPath
-		return nil
-	}
-
-	kindPath, err = findKindPath()
-	if err != nil {
-		return err
-	}
-	k.kindCMDPath = kindPath
-
-	return nil
-}
-
-func (k *KindOperator) SetExecCommand(execCommand func(string, ...string) *exec.Cmd) {
-	k.execCommand = execCommand
-}
-
-func (k *KindOperator) KindVersion() (string, error) {
-	b, err := k.execCommand(k.kindCMDPath, "version").CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	klog.V(1).Infof("get kind version %s", b)
-	info := strings.Split(string(b), " ")
-	// the output of "kind version" is like:
-	// kind v0.11.1 go1.17.7 linux/amd64
-	ver := info[1]
-	return ver, nil
-}
-
-func (k *KindOperator) KindLoadDockerImage(out io.Writer, clusterName, image string, nodeNames []string) error {
-	nodeArgs := strings.Join(nodeNames, ",")
-	klog.V(1).Infof("load image %s to nodes %s in cluster %s", image, nodeArgs, clusterName)
-	cmd := k.execCommand(k.kindCMDPath, "load", "docker-image", image, "--name", clusterName, "--nodes", nodeArgs)
-	if out != nil {
-		cmd.Stdout = out
-		cmd.Stderr = out
-	}
-	if err := cmd.Run(); err != nil {
-		klog.Errorf("failed to load docker image %s to nodes %s in cluster %s, %v", image, nodeArgs, clusterName, err)
-		return err
-	}
-	return nil
-}
-
-func (k *KindOperator) KindCreateClusterWithConfig(out io.Writer, configPath string) error {
+func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 	exists, err := networkExists(KindNetworkName)
 	if err != nil {
 		return err
@@ -130,26 +65,35 @@ func (k *KindOperator) KindCreateClusterWithConfig(out io.Writer, configPath str
 			return err
 		}
 	}
-	cmd := k.execCommand(k.kindCMDPath, "create", "cluster", "--config", configPath, "--kubeconfig", k.kubeconfigPath)
-	cmd.Env = append(cmd.Env, fmt.Sprintf("KIND_EXPERIMENTAL_DOCKER_NETWORK=%s", KindNetworkName))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("PATH=%s", os.Getenv("PATH")))
-	if out != nil {
-		cmd.Stdout = out
-		cmd.Stderr = out
-	}
-	if err := cmd.Run(); err != nil {
+
+	provider := cluster.NewProvider(cluster.ProviderWithLogger(k.logger))
+	err = os.Setenv("KIND_EXPERIMENTAL_DOCKER_NETWORK", KindNetworkName)
+	if err != nil {
 		return err
 	}
+	options := []cluster.CreateOption{
+
+		cluster.CreateWithRawConfig(config),
+		cluster.CreateWithNodeImage("ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c"),
+		cluster.CreateWithRetain(true),
+		cluster.CreateWithWaitForReady(0),
+		cluster.CreateWithKubeconfigPath(k.kubeconfigPath),
+		cluster.CreateWithDisplayUsage(true),
+		cluster.CreateWithDisplaySalutation(true),
+	}
+
+	err = provider.Create(KindClusterName, options...)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (k *KindOperator) KindDeleteCluster(out io.Writer, name string) error {
-	cmd := k.execCommand(k.kindCMDPath, "delete", "cluster", "--name", name)
-	if out != nil {
-		cmd.Stdout = out
-		cmd.Stderr = out
-	}
-	if err := cmd.Run(); err != nil {
+func (k *KindOperator) KindDeleteCluster(name string) error {
+	provider := cluster.NewProvider()
+	err := provider.Delete(KindClusterName, k.kubeconfigPath)
+	if err != nil {
 		return err
 	}
 	exists, err := networkExists(KindNetworkName)
@@ -161,43 +105,6 @@ func (k *KindOperator) KindDeleteCluster(out io.Writer, name string) error {
 		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func checkIfKindAt(path string) (bool, string) {
-	if p, err := exec.LookPath(path); err == nil {
-		return true, p
-	}
-	return false, ""
-}
-
-func findKindPath() (string, error) {
-
-	var kindPath string
-	if exist, path := checkIfKindAt("kind"); exist {
-		kindPath = path
-	}
-
-	if len(kindPath) == 0 {
-		return kindPath, fmt.Errorf("cannot find valid kind cmd, try to install it")
-	}
-
-	if err := validateKindVersion(kindPath); err != nil {
-		return "", err
-	}
-	return kindPath, nil
-}
-
-func validateKindVersion(kindCmdPath string) error {
-	tmpOperator := NewKindOperator(kindCmdPath, "")
-	ver, err := tmpOperator.KindVersion()
-	if err != nil {
-		return err
-	}
-	if !strutil.IsInStringLst(validKindVersions, ver) {
-		return fmt.Errorf("invalid kind version: %s, all valid kind versions are: %s",
-			ver, strings.Join(validKindVersions, ","))
 	}
 	return nil
 }

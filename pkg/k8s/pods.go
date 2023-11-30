@@ -18,9 +18,14 @@ package k8s
 
 import (
 	"context"
+	"io"
 
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubeclientset "k8s.io/client-go/kubernetes"
+	"k8s.io/klog/v2"
+	kubectllogs "k8s.io/kubectl/pkg/cmd/logs"
 )
 
 func GetPods(namespace string, selector string) ([]v1.Pod, error) {
@@ -38,4 +43,15 @@ func GetPods(namespace string, selector string) ([]v1.Pod, error) {
 		return nil, err
 	}
 	return pods.Items, nil
+}
+
+func PrintPodLog(client kubeclientset.Interface, pod *corev1.Pod, w io.Writer) error {
+	klog.Infof("start to print logs for pod(%s/%s):", pod.Namespace, pod.Name)
+	req := client.CoreV1().Pods(pod.GetNamespace()).GetLogs(pod.Name, &corev1.PodLogOptions{})
+	if err := kubectllogs.DefaultConsumeRequest(req, w); err != nil {
+		klog.Errorf("failed to print logs for pod(%s/%s), %v", pod.Namespace, pod.Name, err)
+		return err
+	}
+
+	return nil
 }

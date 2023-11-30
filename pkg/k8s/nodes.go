@@ -23,11 +23,14 @@ import (
 	"html/template"
 	"regexp"
 
+	"github.com/openyurtio/openyurt/pkg/projectinfo"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	kubeclientset "k8s.io/client-go/kubernetes"
 	yaml "sigs.k8s.io/yaml"
 )
 
@@ -221,6 +224,16 @@ func HandleNodePool(node v1.Node) error {
 	if err != nil {
 		return err
 	}
+
+	// only create nodepool if it does not exist
+	if _, err := dynamic.Resource(schema.GroupVersionResource{
+		Group:    "apps.openyurt.io",
+		Version:  "v1beta1",
+		Resource: "nodepools",
+	}).Get(context.Background(), node.Name, metav1.GetOptions{}); err == nil {
+		return nil
+	}
+
 	if _, err := dynamic.Resource(schema.GroupVersionResource{
 		Group:    "apps.openyurt.io",
 		Version:  "v1beta1",
@@ -248,4 +261,24 @@ func PrepareEdgeNodes() error {
 		}
 	}
 	return nil
+}
+
+// AnnotateNode add a new annotation (<key>=<val>) to the given node
+func AnnotateNode(cliSet kubeclientset.Interface, node *corev1.Node, key, val string) (*corev1.Node, error) {
+	node.Annotations[key] = val
+	newNode, err := cliSet.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return newNode, nil
+}
+
+func AddEdgeWorkerLabelAndAutonomyAnnotation(cliSet kubeclientset.Interface, node *corev1.Node, lVal, aVal string) (*corev1.Node, error) {
+	node.Labels[projectinfo.GetEdgeWorkerLabelKey()] = lVal
+	node.Annotations[projectinfo.GetAutonomyAnnotation()] = aVal
+	newNode, err := cliSet.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return newNode, nil
 }

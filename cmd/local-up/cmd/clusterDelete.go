@@ -37,11 +37,7 @@ var localDeleteCmd = &cobra.Command{
 	Short: "Delete the local edgefarm cluster",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Deleting local edgefarm cluster")
-		ki := kindoperator.NewKindOperator("", kubeConfig)
-		if err := ki.GetKindPath(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		ki := kindoperator.NewKindOperator(kubeConfig)
 		doit := false
 		if override {
 			doit = true
@@ -55,7 +51,7 @@ var localDeleteCmd = &cobra.Command{
 			}
 		}
 		if doit {
-			ki.KindDeleteCluster(os.Stdout, "edgefarm")
+			ki.KindDeleteCluster("edgefarm")
 		} else {
 			fmt.Println("Aborted")
 		}
