@@ -17,38 +17,17 @@ limitations under the License.
 package packages
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"time"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
+	"github.com/edgefarm/edgefarm/pkg/route"
 	helmclient "github.com/mittwald/go-helm-client"
-	"github.com/s0rg/retry"
 	"helm.sh/helm/v3/pkg/repo"
 
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/klog/v2"
-	"tideland.dev/go/wait"
-
-	"github.com/edgefarm/edgefarm/pkg/args"
-	"github.com/edgefarm/edgefarm/pkg/k8s"
-	"github.com/edgefarm/edgefarm/pkg/route"
+	mycontext "github.com/edgefarm/edgefarm/pkg/context"
 )
-
-type Spec struct {
-	Chart           []*helmclient.ChartSpec
-	CreateNamespace bool
-	ValuesFunc      func() string
-}
-
-type Helm struct {
-	Repo *repo.Entry
-	Spec *Spec
-}
-
-type Packages struct {
-	Helm []*Helm
-}
 
 var (
 	ClusterBootstrapFlannel = []Packages{
@@ -69,30 +48,39 @@ var (
 								Version:     "1.16.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-edge
-cni:
-  flannel:
-    delegate:
-      ipMasq: true
 flannel:
   installCNIPlugin: false
-  installCNIConfig: true
   image:
-    repository: docker.io/openyurt/flannel-edge
-    tag: v0.14.0-1
-  command:
-  - "bash"
-  - "-c"
-  - "/opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=edge0"
-  args: []
+    repository: siredmar/flannel
+    tag: v0.23.4-siredmar
+  extraVolumes:
+    - name: ip
+      hostPath:
+        path: /usr/local/etc/wt0.ip
+        type: File
+  extraVolumeMounts:
+    - name: ip
+      mountPath: /usr/local/etc/wt0.ip
+  command: ["bash"]
+  args: ["-c" ,"/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=edge0 --public-ip=$(cat /usr/local/etc/wt0.ip) --persistent-mac"]
+  tolerations:
+  - key: edgefarm.io
+    effect: NoSchedule
+  - effect: NoSchedule
+    operator: Exists
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-              - key: node.edgefarm.io/core
-                operator: In
-                values:
-                  - physical`,
+            - key: openyurt.io/is-edge-worker
+              operator: In
+              values:
+              - "true"
+            - key: node.edgefarm.io/type
+              operator: NotIn
+              values:
+              - "virtual"`,
 							},
 							{
 								ReleaseName: "flannel-cloud",
@@ -100,36 +88,325 @@ flannel:
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.6.0",
+								Version:     "1.13.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-cloud
-cni:
-  flannel:
-    delegate:
-      ipMasq: true
 flannel:
-  installCNIPlugin: true
-  installCNIConfig: true
-  image:
-    repository: docker.io/openyurt/flannel-edge
-    tag: v0.14.0-1
-  command:
-  - "bash"
-  - "-c"
-  - "/opt/bin/flanneld -ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld -ip-masq -kube-subnet-mgr -iface=wt0 -iface=eth0 & p=$c; fi; sleep 5; done"
-  args: []
+  args: ["--ip-masq", "--kube-subnet-mgr", "--iface=wt0"]
+  tolerations:
+    - operator: Exists
+      effect: NoSchedule
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-              - key: node.edgefarm.io/core
-                operator: NotIn
-                values:
-                  - physical`,
+            - key: openyurt.io/is-edge-worker
+              operator: NotIn
+              values:
+                - "true"
+          - matchExpressions:
+            - key: node.edgefarm.io/type
+              operator: In
+              values:
+              - "virtual"`,
 							},
 						},
 						CreateNamespace: true,
+					},
+				},
+			},
+		},
+	}
+
+	ClusterBootstrapKruise = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "openkruise",
+						URL:  "https://openkruise.github.io/charts",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "kruise",
+								ChartName:   "openkruise/kruise",
+								Namespace:   "kruise-system",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Version:     "1.1.0",
+								Timeout:     time.Second * 90,
+								ValuesYaml: `featureGates: "PodWebhook=false,KruiseDaemon=false,DaemonWatchingPod=false"
+installation:
+  namespace: kruise-system
+  createNamespace: false
+manager:
+  replicas: 1
+  nodeSelector:
+    kubernetes.io/hostname: edgefarm-worker`,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
+			},
+		},
+	}
+
+	ClusterBootstrapYurtManager = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "openyurt",
+						URL:  "https://openyurtio.github.io/openyurt-helm",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "yurt-manager",
+								ChartName:   "openyurt/yurt-manager",
+								Namespace:   "kube-system",
+								Version:     "1.3.4",
+								UpgradeCRDs: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	NodeServantApplier = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "node-servant-applier",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "node-servant-applier",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/node-servant-applier",
+								Namespace:   "kube-system",
+								Version:     "1.16.0",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Timeout:     time.Second * 90,
+							},
+						},
+						ValuesFunc: func() string {
+							if !mycontext.Exists("node-servant-applier") {
+								log.Fatalf("context for node-servenat-applier does not exist!")
+							}
+							ctx := mycontext.Context("node-servant-applier")
+							workingMode := ""
+							nodeServantImage := ""
+							yurthubImage := ""
+							enableDummyIf := ""
+							if val, ok := ctx.Get("working_mode"); ok {
+								workingMode = val.(string)
+							} else {
+								log.Fatalf("workingMode does not exist!")
+							}
+							if val, ok := ctx.Get("node_servant_image"); ok {
+								nodeServantImage = val.(string)
+							} else {
+								log.Fatalf("")
+							}
+
+							if val, ok := ctx.Get("yurthub_image"); ok {
+								yurthubImage = val.(string)
+							} else {
+								log.Fatalf("")
+							}
+							if val, ok := ctx.Get("enable_dummy_if"); ok {
+								enableDummyIf = val.(string)
+							} else {
+								log.Fatalf("")
+							}
+
+							valuesStr := `parameters:
+  workingMode: %s
+  nodeServantImage: %s
+  yurthubImage: %s
+  enableDummyIf: %s
+
+image:
+  registry: ghcr.io/edgefarm/edgefarm
+  repository: node-servant-applier
+  tag: v3
+
+tolerations:
+  - effect: NoSchedule
+    key: edgefarm.io`
+							return fmt.Sprintf(valuesStr, workingMode, nodeServantImage, yurthubImage, enableDummyIf)
+						},
+					},
+				},
+			},
+		},
+	}
+
+	ClusterBootstrapYurtHub = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "yurt-hub",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "yurt-hub",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/yurthub",
+								Namespace:   "kube-system",
+								Version:     "1.14.0",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Timeout:     time.Second * 90,
+								ValuesYaml: `kuberneteServerAddr:
+  manual:
+    enabled: true
+    host: edgefarm-control-plane
+    port: 6443
+  lookup:
+    enabled: false
+image:
+  registry: ghcr.io/openyurtio/openyurt
+  repository: yurthub
+  tag: v1.4.0`,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	ClusterBootstrapCoreDNS = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "coredns",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "coredns",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/coredns",
+								Namespace:   "kube-system",
+								Version:     "1.16.0",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Timeout:     time.Second * 90,
+								ValuesYaml: `features:
+  log:
+    enabled: true
+dnsPolicy: None
+dnsConfig:
+  nameservers:
+  - 8.8.8.8
+  - 8.8.4.4`,
+							},
+						},
+						CreateNamespace: false,
+					},
+				},
+			},
+		},
+	}
+
+	ClusterBootstrapKubeProxy = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "kube-proxy-default",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "kube-proxy-default",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/kube-proxy",
+								Namespace:   "kube-system",
+								Version:     "1.16.0",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Timeout:     time.Second * 90,
+								ValuesYaml: `nameOverride: kube-proxy-default
+kuberneteServerAddr:
+  manual:
+    enabled: true
+    host: edgefarm-control-plane
+    port: 6443
+  lookup:
+    enabled: false
+features:
+  openyurt:
+    enabled: false
+tolerations:
+- effect: NoSchedule
+  operator: Exists
+- effect: NoExecute
+  operator: Exists
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: openyurt.io/is-edge-worker
+              operator: DoesNotExist`,
+							},
+						},
+						CreateNamespace: false,
+					},
+				},
+				{
+					Repo: &repo.Entry{
+						Name: "kube-proxy-openyurt",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "kube-proxy-openyurt",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/kube-proxy",
+								Namespace:   "kube-system",
+								Version:     "1.16.0",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Timeout:     time.Second * 90,
+								ValuesYaml: `nameOverride: kube-proxy-openyurt
+kuberneteServerAddr:
+  manual:
+    enabled: true
+    host: edgefarm-control-plane
+    port: 6443
+  lookup:
+    enabled: false    
+features:
+  openyurt:
+    enabled: true
+tolerations:
+- effect: NoSchedule
+  operator: Exists
+- effect: NoExecute
+  operator: Exists
+- key: edgefarm.io
+  effect: NoSchedule
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: openyurt.io/is-edge-worker
+              operator: Exists`,
+							},
+						},
+						CreateNamespace: false,
 					},
 				},
 			},
@@ -485,235 +762,4 @@ xfn:
 			},
 		},
 	}
-
-	YurtManager = []Packages{
-		{
-			Helm: []*Helm{
-				{
-					Repo: &repo.Entry{
-						Name: "openyurt",
-						URL:  "https://openyurtio.github.io/openyurt-helm",
-					},
-					Spec: &Spec{
-						Chart: []*helmclient.ChartSpec{
-							{
-								ReleaseName: "yurt-manager",
-								ChartName:   "openyurt/yurt-manager",
-								Namespace:   "kube-system",
-								Version:     "1.3.4",
-								UpgradeCRDs: true,
-								ValuesYaml: `affinity:
-nodeAffinity:
-  requiredDuringSchedulingIgnoredDuringExecution:
-    nodeSelectorTerms:
-      - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists`,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
 )
-
-func Template(h *Helm, index int) ([]byte, error) {
-	if h == nil {
-		return nil, fmt.Errorf("helm is nil")
-	}
-	if h.Spec == nil {
-		return nil, fmt.Errorf("helm spec is nil")
-	}
-	if h.Spec.Chart == nil {
-		return nil, fmt.Errorf("helm spec chart is nil")
-	}
-	if len(h.Spec.Chart) <= index {
-		return nil, fmt.Errorf("helm spec chart index out of range")
-	}
-
-	client, err := helmclient.New(&helmclient.Options{
-		Namespace: h.Spec.Chart[index].Namespace,
-		Debug:     true,
-		Linting:   false,
-		DebugLog:  klog.Infof,
-	})
-	if h.Repo.URL != "" {
-		if err := client.AddOrUpdateChartRepo(*h.Repo); err != nil {
-			return nil, err
-		}
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	return client.TemplateChart(h.Spec.Chart[index])
-}
-
-func (h *Helm) Install() error {
-	for _, spec := range h.Spec.Chart {
-		client, err := helmclient.New(&helmclient.Options{
-			Namespace: spec.Namespace,
-			Debug:     true,
-			Linting:   false,
-			DebugLog:  klog.Infof,
-		})
-		if h.Repo != nil {
-			if h.Repo.URL != "" {
-				if err := client.AddOrUpdateChartRepo(*h.Repo); err != nil {
-					return err
-				}
-			}
-		}
-		if err != nil {
-			return err
-		}
-
-		if h.Spec.ValuesFunc != nil {
-			spec.ValuesYaml = h.Spec.ValuesFunc()
-		}
-
-		if h.Spec.CreateNamespace {
-			klog.Infof("chart: %s: creating namespace %s", spec.ChartName, spec.Namespace)
-			_, err := k8s.CreateNamespaceIfNotExist(spec.Namespace)
-			if err != nil {
-				return err
-			}
-		}
-
-		// Install helm chart with repeat mechanism if failed to install
-		try := retry.New(
-			retry.Count(5),
-			retry.Sleep(time.Second*2),
-			retry.Verbose(true),
-		)
-		if err := try.Single(fmt.Sprintf("InstallOrUpgradeChart for chart %s", spec.ChartName),
-			func() error {
-				release, err := client.InstallOrUpgradeChart(context.Background(), spec)
-				if err != nil {
-					return err
-				}
-				if release == nil {
-					return fmt.Errorf("release failed")
-				}
-				klog.Infof("chart: %s: installed release %s", spec.ChartName, release.Name)
-				return nil
-			}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (p *Packages) Install() error {
-	if p.Helm != nil {
-		for _, helm := range p.Helm {
-			if err := helm.Install(); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func InstallBase() error {
-	for _, pkg := range Base {
-		if err := pkg.Install(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func InstallDependencies() error {
-	for _, pkg := range ClusterDependencies {
-		if err := pkg.Install(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func Install(packages []Packages) error {
-	for _, pkg := range packages {
-		if err := pkg.Install(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func WaitForBootstrapConditions(stepTimeout time.Duration) error {
-	ticker := wait.MakeExpiringIntervalTicker(time.Second, stepTimeout)
-
-	// Checks for flannel pods to be ready on all nodes
-	flannelCondition := func() (bool, error) {
-		pods, err := k8s.GetPods("kube-system", "app=flannel")
-		if err != nil {
-			return false, err
-		}
-		for _, pod := range pods {
-			if pod.Status.Phase != v1.PodRunning {
-				return false, nil
-			}
-		}
-		return true, nil
-	}
-	wait.Poll(context.Background(), ticker, flannelCondition)
-
-	// // Checks for core-dns pods to be ready on all nodes
-	// corednsCondition := func() (bool, error) {
-	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-dns")
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
-	// 	for _, pod := range pods {
-	// 		if pod.Status.Phase != v1.PodRunning {
-	// 			return false, nil
-	// 		}
-	// 	}
-	// 	return true, nil
-	// }
-	// wait.Poll(context.Background(), ticker, corednsCondition)
-
-	// Checks for ready state of all nodes
-	nodesCondition := func() (bool, error) {
-		nodes, err := k8s.GetNodes(metav1.LabelSelector{})
-		if err != nil {
-			return false, err
-		}
-		for _, node := range nodes {
-			for _, condition := range node.Status.Conditions {
-				if condition.Type == v1.NodeReady && condition.Status != v1.ConditionTrue {
-					return false, nil
-				}
-			}
-		}
-		return true, nil
-	}
-	wait.Poll(context.Background(), ticker, nodesCondition)
-
-	return nil
-}
-
-func InstallAndWaitBootstrapStage1() error {
-	err := k8s.ReplaceCoreDNS()
-	if err != nil {
-		return err
-	}
-
-	// for _, pkg := range ClusterBootstrapFlannel {
-	// 	if err := pkg.Install(); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	err = WaitForBootstrapConditions(time.Minute * 5)
-	if err != nil {
-		return err
-	}
-	return nil
-}

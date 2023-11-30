@@ -19,11 +19,9 @@ package init
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
-	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,12 +29,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kubeclientset "k8s.io/client-go/kubernetes"
-	bootstrapapi "k8s.io/cluster-bootstrap/token/api"
 	"k8s.io/klog/v2"
 
+	mycontext "github.com/edgefarm/edgefarm/pkg/context"
+	"github.com/edgefarm/edgefarm/pkg/k8s"
+	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/packages"
-	nodeservant "github.com/openyurtio/openyurt/pkg/node-servant"
-	kubeadmapi "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstraptoken/clusterinfo"
+
 	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
 	"github.com/openyurtio/openyurt/pkg/yurthub/util"
 	"github.com/openyurtio/openyurt/test/e2e/cmd/init/lock"
@@ -46,6 +45,9 @@ import (
 const (
 	// defaultYurthubHealthCheckTimeout defines the default timeout for yurthub health check phase
 	defaultYurthubHealthCheckTimeout = 2 * time.Minute
+
+	yssYurtHubCloudName = "yurt-static-set-yurt-hub-cloud"
+	yssYurtHubName      = "yurt-static-set-yurt-hub"
 )
 
 type ClusterConverter struct {
@@ -73,50 +75,124 @@ func (c *ClusterConverter) Run() error {
 		}
 	}()
 
-	klog.Info("Add edgework label and autonomy annotation to edge nodes")
-	if err := c.labelEdgeNodes(); err != nil {
-		klog.Errorf("failed to label and annotate edge nodes, %s", err)
-		return err
-	}
-
 	klog.Info("Deploying yurt-manager")
 	if err := c.deployYurtManager(); err != nil {
 		klog.Errorf("failed to deploy yurt-manager with image %s, %s", c.YurtManagerImage, err)
 		return err
 	}
 
-	klog.Info("Running jobs for convert. Job running may take a long time, and job failure will not affect the execution of the next stage")
-
-	klog.Info("Running node-servant-convert jobs to deploy the yurt-hub and reset the kubelet service on edge and cloud nodes")
-	if err := c.deployYurthub(); err != nil {
+	if err := packages.Install(packages.ClusterBootstrapYurtHub); err != nil {
 		klog.Errorf("error occurs when deploying Yurthub, %v", err)
+		return err
+	}
+
+	if err := c.prepareyNodeServantApplier(); err != nil {
+		klog.Errorf("error occurs when preparing node servant applier, %v", err)
 		return err
 	}
 	return nil
 }
 
-func (c *ClusterConverter) labelEdgeNodes() error {
-	nodeLst, err := c.ClientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+func LabelEdgeNodes(edgeNodes []string) error {
+	clientset, err := k8s.GetClientset(nil)
+	if err != nil {
+		return err
+	}
+	nodeLst, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to list nodes, %w", err)
 	}
 	for _, node := range nodeLst.Items {
-		isEdge := strutil.IsInStringLst(c.EdgeNodes, node.Name)
-		if _, err = kubeutil.AddEdgeWorkerLabelAndAutonomyAnnotation(
-			c.ClientSet, &node, strconv.FormatBool(isEdge), "false"); err != nil {
+		isEdge := strutil.IsInStringLst(edgeNodes, node.Name)
+		if !isEdge {
+			continue
+		}
+		_, err := kubeutil.AddEdgeWorkerLabelAndAutonomyAnnotation(clientset, &node, "true", "true")
+		if err != nil {
 			return fmt.Errorf("failed to add label to edge node %s, %w", node.Name, err)
 		}
 	}
 	return nil
 }
 
-func (c *ClusterConverter) deployYurthub() error {
-	// deploy yurt-hub and reset the kubelet service on edge nodes.
-	joinToken, err := prepareYurthubStart(c.ClientSet, c.KubeConfigPath)
+func LabelCloudNodes(cloudNodes []string) error {
+	clientset, err := k8s.GetClientset(nil)
 	if err != nil {
 		return err
 	}
-	convertCtx := map[string]string{
+	nodeLst, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to list nodes, %w", err)
+	}
+	for _, node := range nodeLst.Items {
+		isCloud := strutil.IsInStringLst(cloudNodes, node.Name)
+		if !isCloud {
+			continue
+		}
+		_, err := kubeutil.AddEdgeWorkerLabelAndAutonomyAnnotation(clientset, &node, "false", "false")
+		if err != nil {
+			return fmt.Errorf("failed to add label to edge node %s, %w", node.Name, err)
+		}
+	}
+	return nil
+}
+
+// func (c *ClusterConverter) labelEdgeNodes() error {
+// 	nodeLst, err := c.ClientSet.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+// 	if err != nil {
+// 		return fmt.Errorf("failed to list nodes, %w", err)
+// 	}
+// 	for _, node := range nodeLst.Items {
+// 		isEdge := strutil.IsInStringLst(c.EdgeNodes, node.Name)
+// 		if _, err = kubeutil.AddEdgeWorkerLabelAndAutonomyAnnotation(
+// 			c.ClientSet, &node, strconv.FormatBool(isEdge), "false"); err != nil {
+// 			return fmt.Errorf("failed to add label to edge node %s, %w", node.Name, err)
+// 		}
+// 	}
+// 	return nil
+// }
+
+// func (c *ClusterConverter) deployYurtHub() error {
+// 	return packages.Install(packages.ClusterBootstrapYurtHub)
+// }
+
+// // waiting yurt-manager pod ready
+// return wait.PollImmediate(10*time.Second, 5*time.Minute, func() (bool, error) {
+// 	podList, err := c.ClientSet.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{
+// 		LabelSelector: labels.SelectorFromSet(map[string]string{"app.kubernetes.io/name": "yurt-hub"}).String(),
+// 	})
+// 	if err != nil {
+// 		klog.Errorf("failed to list yurt-hub pod, %v", err)
+// 		return false, nil
+// 	} else if len(podList.Items) == 0 {
+// 		klog.Infof("no yurt-manager pod: %#v", podList)
+// 		return false, nil
+// 	}
+
+// 	if podList.Items[0].Status.Phase == corev1.PodRunning {
+// 		for i := range podList.Items[0].Status.Conditions {
+// 			if podList.Items[0].Status.Conditions[i].Type == corev1.PodReady &&
+// 				podList.Items[0].Status.Conditions[i].Status == corev1.ConditionTrue {
+// 				return true, nil
+// 			}
+// 		}
+// 	}
+// 	klog.Infof("pod(%s/%s): %#v", podList.Items[0].Namespace, podList.Items[0].Name, podList.Items[0])
+// 	return false, nil
+// })
+// }
+
+func (c *ClusterConverter) prepareyNodeServantApplier() error {
+	// if err := prepareClusterInfoConfigMap(c.ClientSet, c.KubeConfigPath); err != nil {
+	// 	return err
+	// }
+
+	joinToken, err := tokens.GetOrCreateJoinTokenString(c.ClientSet)
+	if err != nil || joinToken == "" {
+		return fmt.Errorf("fail to get join token: %w", err)
+	}
+
+	convertCtx := map[string]interface{}{
 		"node_servant_image": c.NodeServantImage,
 		"yurthub_image":      c.YurthubImage,
 		"joinToken":          joinToken,
@@ -136,94 +212,154 @@ func (c *ClusterConverter) deployYurthub() error {
 		return err
 	}
 	convertCtx["enable_node_pool"] = strconv.FormatBool(npExist)
+	convertCtx["configmap_name"] = yssYurtHubName
 	klog.Infof("convert context for edge nodes(%q): %#+v", c.EdgeNodes, convertCtx)
 
-	if len(c.EdgeNodes) != 0 {
-		convertCtx["working_mode"] = string(util.WorkingModeEdge)
-		if err = kubeutil.RunServantJobs(c.ClientSet, c.WaitServantJobTimeout, func(nodeName string) (*batchv1.Job, error) {
-			return nodeservant.RenderNodeServantJob("convert", convertCtx, nodeName)
-		}, c.EdgeNodes, os.Stderr, false); err != nil {
-			// print logs of yurthub
-			for i := range c.EdgeNodes {
-				hubPodName := fmt.Sprintf("yurt-hub-%s", c.EdgeNodes[i])
-				pod, logErr := c.ClientSet.CoreV1().Pods("kube-system").Get(context.TODO(), hubPodName, metav1.GetOptions{})
-				if logErr == nil {
-					kubeutil.PrintPodLog(c.ClientSet, pod, os.Stderr)
-				}
-			}
+	// Create context for node servant applier helm chart installed in clusterCreate
+	mycontext.Context("node-servant-applier", mycontext.WithData(convertCtx))
 
-			// print logs of yurt-manager
-			podList, logErr := c.ClientSet.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{
-				LabelSelector: labels.SelectorFromSet(map[string]string{"app.kubernetes.io/name": "yurt-manager"}).String(),
-			})
-			if logErr != nil {
-				klog.Errorf("failed to get yurt-manager pod, %v", logErr)
-				return err
-			}
+	// if len(c.EdgeNodes) != 0 {
+	// 	convertCtx["working_mode"] = string(util.WorkingModeEdge)
+	// 	job, err := RenderNodeServantJob(convertCtx)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if err = kubeutil.RunServantJobs(c.ClientSet, c.WaitServantJobTimeout, func(nodeName string) (*batchv1.Job, error) {
+	// 		return nodeservant.RenderNodeServantJob("convert", convertCtx, nodeName)
+	// 	}, c.EdgeNodes, os.Stderr, false); err != nil {
+	// 		// print logs of yurthub
+	// 		for i := range c.EdgeNodes {
+	// 			hubPodName := fmt.Sprintf("yurt-hub-%s", c.EdgeNodes[i])
+	// 			pod, logErr := c.ClientSet.CoreV1().Pods("kube-system").Get(context.TODO(), hubPodName, metav1.GetOptions{})
+	// 			if logErr == nil {
+	// 				kubeutil.PrintPodLog(c.ClientSet, pod, os.Stderr)
+	// 			}
+	// 		}
 
-			if len(podList.Items) == 0 {
-				klog.Errorf("yurt-manager pod doesn't exist")
-				return err
-			}
-			if logErr = kubeutil.PrintPodLog(c.ClientSet, &podList.Items[0], os.Stderr); logErr != nil {
-				return err
-			}
-			return err
-		}
-	}
+	// 		// print logs of yurt-manager
+	// 		podList, logErr := c.ClientSet.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{
+	// 			LabelSelector: labels.SelectorFromSet(map[string]string{"app.kubernetes.io/name": "yurt-manager"}).String(),
+	// 		})
+	// 		if logErr != nil {
+	// 			klog.Errorf("failed to get yurt-manager pod, %v", logErr)
+	// 			return err
+	// 		}
 
-	// deploy yurt-hub and reset the kubelet service on cloud nodes
-	convertCtx["working_mode"] = string(util.WorkingModeCloud)
-	klog.Infof("convert context for cloud nodes(%q): %#+v", c.CloudNodes, convertCtx)
-	if err = kubeutil.RunServantJobs(c.ClientSet, c.WaitServantJobTimeout, func(nodeName string) (*batchv1.Job, error) {
-		return nodeservant.RenderNodeServantJob("convert", convertCtx, nodeName)
-	}, c.CloudNodes, os.Stderr, false); err != nil {
-		return err
-	}
-
-	klog.Info("If any job fails, you can get job information through 'kubectl get jobs -n kube-system' to debug.\n" +
-		"\tNote that before the next conversion, please delete all related jobs so as not to affect the conversion.")
-
+	// 		if len(podList.Items) == 0 {
+	// 			klog.Errorf("yurt-manager pod doesn't exist")
+	// 			return err
+	// 		}
+	// 		if logErr = kubeutil.PrintPodLog(c.ClientSet, &podList.Items[0], os.Stderr); logErr != nil {
+	// 			return err
+	// 		}
+	// 		return err
+	// 	}
+	// }
 	return nil
 }
 
-func prepareYurthubStart(cliSet kubeclientset.Interface, kcfg string) (string, error) {
-	// prepare kube-public/cluster-info configmap before convert
-	if err := prepareClusterInfoConfigMap(cliSet, kcfg); err != nil {
-		return "", err
-	}
+// // RenderNodeServantJob return k8s job
+// // to start k8s job to run convert/revert on specific node
+// func RenderNodeServantJob(renderCtx map[string]string, nodeName string) (*batchv1.Job, error) {
+// 	tmplCtx := make(map[string]string)
+// 	for k, v := range renderCtx {
+// 		tmplCtx[k] = v
+// 	}
 
-	// prepare global settings(like RBAC, configmap) for yurthub
-	if err := kubeutil.DeployYurthubSetting(cliSet); err != nil {
-		return "", err
-	}
+// 	servantJobTemplate := constants.ConvertServantJobTemplate
+// 	jobBaseName := "node-servant-convert"
 
-	// prepare join-token for yurthub
-	joinToken, err := kubeutil.GetOrCreateJoinTokenString(cliSet)
-	if err != nil || joinToken == "" {
-		return "", fmt.Errorf("fail to get join token: %w", err)
-	}
-	return joinToken, nil
-}
+// 	tmplCtx["jobName"] = jobBaseName + "-" + nodeName
+// 	tmplCtx["nodeName"] = nodeName
+// 	jobYaml, err := tmplutil.SubsituteTemplate(servantJobTemplate, tmplCtx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-// prepareClusterInfoConfigMap will create cluster-info configmap in kube-public namespace if it does not exist
-func prepareClusterInfoConfigMap(client kubeclientset.Interface, file string) error {
-	info, err := client.CoreV1().ConfigMaps(metav1.NamespacePublic).Get(context.Background(), bootstrapapi.ConfigMapClusterInfo, metav1.GetOptions{})
-	if err != nil && apierrors.IsNotFound(err) {
-		// Create the cluster-info ConfigMap with the associated RBAC rules
-		if err := kubeadmapi.CreateBootstrapConfigMapIfNotExists(client, file); err != nil {
-			return fmt.Errorf("error creating bootstrap ConfigMap, %w", err)
-		}
-		if err := kubeadmapi.CreateClusterInfoRBACRules(client); err != nil {
-			return fmt.Errorf("error creating clusterinfo RBAC rules, %w", err)
-		}
-	} else if err != nil || info == nil {
-		return fmt.Errorf("fail to get configmap, %w", err)
-	} else {
-		klog.V(4).Infof("%s/%s configmap already exists, skip to prepare it", info.Namespace, info.Name)
-	}
-	return nil
-}
+// 	srvJobObj, err := k8s.YamlToObject([]byte(jobYaml))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	srvJob, ok := srvJobObj.(*batchv1.Job)
+// 	if !ok {
+// 		return nil, fmt.Errorf("fail to assert node-servant job")
+// 	}
+
+// 	return srvJob, nil
+// }
+
+// func validate(action string, tmplCtx map[string]string, nodeName string) error {
+// 	if nodeName == "" {
+// 		return fmt.Errorf("nodeName empty")
+// 	}
+
+// 	switch action {
+// 	case "convert":
+// 		keysMustHave := []string{"node_servant_image", "yurthub_image", "joinToken"}
+// 		return checkKeys(keysMustHave, tmplCtx)
+// 	case "revert":
+// 		keysMustHave := []string{"node_servant_image"}
+// 		return checkKeys(keysMustHave, tmplCtx)
+// 	default:
+// 		return fmt.Errorf("action invalied: %s ", action)
+// 	}
+// }
+
+// func checkKeys(arr []string, tmplCtx map[string]string) error {
+// 	for _, k := range arr {
+// 		if _, ok := tmplCtx[k]; !ok {
+// 			return fmt.Errorf("key %s not found", k)
+// 		}
+// 	}
+// 	return nil
+// }
+
+// 	// deploy yurt-hub and reset the kubelet service on cloud nodes
+// 	convertCtx["working_mode"] = string(util.WorkingModeCloud)
+// 	klog.Infof("convert context for cloud nodes(%q): %#+v", c.CloudNodes, convertCtx)
+// 	if err = kubeutil.RunServantJobs(c.ClientSet, c.WaitServantJobTimeout, func(nodeName string) (*batchv1.Job, error) {
+// 		return nodeservant.RenderNodeServantJob("convert", convertCtx, nodeName)
+// 	}, c.CloudNodes, os.Stderr, false); err != nil {
+// 		return err
+// 	}
+
+// 	klog.Info("If any job fails, you can get job information through 'kubectl get jobs -n kube-system' to debug.\n" +
+// 		"\tNote that before the next conversion, please delete all related jobs so as not to affect the conversion.")
+
+// 	return nil
+// }
+
+// func prepareYurthubStart(cliSet kubeclientset.Interface, kcfg string) (string, error) {
+// 	// prepare kube-public/cluster-info configmap before convert
+
+// 	// // prepare global settings(like RBAC, configmap) for yurthub
+// 	// if err := kubeutil.DeployYurthubSetting(cliSet); err != nil {
+// 	// 	return "", err
+// 	// }
+
+// 	// prepare join-token for yurthub
+
+// 	return joinToken, nil
+// }
+
+// // prepareClusterInfoConfigMap will create cluster-info configmap in kube-public namespace if it does not exist
+// func prepareClusterInfoConfigMap(client kubeclientset.Interface, file string) error {
+// 	info, err := client.CoreV1().ConfigMaps(metav1.NamespacePublic).Get(context.Background(), bootstrapapi.ConfigMapClusterInfo, metav1.GetOptions{})
+// 	if err != nil && apierrors.IsNotFound(err) {
+// 		// Create the cluster-info ConfigMap with the associated RBAC rules
+// 		if err := kubeadmapi.CreateBootstrapConfigMapIfNotExists(client, file); err != nil {
+// 			return fmt.Errorf("error creating bootstrap ConfigMap, %w", err)
+// 		}
+// 		if err := kubeadmapi.CreateClusterInfoRBACRules(client); err != nil {
+// 			return fmt.Errorf("error creating clusterinfo RBAC rules, %w", err)
+// 		}
+// 	} else if err != nil || info == nil {
+// 		return fmt.Errorf("fail to get configmap, %w", err)
+// 	} else {
+// 		klog.V(4).Infof("%s/%s configmap already exists, skip to prepare it", info.Namespace, info.Name)
+// 	}
+// 	return nil
+// }
 
 func nodePoolResourceExists(client kubeclientset.Interface) (bool, error) {
 	groupVersion := schema.GroupVersion{
@@ -247,7 +383,7 @@ func nodePoolResourceExists(client kubeclientset.Interface) (bool, error) {
 }
 
 func (c *ClusterConverter) deployYurtManager() error {
-	err := packages.Install(packages.YurtManager)
+	err := packages.Install(packages.ClusterBootstrapYurtManager)
 	if err != nil {
 		return err
 	}

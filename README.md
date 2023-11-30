@@ -91,7 +91,6 @@ Before you move on, make sure you've got the following stuff installed:
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [docker](https://docs.docker.com/get-docker/)
-- [kind v0.12.0](https://github.com/kubernetes-sigs/kind/releases/tag/v0.12.0)
 
 Hop over to [releases](https://github.com/edgefarm/edgefarm/releases) and grab the freshest release of the EdgeFarm `local-up` binary for your operating system.
 
