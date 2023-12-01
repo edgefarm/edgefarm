@@ -188,7 +188,7 @@ func (o *kindOptions) Validate() error {
 // Config should be called after Validate
 // It will generate a config for Initializer
 func (o *kindOptions) Config() *initializerConfig {
-	controlPlaneNode, workerNodes := getNodeNamesOfKindCluster(o.ClusterName, o.WorkerNodesNum, o.EdgeNodesNum)
+	_, workerNodes := getNodeNamesOfKindCluster(o.ClusterName, o.WorkerNodesNum, o.EdgeNodesNum)
 	// allNodes := append(workerNodes, controlPlaneNode)
 	allNodes := workerNodes
 
