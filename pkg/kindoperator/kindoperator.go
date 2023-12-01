@@ -32,9 +32,7 @@ var (
 	defaultKubeConfigPath = "${HOME}/.kube/config"
 
 	validKindVersions = []string{
-		"v0.11.1",
 		"v0.12.0",
-		"v0.20.0",
 	}
 )
 
