@@ -116,7 +116,7 @@ func (k *KindOperator) KindLoadDockerImage(out io.Writer, clusterName, image str
 }
 
 func (k *KindOperator) KindCreateClusterWithConfig(out io.Writer, configPath string) error {
-	cmd := k.execCommand(k.kindCMDPath, "create", "cluster", "--config", configPath, "--kubeconfig", k.kubeconfigPath)
+	cmd := k.execCommand(k.kindCMDPath, "create", "cluster", "--config", configPath, "--kubeconfig", k.kubeconfigPath, "--retain")
 	if out != nil {
 		cmd.Stdout = out
 		cmd.Stderr = out

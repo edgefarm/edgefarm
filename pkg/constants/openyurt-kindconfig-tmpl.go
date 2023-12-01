@@ -30,7 +30,14 @@ nodes:
       hostPort: {{.host_api_server_port}}
     - containerPort: {{.host_vpn_port}}
       hostPort: {{.host_vpn_port}}
-      listenAddress: "0.0.0.0"`
+      listenAddress: "0.0.0.0"
+    kubeadmConfigPatches:
+    - |
+      kind: ClusterConfiguration
+      kubernetesVersion: v1.22.7
+    - |
+      kind: KubeletConfiguration
+      cgroupDriver: systemd`
 
 	KindWorkerRole = `  - role: worker
     image: {{.kind_node_image}}
@@ -45,7 +52,14 @@ nodes:
       hostPort: {{.host_https_port}}
       listenAddress: "0.0.0.0"
     labels:
-      ingress-ready: "true"`
+      ingress-ready: "true"
+    kubeadmConfigPatches:
+    - |
+      kind: ClusterConfiguration
+      kubernetesVersion: v1.22.7
+    - |
+      kind: KubeletConfiguration
+      cgroupDriver: systemd`
 
 	KindEdgeRole = `  - role: worker
     image: {{.kind_node_image}}`

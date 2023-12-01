@@ -66,9 +66,11 @@ var (
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.4.0",
+								Version:     "1.16.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `flannel:
+  installCNIPlugin: false
+  installCNIConfig: true
   command:
   - "bash"
   - "-c"
@@ -194,7 +196,15 @@ var (
 								Wait:        true,
 								Version:     "v1.12.0",
 								Timeout:     time.Second * 300,
-								ValuesYaml:  `installCRDs: true`,
+								ValuesYaml: `installCRDs: true
+image:
+  repository: ghcr.io/edgefarm/helm-charts/cert-manager-controller
+webhook:
+  image:
+    repository: ghcr.io/edgefarm/helm-charts/cert-manager-webhook
+cainjector:
+  image:
+    repository: ghcr.io/edgefarm/helm-charts/cert-manager-cainjector`,
 							},
 						},
 						CreateNamespace: true,
@@ -415,10 +425,13 @@ xfn:
 								Namespace:   "kube-system",
 								Version:     "1.3.4",
 								UpgradeCRDs: true,
-								// 								ValuesYaml: `image:
-								//   registry: ghcr.io/openyurtio
-								//   repository: openyurt/yurt-manager
-								//   tag: v1.3.4`,
+								ValuesYaml: `affinity:
+nodeAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists`,
 							},
 						},
 					},

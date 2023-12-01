@@ -62,24 +62,12 @@ var (
 	AllValidOpenYurtVersions = append(projectinfo.Get().AllVersions, "latest")
 
 	kindNodeImageMap = map[string]map[string]string{
-		"v0.11.1": {
-			"v1.17": "kindest/node:v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00",
-			"v1.18": "kindest/node:v1.18.19@sha256:7af1492e19b3192a79f606e43c35fb741e520d195f96399284515f077b3b622c",
-			"v1.19": "kindest/node:v1.19.11@sha256:07db187ae84b4b7de440a73886f008cf903fcf5764ba8106a9fd5243d6f32729",
-			"v1.20": "kindest/node:v1.20.7@sha256:cbeaf907fc78ac97ce7b625e4bf0de16e3ea725daf6b04f930bd14c67c671ff9",
-			"v1.21": "kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6",
-		},
 		"v0.12.0": {
-			"v1.17": "kindest/node:v1.17.17@sha256:e477ee64df5731aa4ef4deabbafc34e8d9a686b49178f726563598344a3898d5",
-			"v1.18": "kindest/node:v1.18.20@sha256:e3dca5e16116d11363e31639640042a9b1bd2c90f85717a7fc66be34089a8169",
-			"v1.19": "kindest/node:v1.19.16@sha256:81f552397c1e6c1f293f967ecb1344d8857613fb978f963c30e907c32f598467",
-			"v1.20": "kindest/node:v1.20.15@sha256:393bb9096c6c4d723bb17bceb0896407d7db581532d11ea2839c80b28e5d8deb",
-			"v1.21": "kindest/node:v1.21.10@sha256:84709f09756ba4f863769bdcabe5edafc2ada72d3c8c44d6515fc581b66b029c",
-			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
-			"v1.23": "kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9",
+			"v1.22": "ghcr.io/edgefarm/edgefarm/edgefarm-kind:v1.22.7-systemd",
+			// "v1.22": "siredmar/edgefarm-kind:v1.22.7-1@sha256:eaf51231159370eefd187a24dd290378c2c6bc55b3a2d73272db418167af34d7",
 		},
 		"v0.20.0": {
-			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
+			"v1.22": "ghcr.io/edgefarm/edgefarm/edgefarm-kind:v1.22.7-systemd",
 		},
 	}
 

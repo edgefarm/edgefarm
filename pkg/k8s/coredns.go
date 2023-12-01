@@ -30,30 +30,30 @@ import (
 const (
 	coreDNSDaemonSet = `apiVersion: apps/v1
 kind: DaemonSet
-metadata: 
-  labels: 
+metadata:
+  labels:
     k8s-app: kube-dns
   name: coredns
   namespace: kube-system
-spec: 
+spec:
   revisionHistoryLimit: 10
-  selector: 
-    matchLabels: 
+  selector:
+    matchLabels:
       k8s-app: kube-dns
-  template: 
-    metadata: 
-      labels: 
+  template:
+    metadata:
+      labels:
         k8s-app: kube-dns
-    spec: 
-      containers: 
-      - args: 
+    spec:
+      containers:
+      - args:
         - -conf
         - /etc/coredns/Corefile
         image: k8s.gcr.io/coredns/coredns:v1.8.4
         imagePullPolicy: IfNotPresent
-        livenessProbe: 
+        livenessProbe:
           failureThreshold: 5
-          httpGet: 
+          httpGet:
             path: /health
             port: 8080
             scheme: HTTP
@@ -62,7 +62,7 @@ spec:
           successThreshold: 1
           timeoutSeconds: 5
         name: coredns
-        ports: 
+        ports:
         - containerPort: 53
           hostPort: 53
           name: dns
@@ -75,38 +75,41 @@ spec:
           hostPort: 9153
           name: metrics
           protocol: TCP
-        readinessProbe: 
+        readinessProbe:
           failureThreshold: 3
-          httpGet: 
+          httpGet:
             path: /ready
             port: 8181
             scheme: HTTP
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        resources: 
-          limits: 
+        resources:
+          limits:
             memory: "170Mi"
-          requests: 
+          requests:
             cpu: "100m"
             memory: "70Mi"
-        securityContext: 
+        securityContext:
           allowPrivilegeEscalation: false
-          capabilities: 
-            add: 
+          capabilities:
+            add:
             - NET_BIND_SERVICE
-            drop: 
+            drop:
             - all
           readOnlyRootFilesystem: true
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        volumeMounts: 
+        volumeMounts:
         - mountPath: /etc/coredns
           name: config-volume
           readOnly: true
-      dnsPolicy: Default
-      hostNetwork: true
-      nodeSelector: 
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
+      nodeSelector:
         kubernetes.io/os: linux
       priorityClassName: system-cluster-critical
       restartPolicy: Always
@@ -114,7 +117,7 @@ spec:
       serviceAccount: coredns
       serviceAccountName: coredns
       terminationGracePeriodSeconds: 30
-      tolerations: 
+      tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
       - effect: NoSchedule
@@ -123,10 +126,10 @@ spec:
         key: node-role.kubernetes.io/control-plane
       - effect: NoSchedule
         key: edgefarm.io
-      volumes: 
-      - configMap: 
+      volumes:
+      - configMap:
           defaultMode: 420
-          items: 
+          items:
           - key: Corefile
             path: Corefile
           name: coredns
