@@ -14,37 +14,91 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// This code is based on https://github.com/acim/github-latest
+
 package selfupdate
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"sort"
 
 	"github.com/blang/semver"
 	"github.com/edgefarm/edgefarm/cmd/local-up/cmd"
 	"github.com/fatih/color"
-	"github.com/rhysd/go-github-selfupdate/selfupdate"
+	"github.com/google/go-github/v30/github"
+	version "github.com/hashicorp/go-version"
+	"golang.org/x/oauth2"
 )
 
 const (
-	// GithubOrgaRepo is the github orga and repo name
-	GithubOrgaRepo = "edgefarm/edgefarm"
+	GithubOrga = "edgefarm"
+	GithubRepo = "edgefarm"
 )
 
-func CheckNewVersion() (string, string, bool, error) {
-	latest, found, err := selfupdate.DetectLatest(GithubOrgaRepo)
-	if err != nil {
-		return "", "", false, fmt.Errorf("CheckNewVersion: error occurred while detecting version: %s", err.Error())
+func httpClient() *http.Client {
+	tok := os.Getenv("GITHUB_ACCESS_TOKEN")
+	if tok == "" {
+		return http.DefaultClient
 	}
+
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: tok}, //nolint:exhaustruct
+	)
+
+	return oauth2.NewClient(ctx, ts)
+}
+
+func CheckNewVersion() (string, string, bool, error) {
 	// Only check if the version is not a dev version
 	if cmd.Version != cmd.DevVersion {
-		v, err := semver.Parse(cmd.Version)
+		client := github.NewClient(httpClient())
+
+		rels, res, err := client.Repositories.ListReleases(context.TODO(), GithubOrga, GithubRepo, nil)
 		if err != nil {
-			return "", "", false, fmt.Errorf("CheckNewVersion: error occurred while parsing version: %s, maybe this is a dev version?", cmd.Version)
+			if res.StatusCode == http.StatusNotFound {
+				fmt.Printf("Repository %s/%s not found\n", GithubOrga, GithubRepo) //nolint:forbidigo
+			}
+
+			fmt.Printf("Error: %v", err) //nolint:forbidigo
 		}
-		if !found || latest.Version.LTE(v) {
-			return "", "", false, nil
+
+		versions := make([]*version.Version, 0, len(rels))
+
+		for _, rel := range rels {
+			ver, err := version.NewVersion(*rel.TagName)
+			if err != nil {
+				continue
+			}
+
+			if ver.Prerelease() != "" {
+				continue
+			}
+
+			versions = append(versions, ver)
 		}
-		return cmd.Version, latest.Version.String(), true, nil
+
+		sort.Sort(version.Collection(versions))
+
+		if len(versions) == 0 {
+			fmt.Println("No releases found") //nolint:forbidigo
+		} else {
+			v, err := semver.Parse(cmd.Version)
+			if err != nil {
+				return "", "", false, fmt.Errorf("CheckNewVersion: error occurred while parsing version: %s, maybe this is a dev version?", cmd.Version)
+			}
+			detected, err := semver.Parse(versions[len(versions)-1].String())
+			if err != nil {
+				return "", "", false, err
+			}
+			if v.LT(detected) {
+				return cmd.Version, detected.String(), true, nil
+			}
+			return cmd.Version, detected.String(), false, nil
+		}
 	}
 	return "", "", false, nil
 }
