@@ -64,10 +64,6 @@ var (
 	kindNodeImageMap = map[string]map[string]string{
 		"v0.12.0": {
 			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7",
-			// "v1.22": "siredmar/edgefarm-kind:v1.22.7-1@sha256:eaf51231159370eefd187a24dd290378c2c6bc55b3a2d73272db418167af34d7",
-		},
-		"v0.20.0": {
-			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7",
 		},
 	}
 
