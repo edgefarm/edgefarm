@@ -29,5 +29,5 @@ var (
 
 const (
 	DefaultPoolScopedUserAgent      = "leader-yurthub"
-	PoolCoordinatorClientSecretName = "pool-coordinator-yurthub-certs"
+	YurtCoordinatorClientSecretName = "yurt-coordinator-yurthub-certs"
 )

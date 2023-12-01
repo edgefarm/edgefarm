@@ -35,7 +35,7 @@ import (
 	"github.com/openyurtio/openyurt/pkg/projectinfo"
 	"github.com/openyurtio/openyurt/pkg/yurthub/kubernetes/serializer"
 	"github.com/openyurtio/openyurt/pkg/yurthub/metrics"
-	coordinatorconstants "github.com/openyurtio/openyurt/pkg/yurthub/poolcoordinator/constants"
+	coordinatorconstants "github.com/openyurtio/openyurt/pkg/yurthub/yurtcoordinator/constants"
 )
 
 // ProxyKeyType represents the key in proxy request context
@@ -62,14 +62,14 @@ const (
 	ProxyListSelector
 	// ProxyPoolScopedResource represents if this request is asking for pool-scoped resources
 	ProxyPoolScopedResource
-	// DefaultPoolCoordinatorEtcdSvcName represents default pool coordinator etcd service
-	DefaultPoolCoordinatorEtcdSvcName = "pool-coordinator-etcd"
-	// DefaultPoolCoordinatorAPIServerSvcName represents default pool coordinator apiServer service
-	DefaultPoolCoordinatorAPIServerSvcName = "pool-coordinator-apiserver"
-	// DefaultPoolCoordinatorEtcdSvcPort represents default pool coordinator etcd port
-	DefaultPoolCoordinatorEtcdSvcPort = "2379"
-	// DefaultPoolCoordinatorAPIServerSvcPort represents default pool coordinator apiServer port
-	DefaultPoolCoordinatorAPIServerSvcPort = "443"
+	// DefaultYurtCoordinatorEtcdSvcName represents default yurt coordinator etcd service
+	DefaultYurtCoordinatorEtcdSvcName = "yurt-coordinator-etcd"
+	// DefaultYurtCoordinatorAPIServerSvcName represents default yurt coordinator apiServer service
+	DefaultYurtCoordinatorAPIServerSvcName = "yurt-coordinator-apiserver"
+	// DefaultYurtCoordinatorEtcdSvcPort represents default yurt coordinator etcd port
+	DefaultYurtCoordinatorEtcdSvcPort = "2379"
+	// DefaultYurtCoordinatorAPIServerSvcPort represents default yurt coordinator apiServer port
+	DefaultYurtCoordinatorAPIServerSvcPort = "443"
 
 	YurtHubNamespace      = "kube-system"
 	CacheUserAgentsKey    = "cache_agents"
@@ -81,7 +81,7 @@ const (
 )
 
 var (
-	DefaultCacheAgents   = []string{"kubelet", "kube-proxy", "flanneld", "coredns", projectinfo.GetAgentName(), projectinfo.GetHubName(), coordinatorconstants.DefaultPoolScopedUserAgent}
+	DefaultCacheAgents   = []string{"kubelet", "kube-proxy", "flanneld", "coredns", "raven-agent-ds", projectinfo.GetAgentName(), projectinfo.GetHubName(), coordinatorconstants.DefaultPoolScopedUserAgent}
 	YurthubConfigMapName = fmt.Sprintf("%s-hub-cfg", strings.TrimRightFunc(projectinfo.GetProjectPrefix(), func(c rune) bool { return c == '-' }))
 )
 
