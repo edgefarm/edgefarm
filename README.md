@@ -65,7 +65,7 @@ Overall, being able to write edge software just like cloud software for your Kub
 
 If you're planning to run EdgeFarm in a real production setup, you gotta stick to the [installation guide](TODO). But, if you just wanna give it a try it out, no worries! Just grab the `local-up` tool and give it a shot locally. Have fun experimenting!
 
-Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command. This will install `local-up` in `$HOME/bin`. 
+Either you can head over to the [releases](https://github.com/edgefarm/edgefarm/releases) page and grab the latest version, or simply fire up the following command. This will install `local-up` in `$HOME/bin`.
 
 ```console
 curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin
@@ -78,7 +78,7 @@ local-up cluster create
 ```
 
 To delete the local cluster again run
-  
+
 ```console
 local-up cluster delete
 ```
@@ -91,7 +91,7 @@ Before you move on, make sure you've got the following stuff installed:
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [docker](https://docs.docker.com/get-docker/)
-- [kind v0.20.0](https://github.com/kubernetes-sigs/kind/releases/tag/v0.20.0)
+- [kind v0.12.0](https://github.com/kubernetes-sigs/kind/releases/tag/v0.12.0)
 
 Hop over to [releases](https://github.com/edgefarm/edgefarm/releases) and grab the freshest release of the EdgeFarm `local-up` binary for your operating system.
 
@@ -134,7 +134,7 @@ nodepool.apps.openyurt.io/edgefarm-worker3 labeled
 Hang tight, it's almost showtime! Just give it a moment and wait for those pods to get all set and ready. Almost there!
 
 ```console
-$ kubectl get pods     
+$ kubectl get pods
 NAME                                                              READY   STATUS    RESTARTS   AGE   IP            NODE               NOMINATED NODE   READINESS GATES
 example-consumer-d69db86c8-n25vb                                  1/1     Running   0          10m   10.244.3.35   edgefarm-worker    <none>           <none>
 example-network-default-edge-to-cloud-edgefarm-worker3-5fqfsxl5   1/1     Running   0          12m   10.244.1.5    edgefarm-worker3   <none>           <none>
@@ -144,7 +144,7 @@ producer-edgefarm-worker3-s9pbw-5d6f874f65-qfqmf                  2/2     Runnin
 Let's take a peek and see what streams resources were created. Time to investigate! It could take a hot minute for those streams to be ready, so don't rush! Just sit back and be patient, it'll be worth the wait!
 
 ```console
-$ kubectl get streams.nats.crossplane.io -o wide                       
+$ kubectl get streams.nats.crossplane.io -o wide
 NAME                          EXTERNAL-NAME      READY   SYNCED   DOMAIN                                                   AGE   ADDRESS                     ACCOUNT PUB KEY                                            MESSAGES   BYTES    CONSUMERS
 example-network-25gn7-6bhcs   aggregate-stream   True    True     main                                                     10m   nats://nats.nats.svc:4222   ACDB55OTMWZM6LP4R3I3E5WRLJWWVHCWEBLN5ECYOQCN3BTH5NPDMLD4   321        2.0 MB   1
 example-network-25gn7-qxc2v   sensor-stream      True    True     example-network-default-edge-to-cloud-edgefarm-worker3   10m   nats://nats.nats.svc:4222   ACDB55OTMWZM6LP4R3I3E5WRLJWWVHCWEBLN5ECYOQCN3BTH5NPDMLD4   321        1.9 MB   0
