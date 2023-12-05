@@ -11,8 +11,9 @@ ARCH=${ARCH:-$(uname -m)}
 ADDRESS=${ADDRESS:-}
 JOIN=${JOIN:-false}
 PRECHECKS_ONLY=${PRECHECKS_ONLY:-false}
+NODE_IP=${NODE_IP:-}
 
-options=$(getopt -o "" -l "prechecks-only,join,address:,name:,token:,arch:,help" -- "$@")
+options=$(getopt -o "" -l "prechecks-only,join,node-ip:,address:,name:,token:,arch:,help" -- "$@")
 
 if [ $? -ne 0 ]; then
  echo "Invalid arguments."
@@ -21,13 +22,14 @@ fi
 
 eval set -- "$options"
 Help() {
- echo "Usage: script --address ADDRESS --token TOKEN --name NAME --arch ARCH [--help]"
+ echo "Usage: script --address ADDRESS --token TOKEN [--name NAME] [--arch ARCH] [--node-ip IP] [--help]"
  echo
  echo "Options:"
  echo "--address ADDRESS   Set the API server address. This option is mandatory."
  echo "--token TOKEN       Set the token. This option is mandatory."
  echo "--name NAME         Set the node name. Default is the hostname. (optional)"
  echo "--arch ARCH         Set the architecture. Allowed values are arm64, amd64, and arm. Default is the current architecture. (optional)"
+ echo "--node-ip IP        Set the node ip. (optional)"
  echo "--join              Run the join command rather than printing it after setting everything up. (optional)"
  echo "--prechecks-only         Run prechecks only. (optional)"
  echo "--help              Display this help message."
@@ -40,6 +42,7 @@ while [ $# -gt 0 ]; do
   --name) NAME="$2"; shift;;
   --token) TOKEN="$2"; shift;;
   --arch) ARCH="$2"; shift;;
+  --node-ip) NODE_IP="$2"; shift;;
   --help) Help; exit;;
   --join) JOIN="true";;
   --prechecks-only) PRECHECKS_ONLY="true";;
@@ -117,6 +120,11 @@ tar xfz ${TMP}/cni-plugins-linux-${ARCH}-v0.8.0.tgz -C /opt/cni/bin --pax-option
 cp files/kubeadm-join.conf.template ${TMP}/kubeadm-join.conf
 sed -i "s/NODE_NAME/$NAME/g" ${TMP}/kubeadm-join.conf
 sed -i "s/BOOTSTRAP_TOKEN/$TOKEN/g" ${TMP}/kubeadm-join.conf
+
+if [ -n "${NODE_IP}" ]; then
+  echo "    node-ip: ${NODE_IP}" >> ${TMP}/kubeadm-join.conf
+fi
+
 cp ${TMP}/kubeadm-join.conf /etc/edgefarm/
 rm -rf ${TMP}
 
