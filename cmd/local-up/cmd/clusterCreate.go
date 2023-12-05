@@ -27,9 +27,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	kubeclientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -51,27 +49,6 @@ import (
 )
 
 var (
-	validKubernetesVersions = []string{
-		"v1.17",
-		"v1.18",
-		"v1.19",
-		"v1.20",
-		"v1.21",
-		"v1.22",
-		"v1.23",
-	}
-
-	AllValidOpenYurtVersions = append(projectinfo.Get().AllVersions, "latest")
-
-	kindNodeImageMap = map[string]map[string]string{
-		"v0.12.0": {
-			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7",
-		},
-		"v0.21.0-alpha": {
-			"v1.22": "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
-		},
-	}
-
 	yurtHubImageFormat     = "ghcr.io/openyurtio/openyurt/yurthub:%s"
 	yurtManagerImageFormat = "ghcr.io/openyurtio/openyurt/yurt-manager:%s"
 	nodeServantImageFormat = "ghcr.io/openyurtio/openyurt/node-servant:%s"
@@ -124,8 +101,8 @@ type kindOptions struct {
 	KubeConfig        string
 	IgnoreError       bool
 	EnableDummyIf     bool
-	DisableDefaultCNI bool
-	NodeImage         string
+	// DisableDefaultCNI bool
+	NodeImage string
 }
 
 func newKindOptions() *kindOptions {
@@ -134,13 +111,13 @@ func newKindOptions() *kindOptions {
 		EdgeNodesNum:      2,
 		ClusterName:       "edgefarm",
 		OpenYurtVersion:   "v1.4.0",
-		KubernetesVersion: "v1.22",
+		KubernetesVersion: "v1.22.7",
 		UseLocalImages:    false,
 		IgnoreError:       true,
 		EnableDummyIf:     true,
-		DisableDefaultCNI: true,
-		CloudNodes:        "edgefarm-control-plane,edgefarm-worker",
-		NodeImage:         "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c",
+		// DisableDefaultCNI: true,
+		CloudNodes: "edgefarm-control-plane,edgefarm-worker",
+		NodeImage:  "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7-systemd",
 	}
 }
 
@@ -164,9 +141,6 @@ func (o *kindOptions) Validate() error {
 	// if err := validateKubernetesVersion(o.KubernetesVersion); err != nil {
 	// 	return err
 	// }
-	// if err := validateOpenYurtVersion(o.OpenYurtVersion, o.IgnoreError); err != nil {
-	// 	return err
-	// }
 	if !checkFreePort(args.Ports.HostApiServerPort) {
 		return fmt.Errorf("port %d is already used", args.Ports.HostApiServerPort)
 	}
@@ -179,22 +153,17 @@ func (o *kindOptions) Validate() error {
 	if !checkFreePort(args.Ports.HostHttpsPort) {
 		return fmt.Errorf("port %d is already used", args.Ports.HostHttpsPort)
 	}
-	if !checkFreePort(args.Ports.HostVPNPort) {
-		return fmt.Errorf("port %d is already used", args.Ports.HostVPNPort)
-	}
 	return nil
 }
 
 // Config should be called after Validate
 // It will generate a config for Initializer
 func (o *kindOptions) Config() *initializerConfig {
-	_, workerNodes := getNodeNamesOfKindCluster(o.ClusterName, o.WorkerNodesNum, o.EdgeNodesNum)
-	// allNodes := append(workerNodes, controlPlaneNode)
-	allNodes := workerNodes
+	controlPlaneNode, workerNodes := getNodeNamesOfKindCluster(o.ClusterName, o.WorkerNodesNum, o.EdgeNodesNum)
+	allNodes := append(workerNodes, controlPlaneNode)
 
 	// prepare kindConfig.CloudNodes and kindConfig.EdgeNodes
 	cloudNodes := sets.NewString()
-	// cloudNodes = cloudNodes.Insert(controlPlaneNode)
 	if o.CloudNodes != "" {
 		for _, node := range strings.Split(o.CloudNodes, ",") {
 			if !strutil.IsInStringLst(allNodes, node) {
@@ -223,13 +192,13 @@ func (o *kindOptions) Config() *initializerConfig {
 	}
 
 	return &initializerConfig{
-		CloudNodes:     cloudNodes.List(),
-		EdgeNodes:      edgeNodes.List(),
-		KindConfigPath: o.KindConfigPath,
-		KubeConfig:     kubeConfigPath,
-		WorkerNodesNum: o.WorkerNodesNum,
-		EdgeNodesNum:   o.EdgeNodesNum,
-
+		CloudNodes:        cloudNodes.List(),
+		EdgeNodes:         edgeNodes.List(),
+		KindConfigPath:    o.KindConfigPath,
+		KubeConfig:        kubeConfigPath,
+		WorkerNodesNum:    o.WorkerNodesNum,
+		EdgeNodesNum:      o.EdgeNodesNum,
+		NodeImage:         o.NodeImage,
 		ClusterName:       o.ClusterName,
 		KubernetesVersion: o.KubernetesVersion,
 		UseLocalImage:     o.UseLocalImages,
@@ -237,7 +206,6 @@ func (o *kindOptions) Config() *initializerConfig {
 		YurtManagerImage:  fmt.Sprintf(yurtManagerImageFormat, o.OpenYurtVersion),
 		NodeServantImage:  fmt.Sprintf(nodeServantImageFormat, o.OpenYurtVersion),
 		EnableDummyIf:     o.EnableDummyIf,
-		DisableDefaultCNI: o.DisableDefaultCNI,
 	}
 }
 
@@ -262,7 +230,7 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&args.Ports.HostNatsPort, "host-nats-port", args.Ports.HostNatsPort, "Specify the port of nats to be mapped to.")
 	flagset.IntVar(&args.Ports.HostHttpPort, "host-http-port", args.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
 	flagset.IntVar(&args.Ports.HostHttpsPort, "host-https-port", args.Ports.HostHttpsPort, "Specify the port of https server to be mapped to.")
-	flagset.IntVar(&args.Ports.HostVPNPort, "host-vpn-port", args.Ports.HostVPNPort, "Specify the port for the local VPN.")
+	flagset.StringVar(&args.NetbirdToken, "netbird-token", "", "Specify the netbird.io token to connect physical edge nodes.")
 	flagset.StringVar(&args.Interface, "interface", "", "Network interface to connect to physical edge nodes. This is probably the same interface that is used to connect to the internet. If unset, defaults to the first default routes' interface.")
 	flagset.BoolVar(&skipApplications, "skip-applications", false, "Skip installing edgefarm.applications.")
 	flagset.BoolVar(&skipNetwork, "skip-network", false, "Skip installing edgefarm.network.")
@@ -294,7 +262,7 @@ type initializerConfig struct {
 	YurtManagerImage  string
 	NodeServantImage  string
 	EnableDummyIf     bool
-	DisableDefaultCNI bool
+	// DisableDefaultCNI bool
 }
 
 type Initializer struct {
@@ -315,6 +283,9 @@ func newKindInitializer(out io.Writer, cfg *initializerConfig) *Initializer {
 func handleArgsSkipAndOnly() error {
 	if vpnOnly && skipVPN {
 		return fmt.Errorf("cannot use --vpn-only and --skip-vpn at the same time")
+	}
+	if skipVPN && args.NetbirdToken != "" {
+		return fmt.Errorf("cannot use --skip-vpn and --netbird-token at the same time")
 	}
 	if flannelOnly {
 		skipNetwork = true
@@ -381,22 +352,21 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	if !skipClusterCreation || flannelOnly {
-		klog.Infof("Deploy cluster flannel packages")
-		if err := packages.Install(packages.ClusterBootstrapFlannel); err != nil {
-			return err
-		}
-	}
+	// if !skipClusterCreation || flannelOnly {
+	// }
 	if !skipClusterCreation {
 		if err := addons.ReplaceCoreDNS(); err != nil {
 			return err
 		}
 
-		if err := addons.ReplaceKubeProxy(); err != nil {
+		klog.Infof("Deploy cluster flannel packages")
+		if err := packages.Install(packages.ClusterBootstrapFlannel); err != nil {
 			return err
 		}
-
 		if err := WaitForBootstrapConditions(time.Minute * 5); err != nil {
+			return err
+		}
+		if err := addons.ReplaceKubeProxy(); err != nil {
 			return err
 		}
 
@@ -433,47 +403,47 @@ func (ki *Initializer) Run() error {
 
 	}
 
-	// if !skipVPN {
-	// 	klog.Infof("Deploy cluster bootstrap VPN packages")
-	// 	if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if args.NetbirdToken != "" {
+		klog.Infof("Deploy cluster bootstrap VPN packages")
+		if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
+			return err
+		}
+	}
 
-	// if !skipClusterDependencies {
-	// 	klog.Infof("Deploy cluster dependencies")
-	// 	if err := packages.Install(packages.ClusterDependencies); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if !skipClusterDependencies {
+		klog.Infof("Deploy cluster dependencies")
+		if err := packages.Install(packages.ClusterDependencies); err != nil {
+			return err
+		}
+	}
 
-	// if !skipBase {
-	// 	klog.Infof("Deploy edgefarm base packages")
-	// 	if err := packages.Install(packages.Base); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if !skipBase {
+		klog.Infof("Deploy edgefarm base packages")
+		if err := packages.Install(packages.Base); err != nil {
+			return err
+		}
+	}
 
-	// if !skipNetwork {
-	// 	klog.Infof("Deploy edgefarm network packages")
-	// 	if err := packages.Install(packages.Network); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if !skipNetwork {
+		klog.Infof("Deploy edgefarm network packages")
+		if err := packages.Install(packages.Network); err != nil {
+			return err
+		}
+	}
 
-	// if !skipApplications {
-	// 	klog.Infof("Deploy edgefarm applications packages")
-	// 	if err := packages.Install(packages.Applications); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if !skipApplications {
+		klog.Infof("Deploy edgefarm applications packages")
+		if err := packages.Install(packages.Applications); err != nil {
+			return err
+		}
+	}
 
-	// if !skipMonitor {
-	// 	klog.Infof("Deploy edgefarm monitor packages")
-	// 	if err := packages.Install(packages.Monitor); err != nil {
-	// 		return err
-	// 	}
-	// }
+	if !skipMonitor {
+		klog.Infof("Deploy edgefarm monitor packages")
+		if err := packages.Install(packages.Monitor); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -517,11 +487,11 @@ func (ki *Initializer) Run() error {
 
 func (ki *Initializer) prepareKindConfigFile() ([]byte, error) {
 	kindConfigContent, err := tmplutil.SubsituteTemplate(constants.KindConfigTemplate, map[string]string{
-		"kind_node_image":      ki.NodeImage,
-		"cluster_name":         ki.ClusterName,
-		"disable_default_cni":  fmt.Sprintf("%v", ki.DisableDefaultCNI),
+		"kubernetes_version": ki.KubernetesVersion,
+		"kind_node_image":    ki.NodeImage,
+		"cluster_name":       ki.ClusterName,
+		// "disable_default_cni":  fmt.Sprintf("%v", ki.DisableDefaultCNI),
 		"host_api_server_port": fmt.Sprintf("%d", args.Ports.HostApiServerPort),
-		"host_vpn_port":        fmt.Sprintf("%d", args.Ports.HostVPNPort),
 	})
 	if err != nil {
 		return nil, err
@@ -550,138 +520,138 @@ func (ki *Initializer) prepareKindConfigFile() ([]byte, error) {
 		}
 		kindConfigContent = strings.Join([]string{kindConfigContent, worker}, "\n")
 	}
-
+	fmt.Println(kindConfigContent)
 	return []byte(kindConfigContent), nil
 }
 
-func (ki *Initializer) configureAddons() error {
-	// if err := ki.configureKubeProxyAddon(); err != nil {
-	// 	return err
-	// }
+// func (ki *Initializer) configureAddons() error {
+// 	// if err := ki.configureKubeProxyAddon(); err != nil {
+// 	// 	return err
+// 	// }
 
-	// re-construct kube-proxy pods
-	// podList, err := ki.kubeClient.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{})
-	// if err != nil {
-	// 	return err
-	// }
-	// for i := range podList.Items {
-	// 	switch {
-	// 	case strings.HasPrefix(podList.Items[i].Name, "kube-proxy"):
-	// 		// delete pod
-	// 		propagation := metav1.DeletePropagationForeground
-	// 		err = ki.kubeClient.CoreV1().Pods("kube-system").Delete(context.TODO(), podList.Items[i].Name, metav1.DeleteOptions{
-	// 			PropagationPolicy: &propagation,
-	// 		})
-	// 		if err != nil {
-	// 			klog.Errorf("failed to delete pod(%s), %v", podList.Items[i].Name, err)
-	// 		}
-	// 	default:
-	// 	}
-	// }
+// 	// re-construct kube-proxy pods
+// 	// podList, err := ki.kubeClient.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{})
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// for i := range podList.Items {
+// 	// 	switch {
+// 	// 	case strings.HasPrefix(podList.Items[i].Name, "kube-proxy"):
+// 	// 		// delete pod
+// 	// 		propagation := metav1.DeletePropagationForeground
+// 	// 		err = ki.kubeClient.CoreV1().Pods("kube-system").Delete(context.TODO(), podList.Items[i].Name, metav1.DeleteOptions{
+// 	// 			PropagationPolicy: &propagation,
+// 	// 		})
+// 	// 		if err != nil {
+// 	// 			klog.Errorf("failed to delete pod(%s), %v", podList.Items[i].Name, err)
+// 	// 		}
+// 	// 	default:
+// 	// 	}
+// 	// }
 
-	if err := ki.configureCoreDnsAddon(); err != nil {
-		return err
-	}
+// 	if err := ki.configureCoreDnsAddon(); err != nil {
+// 		return err
+// 	}
 
-	// If we disable default cni, nodes will not be ready and the coredns pod always be in pending.
-	// The health check for coreDNS should be done by someone who will install CNI.
-	if !ki.DisableDefaultCNI {
-		// wait for coredns pods available
-		for {
-			select {
-			case <-time.After(10 * time.Second):
-				dnsDp, err := ki.kubeClient.AppsV1().Deployments("kube-system").Get(context.TODO(), "coredns", metav1.GetOptions{})
-				if err != nil {
-					return fmt.Errorf("failed to get coredns deployment when waiting for available, %v", err)
-				}
+// 	// If we disable default cni, nodes will not be ready and the coredns pod always be in pending.
+// 	// The health check for coreDNS should be done by someone who will install CNI.
+// 	if !ki.DisableDefaultCNI {
+// 		// wait for coredns pods available
+// 		for {
+// 			select {
+// 			case <-time.After(10 * time.Second):
+// 				dnsDp, err := ki.kubeClient.AppsV1().Deployments("kube-system").Get(context.TODO(), "coredns", metav1.GetOptions{})
+// 				if err != nil {
+// 					return fmt.Errorf("failed to get coredns deployment when waiting for available, %v", err)
+// 				}
 
-				if dnsDp.Status.ObservedGeneration < dnsDp.Generation {
-					klog.Infof("waiting for coredns generation(%d) to be observed. now observed generation is %d", dnsDp.Generation, dnsDp.Status.ObservedGeneration)
-					continue
-				}
+// 				if dnsDp.Status.ObservedGeneration < dnsDp.Generation {
+// 					klog.Infof("waiting for coredns generation(%d) to be observed. now observed generation is %d", dnsDp.Generation, dnsDp.Status.ObservedGeneration)
+// 					continue
+// 				}
 
-				if *dnsDp.Spec.Replicas != dnsDp.Status.AvailableReplicas {
-					klog.Infof("waiting for coredns replicas(%d) to be ready, now %d pods available", *dnsDp.Spec.Replicas, dnsDp.Status.AvailableReplicas)
-					continue
-				}
-				klog.Info("coredns deployment configuration is completed")
-				return nil
-			}
-		}
-	}
-	return nil
-}
+// 				if *dnsDp.Spec.Replicas != dnsDp.Status.AvailableReplicas {
+// 					klog.Infof("waiting for coredns replicas(%d) to be ready, now %d pods available", *dnsDp.Spec.Replicas, dnsDp.Status.AvailableReplicas)
+// 					continue
+// 				}
+// 				klog.Info("coredns deployment configuration is completed")
+// 				return nil
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
 
-// configureKubeProxyAddon configures kube-proxy addon like described here
-// https://openyurt.io/docs/user-manuals/network/service-topology#configure-kube-proxy
-func (ki *Initializer) configureKubeProxyAddon() error {
-	err := k8s.PollForConfigMap("kube-system", "kube-proxy", time.Minute*2)
-	if err != nil {
-		return err
-	}
+// // configureKubeProxyAddon configures kube-proxy addon like described here
+// // https://openyurt.io/docs/user-manuals/network/service-topology#configure-kube-proxy
+// func (ki *Initializer) configureKubeProxyAddon() error {
+// 	err := k8s.PollForConfigMap("kube-system", "kube-proxy", time.Minute*2)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	config, err := k8s.GetConfigMapValue("kube-system", "kube-proxy", "config.conf")
-	if err != nil {
-		return err
-	}
-	configMap := make(map[string]interface{})
-	err = yaml.Unmarshal([]byte(config), &configMap)
-	if err != nil {
-		return err
-	}
+// 	config, err := k8s.GetConfigMapValue("kube-system", "kube-proxy", "config.conf")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	configMap := make(map[string]interface{})
+// 	err = yaml.Unmarshal([]byte(config), &configMap)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	if configMap["featureGates"] == nil {
-		configMap["featureGates"] = make(map[interface{}]interface{})
-	}
-	configMap["featureGates"].(map[interface{}]interface{})["EndpointSliceProxying"] = true
-	if configMap["clientConnection"] != nil {
-		if configMap["clientConnection"].(map[interface{}]interface{})["kubeconfig"] != nil {
-			delete(configMap["clientConnection"].(map[interface{}]interface{}), "kubeconfig")
-		}
-	}
+// 	if configMap["featureGates"] == nil {
+// 		configMap["featureGates"] = make(map[interface{}]interface{})
+// 	}
+// 	configMap["featureGates"].(map[interface{}]interface{})["EndpointSliceProxying"] = true
+// 	if configMap["clientConnection"] != nil {
+// 		if configMap["clientConnection"].(map[interface{}]interface{})["kubeconfig"] != nil {
+// 			delete(configMap["clientConnection"].(map[interface{}]interface{}), "kubeconfig")
+// 		}
+// 	}
 
-	updatedConfig, err := yaml.Marshal(configMap)
-	if err != nil {
-		return err
-	}
+// 	updatedConfig, err := yaml.Marshal(configMap)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return k8s.UpdateConfigMapValue("kube-system", "kube-proxy", "config.conf", string(updatedConfig))
+// 	return k8s.UpdateConfigMapValue("kube-system", "kube-proxy", "config.conf", string(updatedConfig))
 
-}
+// }
 
-// configureCoreDnsAddon configures coredns addon like described here
-// https://openyurt.io/docs/user-manuals/network/service-topology#create-service-with-topologykeys
-// coreDNS will shall use the service topology 'hostname' to resolve using the locally running coredns instance
-func (ki *Initializer) configureCoreDnsAddon() error {
-	// configure hostname service topology for kube-dns service
-	svc, err := ki.kubeClient.CoreV1().Services("kube-system").Get(context.TODO(), "kube-dns", metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
+// // configureCoreDnsAddon configures coredns addon like described here
+// // https://openyurt.io/docs/user-manuals/network/service-topology#create-service-with-topologykeys
+// // coreDNS will shall use the service topology 'hostname' to resolve using the locally running coredns instance
+// func (ki *Initializer) configureCoreDnsAddon() error {
+// 	// configure hostname service topology for kube-dns service
+// 	svc, err := ki.kubeClient.CoreV1().Services("kube-system").Get(context.TODO(), "kube-dns", metav1.GetOptions{})
+// 	if err != nil {
+// 		return err
+// 	}
 
-	topologyChanged := false
-	if svc != nil {
-		if svc.Annotations == nil {
-			svc.Annotations = make(map[string]string)
-		}
+// 	topologyChanged := false
+// 	if svc != nil {
+// 		if svc.Annotations == nil {
+// 			svc.Annotations = make(map[string]string)
+// 		}
 
-		if val, ok := svc.Annotations["openyurt.io/topologyKeys"]; ok && val == "kubernetes.io/hostname" {
-			// topology annotation does not need to change
-		} else {
-			svc.Annotations["openyurt.io/topologyKeys"] = "kubernetes.io/hostname"
-			topologyChanged = true
-		}
+// 		if val, ok := svc.Annotations["openyurt.io/topologyKeys"]; ok && val == "kubernetes.io/hostname" {
+// 			// topology annotation does not need to change
+// 		} else {
+// 			svc.Annotations["openyurt.io/topologyKeys"] = "kubernetes.io/hostname"
+// 			topologyChanged = true
+// 		}
 
-		if topologyChanged {
-			_, err = ki.kubeClient.CoreV1().Services("kube-system").Update(context.TODO(), svc, metav1.UpdateOptions{})
-			if err != nil {
-				return err
-			}
-		}
-	}
+// 		if topologyChanged {
+// 			_, err = ki.kubeClient.CoreV1().Services("kube-system").Update(context.TODO(), svc, metav1.UpdateOptions{})
+// 			if err != nil {
+// 				return err
+// 			}
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (ki *Initializer) deployOpenYurt() error {
 	dir, err := os.Getwd()
@@ -722,36 +692,6 @@ func (ki *Initializer) deployOpenYurt() error {
 // 	return nil
 // }
 
-// func validateKubernetesVersion(ver string) error {
-// 	s := strings.Split(ver, ".")
-// 	var originVer = ver
-// 	if len(s) < 2 || len(s) > 3 {
-// 		return fmt.Errorf("invalid format of kubernetes version: %s", ver)
-// 	}
-// 	if len(s) == 3 {
-// 		// v1.xx.xx
-// 		ver = strings.Join(s[:2], ".")
-// 	}
-
-// 	if !strings.HasPrefix(ver, "v") {
-// 		ver = fmt.Sprintf("v%s", ver)
-// 	}
-
-// 	// v1.xx
-// 	if !strutil.IsInStringLst(validKubernetesVersions, ver) {
-// 		return fmt.Errorf("unsupported kubernetes version: %s", originVer)
-// 	}
-// 	return nil
-// }
-
-// func validateOpenYurtVersion(ver string, ignoreError bool) error {
-// 	if !strutil.IsInStringLst(AllValidOpenYurtVersions, ver) && !ignoreError {
-// 		return fmt.Errorf("%s is not a valid openyurt version, all valid versions are %s. If you know what you're doing, you can set --ignore-error",
-// 			ver, strings.Join(AllValidOpenYurtVersions, ","))
-// 	}
-// 	return nil
-// }
-
 // getNodeNamesOfKindCluster will generate all nodes will be in the kind cluster.
 // It depends on the naming machanism of kind:
 // one control-plane node: ${clusterName}-control-plane
@@ -771,20 +711,23 @@ func getNodeNamesOfKindCluster(clusterName string, workerNodesNum int, edgeNodes
 func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 	ticker := wait.MakeExpiringIntervalTicker(time.Second, stepTimeout)
 
-	// Checks for flannel pods to be ready on all nodes
-	flannelCondition := func() (bool, error) {
-		pods, err := k8s.GetPods("kube-system", "app=flannel")
-		if err != nil {
-			return false, err
-		}
-		for _, pod := range pods {
-			if pod.Status.Phase != v1.PodRunning {
-				return false, nil
-			}
-		}
-		return true, nil
-	}
-	wait.Poll(context.Background(), ticker, flannelCondition)
+	// // Checks for flannel pods to be ready on all nodes
+	// flannelCondition := func() (bool, error) {
+	// 	pods, err := k8s.GetPods("kube-system", "app=flannel")
+	// 	if err != nil {
+	// 		return false, err
+	// 	}
+	// 	for _, pod := range pods {
+	// 		if pod.Status.Phase != v1.PodRunning {
+	// 			return false, nil
+	// 		}
+	// 	}
+	// 	return true, nil
+	// }
+	// err := wait.Poll(context.Background(), ticker, flannelCondition)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// // Checks for core-dns pods to be ready on all nodes
 	// corednsCondition := func() (bool, error) {
@@ -800,10 +743,9 @@ func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 	// 	return true, nil
 	// }
 	// wait.Poll(context.Background(), ticker, corednsCondition)
-
 	// Checks for ready state of all nodes
 	nodesCondition := func() (bool, error) {
-		nodes, err := k8s.GetNodes(metav1.LabelSelector{})
+		nodes, err := k8s.GetAllNodes()
 		if err != nil {
 			return false, err
 		}
@@ -816,7 +758,10 @@ func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 		}
 		return true, nil
 	}
-	wait.Poll(context.Background(), ticker, nodesCondition)
+	err := wait.Poll(context.Background(), ticker, nodesCondition)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

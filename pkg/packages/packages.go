@@ -21,11 +21,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/edgefarm/edgefarm/pkg/args"
-	"github.com/edgefarm/edgefarm/pkg/route"
 	helmclient "github.com/mittwald/go-helm-client"
 	"helm.sh/helm/v3/pkg/repo"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
 )
 
@@ -33,6 +32,7 @@ var (
 	ClusterBootstrapFlannel = []Packages{
 		{
 			Helm: []*Helm{
+				// flannel-edge used for physical edge devices
 				{
 					Repo: &repo.Entry{
 						Name: "flannel",
@@ -78,38 +78,48 @@ flannel:
               values:
               - "true"
             - key: node.edgefarm.io/type
-              operator: NotIn
-              values:
-              - "virtual"`,
+              operator: DoesNotExist`,
 							},
+							// flannel-cloud for kind nodes including virtual edge nodes
 							{
 								ReleaseName: "flannel-cloud",
 								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.13.0",
+								Version:     "1.16.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-cloud
 flannel:
-  args: ["--ip-masq", "--kube-subnet-mgr", "--iface=wt0"]
+  installCNIPlugin: false
+  installCNIConfig: true
+  image:
+    repository: siredmar/flannel
+    tag: v0.23.4-siredmar
+  command:
+  - "bash"
+  - "-c"
+  - "/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$(ls /sys/class/net); while true; do c=$(ls /sys/class/net); if [ \"$p\" != \"$c\" ]; then echo \"Network changed!\"; sleep 5; pkill -f flanneld; /opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=wt0 --iface=eth0 & p=$c; fi; sleep 5; done"
+  args: []
   tolerations:
-    - operator: Exists
-      effect: NoSchedule
+  - key: edgefarm.io
+    effect: NoSchedule
+  - effect: NoSchedule
+    operator: Exists
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
             - key: openyurt.io/is-edge-worker
-              operator: NotIn
-              values:
-                - "true"
-          - matchExpressions:
+              operator: Exists
             - key: node.edgefarm.io/type
               operator: In
               values:
-              - "virtual"`,
+              - "virtual"
+          - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists`,
 							},
 						},
 						CreateNamespace: true,
@@ -418,75 +428,47 @@ affinity:
 			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
-						Name: "headscale",
+						Name: "netbird",
 					},
 					Spec: &Spec{
 						Chart: []*helmclient.ChartSpec{
 							{
-								ReleaseName: "headscale",
-								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/headscale",
+								ReleaseName: "netbird",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/netbird-client",
 								Namespace:   "vpn",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.4.0",
+								Version:     "1.17.0",
 								Timeout:     time.Second * 90,
 							},
 						},
-						CreateNamespace: true,
 						ValuesFunc: func() string {
-							return fmt.Sprintf("config:\n  port: %d\n  hostPort:\n    enabled: true", args.Ports.HostVPNPort)
-						},
-					},
-				},
-				{
-					Repo: &repo.Entry{
-						Name: "tailscale",
-					},
-					Spec: &Spec{
-						Chart: []*helmclient.ChartSpec{
-							{
-								ReleaseName: "tailscale-cloud",
-								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/tailscale",
-								Namespace:   "vpn",
-								UpgradeCRDs: true,
-								Wait:        true,
-								Version:     "1.4.0",
-								Timeout:     time.Second * 90,
-							},
-						},
-						CreateNamespace: true,
-						ValuesFunc: func() string {
-							r, err := route.GetRoute(args.Interface)
-							if err != nil {
-								panic(err)
-							}
-							return fmt.Sprintf("nameOverride: tailscale-cloud\nconfig:\n  loginServer: http://%s:%d\naffinity:\n    nodeAffinity:\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n          - matchExpressions:\n              - key: node.edgefarm.io/core\n                operator: NotIn\n                values:\n                  - physical", r.IP, args.Ports.HostVPNPort)
-						},
-					},
-				},
-				{
-					Repo: &repo.Entry{
-						Name: "tailscale",
-					},
-					Spec: &Spec{
-						Chart: []*helmclient.ChartSpec{
-							{
-								ReleaseName: "tailscale-edge",
-								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/tailscale",
-								Namespace:   "vpn",
-								UpgradeCRDs: true,
-								Wait:        true,
-								Version:     "1.4.0",
-								Timeout:     time.Second * 90,
-							},
+							return fmt.Sprintf(`config:
+  managementURL: https://api.wiretrustee.com:443
+  auth:
+    secret: netbird-auth
+    secretKey: NB_SETUP_KEY
+    create: true
+    value: %s
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: openyurt.io/is-edge-worker
+            operator: Exists
+          - key: node.edgefarm.io/type
+            operator: In
+            values:
+              - "virtual"
+        - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists`, args.NetbirdToken)
 						},
 						CreateNamespace: true,
-						ValuesFunc: func() string {
-							r, err := route.GetRoute(args.Interface)
-							if err != nil {
-								panic(err)
-							}
-							return fmt.Sprintf("nameOverride: tailscale-edge\nconfig:\n  loginServer: http://%s:%d\naffinity:\n    nodeAffinity:\n      requiredDuringSchedulingIgnoredDuringExecution:\n        nodeSelectorTerms:\n          - matchExpressions:\n              - key: node.edgefarm.io/core\n                operator: In\n                values:\n                  - physical", r.IP, args.Ports.HostVPNPort)
+						// Only install this helm chart if NetbirdToken is set via args
+						Condition: func() bool {
+							return args.NetbirdToken != ""
 						},
 					},
 				},

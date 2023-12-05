@@ -216,7 +216,10 @@ func ReplaceCoreDNS() error {
 		}
 		return true, nil
 	}
-	wait.Poll(context.Background(), ticker, condition)
+	err = wait.Poll(context.Background(), ticker, condition)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

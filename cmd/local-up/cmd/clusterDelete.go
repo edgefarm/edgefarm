@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	kubeConfig string = "${HOME}/.kube/config"
+	kubeConfig string = "~/.kube/config"
 	override   bool
 )
 
@@ -51,7 +51,11 @@ var localDeleteCmd = &cobra.Command{
 			}
 		}
 		if doit {
-			ki.KindDeleteCluster("edgefarm")
+			err := ki.KindDeleteCluster("edgefarm")
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
 		} else {
 			fmt.Println("Aborted")
 		}

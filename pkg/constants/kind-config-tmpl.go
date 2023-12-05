@@ -21,7 +21,7 @@ const (
 kind: Cluster
 name: {{.cluster_name}}
 networking:
-  disableDefaultCNI: {{.disable_default_cni}}
+  disableDefaultCNI: true
 nodes:
   - role: control-plane
     kubeadmConfigPatches:
@@ -29,24 +29,18 @@ nodes:
       kind: ClusterConfiguration
       apiServer:
         extraArgs:
-          kubelet-preferred-address-types: ExternalIP,Hostname,InternalDNS,ExternalDNS
+          kubelet-preferred-address-types: InternalIP,Hostname,ExternalDNS,ExternalIP
       controllerManager:
         extraArgs:
           cluster-signing-duration: 87600h0m0s
+      kubernetesVersion: {{.kubernetes_version}}
+    - |
+      kind: KubeletConfiguration
+      cgroupDriver: systemd
     image: {{.kind_node_image}}
     extraPortMappings:
     - containerPort: 6443
-      hostPort: {{.host_api_server_port}}
-    - containerPort: {{.host_vpn_port}}
-      hostPort: {{.host_vpn_port}}
-      listenAddress: "0.0.0.0"
-    kubeadmConfigPatches:
-    - |
-      kind: ClusterConfiguration
-      kubernetesVersion: v1.22.7
-    - |
-      kind: KubeletConfiguration
-      cgroupDriver: systemd`
+      hostPort: {{.host_api_server_port}}`
 
 	KindWorkerRoleTemplate = `  - role: worker
     image: {{.kind_node_image}}
@@ -65,11 +59,18 @@ nodes:
     kubeadmConfigPatches:
     - |
       kind: ClusterConfiguration
-      kubernetesVersion: v1.22.7
+      kubernetesVersion: {{.kubernetes_version}}
     - |
       kind: KubeletConfiguration
       cgroupDriver: systemd`
 
 	KindEdgeRole = `  - role: worker
-    image: {{.kind_node_image}}`
+    image: {{.kind_node_image}}
+    kubeadmConfigPatches:
+    - |
+      kind: ClusterConfiguration
+      kubernetesVersion: {{.kubernetes_version}}
+    - |
+      kind: KubeletConfiguration
+      cgroupDriver: systemd`
 )

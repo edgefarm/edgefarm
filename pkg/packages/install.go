@@ -33,6 +33,7 @@ import (
 type Spec struct {
 	Chart           []*helmclient.ChartSpec
 	CreateNamespace bool
+	Condition       func() bool
 	ValuesFunc      func() string
 }
 
@@ -70,6 +71,15 @@ func InstallHelmSpec(client helmclient.Client, spec *helmclient.ChartSpec) error
 }
 
 func (h *Helm) Install() error {
+	if h.Spec.Condition != nil {
+		if !h.Spec.Condition() {
+			klog.Info("condition not met, skipping helm chart installation for: ")
+			for _, spec := range h.Spec.Chart {
+				klog.Infof("chart: %s", spec.ChartName)
+			}
+			return nil
+		}
+	}
 	for _, spec := range h.Spec.Chart {
 		client, err := helmclient.New(&helmclient.Options{
 			Namespace: spec.Namespace,

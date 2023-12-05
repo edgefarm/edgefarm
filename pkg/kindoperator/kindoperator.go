@@ -31,11 +31,7 @@ const (
 
 var (
 	// enableGO111MODULE will be used when 1.13 <= go version <= 1.16
-	defaultKubeConfigPath = "${HOME}/.kube/config"
-
-	validKindVersions = []string{
-		"v0.12.0",
-	}
+	defaultKubeConfigPath = "~/.kube/config"
 )
 
 type KindOperator struct {
@@ -74,7 +70,6 @@ func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 	options := []cluster.CreateOption{
 
 		cluster.CreateWithRawConfig(config),
-		cluster.CreateWithNodeImage("ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7@sha256:9d7b2f560a6b214cce07cffbb55065bc86487a2f899be3045685a1710d67da9c"),
 		cluster.CreateWithRetain(true),
 		cluster.CreateWithWaitForReady(0),
 		cluster.CreateWithKubeconfigPath(k.kubeconfigPath),
