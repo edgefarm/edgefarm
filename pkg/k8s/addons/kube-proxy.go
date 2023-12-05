@@ -32,23 +32,10 @@ func ReplaceKubeProxy() error {
 		return err
 	}
 
-	// // Check if kube-proxy daemonset exists, if true, delete it
-	// ds, err := clientset.AppsV1().DaemonSets("kube-system").Get(context.Background(), "kube-proxy", metav1.GetOptions{})
-	// if err != nil {
-	// 	if apierrors.IsNotFound(err) {
-	// 		ds = nil
-	// 	} else {
-	// 		return err
-	// 	}
-	// 	return err
-	// }
-
-	// if ds != nil {
 	err = clientset.AppsV1().DaemonSets("kube-system").Delete(context.Background(), "kube-proxy", metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
-	// }
 	err = clientset.CoreV1().ConfigMaps("kube-system").Delete(context.Background(), "kube-proxy", metav1.DeleteOptions{})
 	if err != nil {
 		return err
@@ -61,43 +48,6 @@ func ReplaceKubeProxy() error {
 	if err := packages.Install(packages.ClusterBootstrapKubeProxy); err != nil {
 		return err
 	}
-
-	// ticker := wait.MakeExpiringIntervalTicker(time.Second, time.Second*60)
-
-	// condition := func() (bool, error) {
-	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-proxy-default")
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
-	// 	for _, pod := range pods {
-	// 		if pod.Status.Phase != v1.PodRunning {
-	// 			return false, nil
-	// 		}
-	// 	}
-	// 	return true, nil
-	// }
-	// err = wait.Poll(context.Background(), ticker, condition)
-	// if err != nil {
-	// 	return fmt.Errorf("install kube-proxy-default: %s", err.Error())
-	// }
-
-	// ticker = wait.MakeExpiringIntervalTicker(time.Second, time.Second*60)
-	// condition = func() (bool, error) {
-	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-proxy-openyurt")
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
-	// 	for _, pod := range pods {
-	// 		if pod.Status.Phase != v1.PodRunning {
-	// 			return false, nil
-	// 		}
-	// 	}
-	// 	return true, nil
-	// }
-	// err = wait.Poll(context.Background(), ticker, condition)
-	// if err != nil {
-	// 	return fmt.Errorf("install kube-proxy-openyurt: %s", err.Error())
-	// }
 
 	return nil
 }

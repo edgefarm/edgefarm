@@ -65,14 +65,5 @@ var localDeleteCmd = &cobra.Command{
 func init() {
 	localClusterCmd.AddCommand(localDeleteCmd)
 	localDeleteCmd.PersistentFlags().StringVar(&kubeConfig, "kube-config", kubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
-	// Here you will define your flags and configuration settings.
 	localDeleteCmd.Flags().BoolVarP(&override, "yes", "y", false, "Override confirmation prompt")
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// localDeleteCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// localDeleteCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
