@@ -92,15 +92,22 @@ Before you move on, make sure you've got the following stuff installed:
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [docker](https://docs.docker.com/get-docker/)
 
-Hop over to [releases](https://github.com/edgefarm/edgefarm/releases) and grab the freshest release of the EdgeFarm `local-up` binary for your operating system.
+If you want to join physical edge nodes to your cluster, you'll also need a free account from [netbird.io](https://netbird.io) and a [netbird setup-key](https://docs.netbird.io/how-to/register-machines-using-setup-keys).
+
+Hop over to [releases](https://github.com/edgefarm/edgefarm/releases) and grab the freshest release of the EdgeFarm `local-up` binary for your operating system or just run the following command:
+
+```console
+curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin && chmod +x ~/bin/local-up
+```
 
 Time to get the cluster rolling! Execute these commands:
 
 ```console
 # This step is gonna take a minute, because we're creating a full-blown Kubernetes cluster. So, hang tight and let it do its thing!
-$ ./local-up-linux-amd64 cluster create
+# Note: if you do not have a netbird token, you can skip the --netbird-token parameter. Then you'll get virtual edge nodes but won't be able to join physical edge nodes.
+$ ./local-up cluster create --netbird-token <your-netbird-token>
 
-# Once it's all set, fire up `kubectl` and give the cluster a quick check to see if it's ready to roll.
+# Once it's all set, fire up `kubectl` and give the cluster a quick check to see if it's ready.
 $ kubectl get nodes
 NAME                     STATUS   ROLES                  AGE   VERSION
 edgefarm-control-plane   Ready    control-plane,master   7m    v1.22.7
@@ -120,10 +127,10 @@ deployment.apps/example-consumer created
 service/example-consumer created
 ```
 
-What next? We're gonna deploy the example producer on an edge node, and the consumer will kick it on a cloud node. It's gonna be a perfect match!
+What next? We're going to deploy the example producer on an edge node, and the consumer will kick it on a cloud node.
 The producer creates simulated sensor data and sends it over to the consumer using EdgeFarm.network. The consumer then displays the data in a browser.
 
-You're the boss now! Label the right node pool to run that edge application. Show 'em who's in charge!
+Label the right node pool to run that edge application.
 
 ```console
 $ kubectl label nodepools.apps.openyurt.io edgefarm-worker3 example=producer
