@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
@@ -217,6 +218,7 @@ var (
 	skipConfigureAddons     bool
 	vpnOnly                 bool
 	flannelOnly             bool
+	overrideMissingNetbird  bool
 )
 
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
@@ -227,6 +229,7 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&args.Ports.HostHttpPort, "host-http-port", args.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
 	flagset.IntVar(&args.Ports.HostHttpsPort, "host-https-port", args.Ports.HostHttpsPort, "Specify the port of https server to be mapped to.")
 	flagset.StringVar(&args.NetbirdToken, "netbird-token", "", "Specify the netbird.io token to connect physical edge nodes.")
+	flagset.BoolVar(&overrideMissingNetbird, "override-netbird", false, "Override the netbird.io token check. Use this only if you know what you are doing.")
 	flagset.StringVar(&args.Interface, "interface", "", "Network interface to connect to physical edge nodes. This is probably the same interface that is used to connect to the internet. If unset, defaults to the first default routes' interface.")
 	flagset.BoolVar(&skipApplications, "skip-applications", false, "Skip installing edgefarm.applications.")
 	flagset.BoolVar(&skipNetwork, "skip-network", false, "Skip installing edgefarm.network.")
@@ -276,6 +279,25 @@ func newKindInitializer(out io.Writer, cfg *initializerConfig) *Initializer {
 }
 
 func handleArgsSkipAndOnly() error {
+	if args.NetbirdToken == "" {
+		doit := false
+		if overrideMissingNetbird {
+			doit = true
+		} else {
+			var err error
+			input := confirmation.New("No netbird.io token set via argument '--netbird-token'.\nYou'll get virtual edge nodes, but you won't be able to connect physical edge nodes. Proceed?", confirmation.No)
+			doit, err = input.RunPrompt()
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
+		}
+		if !doit {
+			fmt.Println("Aborted")
+			os.Exit(0)
+		}
+	}
+
 	if vpnOnly && skipVPN {
 		return fmt.Errorf("cannot use --vpn-only and --skip-vpn at the same time")
 	}
