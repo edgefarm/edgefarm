@@ -11,6 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  K8S_VERSION: v1.22.7
   KIND_NODE_VERSION: v1.22.7-systemd
 
 jobs:
@@ -74,4 +75,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/edgefarm/edgefarm/kind-node:${{ env.KIND_NODE_VERSION }}
           build-args: |
-            VERSION=${{ env.KIND_NODE_VERSION }}
+            VERSION=${{ env.K8S_VERSION }}
