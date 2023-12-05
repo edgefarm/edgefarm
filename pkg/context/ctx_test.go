@@ -61,10 +61,10 @@ func TestGetContext(t *testing.T) {
 
 func TestExists(t *testing.T) {
 	assert := assert.New(t)
-	assert.False(Exists("foo"))
-	foo := Context("foo")
-	assert.True(Exists("foo"))
-	assert.Equal("foo", foo.Name)
-	assert.NotNil(foo.Data)
-	assert.Equal(0, len(foo.Data))
+	assert.False(Exists("asdf"))
+	asdf := Context("asdf")
+	assert.True(Exists("asdf"))
+	assert.Equal("asdf", asdf.Name)
+	assert.NotNil(asdf.Data)
+	assert.Equal(0, len(asdf.Data))
 }
