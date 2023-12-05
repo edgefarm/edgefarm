@@ -21,7 +21,6 @@ type PortMappings struct {
 	HostNatsPort      int
 	HostHttpPort      int
 	HostHttpsPort     int
-	HostVPNPort       int
 }
 
 var (
@@ -31,6 +30,6 @@ var (
 		HostNatsPort:      4222,
 		HostHttpPort:      80,
 		HostHttpsPort:     443,
-		HostVPNPort:       6555,
 	}
+	NetbirdToken string
 )

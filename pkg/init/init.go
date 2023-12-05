@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -36,6 +37,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/packages"
 
+	"github.com/openyurtio/openyurt/pkg/projectinfo"
 	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
 	"github.com/openyurtio/openyurt/pkg/yurthub/util"
 	"github.com/openyurtio/openyurt/test/e2e/cmd/init/lock"
@@ -92,6 +94,16 @@ func (c *ClusterConverter) Run() error {
 	}
 	return nil
 }
+func AddWorkerLabelAndAutonomyAnnotation(cliSet kubeclientset.Interface, node *corev1.Node, lVal, aVal string) (*corev1.Node, error) {
+	node.Labels["node.edgefarm.io/type"] = "virtual"
+	node.Labels[projectinfo.GetEdgeWorkerLabelKey()] = lVal
+	node.Annotations[projectinfo.GetAutonomyAnnotation()] = aVal
+	newNode, err := cliSet.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return newNode, nil
+}
 
 func LabelEdgeNodes(edgeNodes []string) error {
 	clientset, err := k8s.GetClientset(nil)
@@ -107,7 +119,7 @@ func LabelEdgeNodes(edgeNodes []string) error {
 		if !isEdge {
 			continue
 		}
-		_, err := kubeutil.AddEdgeWorkerLabelAndAutonomyAnnotation(clientset, &node, "true", "true")
+		_, err := AddWorkerLabelAndAutonomyAnnotation(clientset, &node, "true", "true")
 		if err != nil {
 			return fmt.Errorf("failed to add label to edge node %s, %w", node.Name, err)
 		}
@@ -116,6 +128,15 @@ func LabelEdgeNodes(edgeNodes []string) error {
 }
 
 func LabelCloudNodes(cloudNodes []string) error {
+	reducedCloudNodes := []string{}
+	// remove *-control-plane nodes from cloud nodes
+	for _, name := range cloudNodes {
+		if strings.Contains(name, "control-plane") {
+			continue
+		}
+		reducedCloudNodes = append(reducedCloudNodes, name)
+	}
+
 	clientset, err := k8s.GetClientset(nil)
 	if err != nil {
 		return err
@@ -125,11 +146,11 @@ func LabelCloudNodes(cloudNodes []string) error {
 		return fmt.Errorf("failed to list nodes, %w", err)
 	}
 	for _, node := range nodeLst.Items {
-		isCloud := strutil.IsInStringLst(cloudNodes, node.Name)
+		isCloud := strutil.IsInStringLst(reducedCloudNodes, node.Name)
 		if !isCloud {
 			continue
 		}
-		_, err := kubeutil.AddEdgeWorkerLabelAndAutonomyAnnotation(clientset, &node, "false", "false")
+		_, err := AddWorkerLabelAndAutonomyAnnotation(clientset, &node, "false", "false")
 		if err != nil {
 			return fmt.Errorf("failed to add label to edge node %s, %w", node.Name, err)
 		}

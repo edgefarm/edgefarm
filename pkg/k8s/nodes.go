@@ -68,15 +68,29 @@ func DeleteNode(name string) error {
 	return clientset.CoreV1().Nodes().Delete(context.Background(), name, metav1.DeleteOptions{})
 }
 
+// GetAllNodes returns a slice with all nodes
+func GetAllNodes() ([]v1.Node, error) {
+	clientset, err := GetClientset(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	nodes, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return nodes.Items, nil
+}
+
 // GetNodes returns a slice of nodes matching the given selector.
-func GetNodes(selector metav1.LabelSelector) ([]v1.Node, error) {
+func GetNodes(selector *metav1.LabelSelector) ([]v1.Node, error) {
 	clientset, err := GetClientset(nil)
 	if err != nil {
 		return nil, err
 	}
 
 	nodes, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{
-		LabelSelector: metav1.FormatLabelSelector(&selector),
+		LabelSelector: metav1.FormatLabelSelector(selector),
 	})
 	if err != nil {
 		return nil, err
@@ -118,7 +132,7 @@ func ValidatePhysicalNodeName(name string) error {
 }
 
 func GetEdgeNodes() ([]v1.Node, error) {
-	return GetNodes(metav1.LabelSelector{
+	return GetNodes(&metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			"openyurt.io/is-edge-worker": "true",
 		},

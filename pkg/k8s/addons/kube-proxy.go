@@ -18,13 +18,10 @@ package addons
 
 import (
 	"context"
-	"time"
 
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/packages"
-	"tideland.dev/go/wait"
 
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -65,21 +62,42 @@ func ReplaceKubeProxy() error {
 		return err
 	}
 
-	ticker := wait.MakeExpiringIntervalTicker(time.Second, time.Second*60)
+	// ticker := wait.MakeExpiringIntervalTicker(time.Second, time.Second*60)
 
-	condition := func() (bool, error) {
-		pods, err := k8s.GetPods("kube-system", "k8s-app=kube-proxy")
-		if err != nil {
-			return false, err
-		}
-		for _, pod := range pods {
-			if pod.Status.Phase != v1.PodRunning {
-				return false, nil
-			}
-		}
-		return true, nil
-	}
-	wait.Poll(context.Background(), ticker, condition)
+	// condition := func() (bool, error) {
+	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-proxy-default")
+	// 	if err != nil {
+	// 		return false, err
+	// 	}
+	// 	for _, pod := range pods {
+	// 		if pod.Status.Phase != v1.PodRunning {
+	// 			return false, nil
+	// 		}
+	// 	}
+	// 	return true, nil
+	// }
+	// err = wait.Poll(context.Background(), ticker, condition)
+	// if err != nil {
+	// 	return fmt.Errorf("install kube-proxy-default: %s", err.Error())
+	// }
+
+	// ticker = wait.MakeExpiringIntervalTicker(time.Second, time.Second*60)
+	// condition = func() (bool, error) {
+	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-proxy-openyurt")
+	// 	if err != nil {
+	// 		return false, err
+	// 	}
+	// 	for _, pod := range pods {
+	// 		if pod.Status.Phase != v1.PodRunning {
+	// 			return false, nil
+	// 		}
+	// 	}
+	// 	return true, nil
+	// }
+	// err = wait.Poll(context.Background(), ticker, condition)
+	// if err != nil {
+	// 	return fmt.Errorf("install kube-proxy-openyurt: %s", err.Error())
+	// }
 
 	return nil
 }
