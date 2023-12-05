@@ -101,8 +101,7 @@ type kindOptions struct {
 	KubeConfig        string
 	IgnoreError       bool
 	EnableDummyIf     bool
-	// DisableDefaultCNI bool
-	NodeImage string
+	NodeImage         string
 }
 
 func newKindOptions() *kindOptions {
@@ -115,9 +114,8 @@ func newKindOptions() *kindOptions {
 		UseLocalImages:    false,
 		IgnoreError:       true,
 		EnableDummyIf:     true,
-		// DisableDefaultCNI: true,
-		CloudNodes: "edgefarm-control-plane,edgefarm-worker",
-		NodeImage:  "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7-systemd",
+		CloudNodes:        "edgefarm-control-plane,edgefarm-worker",
+		NodeImage:         "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7-systemd",
 	}
 }
 
@@ -138,9 +136,6 @@ func (o *kindOptions) Validate() error {
 	if o.WorkerNodesNum < 1 {
 		return fmt.Errorf("the number of nodes must be greater than 0")
 	}
-	// if err := validateKubernetesVersion(o.KubernetesVersion); err != nil {
-	// 	return err
-	// }
 	if !checkFreePort(args.Ports.HostApiServerPort) {
 		return fmt.Errorf("port %d is already used", args.Ports.HostApiServerPort)
 	}
@@ -262,7 +257,6 @@ type initializerConfig struct {
 	YurtManagerImage  string
 	NodeServantImage  string
 	EnableDummyIf     bool
-	// DisableDefaultCNI bool
 }
 
 type Initializer struct {
@@ -315,11 +309,6 @@ func handleArgsSkipAndOnly() error {
 func (ki *Initializer) Run() error {
 	var err error
 	if !skipClusterCreation {
-		// klog.Info("Start to prepare kind node image")
-		// if err := ki.prepareKindNodeImage(); err != nil {
-		// 	return err
-		// }
-
 		klog.Info("Start to prepare config for kind")
 		config, err := ki.prepareKindConfigFile()
 		if err != nil {
@@ -352,8 +341,6 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	// if !skipClusterCreation || flannelOnly {
-	// }
 	if !skipClusterCreation {
 		if err := addons.ReplaceCoreDNS(); err != nil {
 			return err
@@ -375,13 +362,6 @@ func (ki *Initializer) Run() error {
 		// 	return err
 		// }
 	}
-
-	// if !skipConfigureAddons {
-	// 	klog.Infof("Start to configure cluster components (coredns, kube-proxy) to adapt OpenYurt")
-	// 	if err := ki.configureAddons(); err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	if err := packages.Install(packages.ClusterBootstrapKruise); err != nil {
 		return err
@@ -524,135 +504,6 @@ func (ki *Initializer) prepareKindConfigFile() ([]byte, error) {
 	return []byte(kindConfigContent), nil
 }
 
-// func (ki *Initializer) configureAddons() error {
-// 	// if err := ki.configureKubeProxyAddon(); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	// re-construct kube-proxy pods
-// 	// podList, err := ki.kubeClient.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{})
-// 	// if err != nil {
-// 	// 	return err
-// 	// }
-// 	// for i := range podList.Items {
-// 	// 	switch {
-// 	// 	case strings.HasPrefix(podList.Items[i].Name, "kube-proxy"):
-// 	// 		// delete pod
-// 	// 		propagation := metav1.DeletePropagationForeground
-// 	// 		err = ki.kubeClient.CoreV1().Pods("kube-system").Delete(context.TODO(), podList.Items[i].Name, metav1.DeleteOptions{
-// 	// 			PropagationPolicy: &propagation,
-// 	// 		})
-// 	// 		if err != nil {
-// 	// 			klog.Errorf("failed to delete pod(%s), %v", podList.Items[i].Name, err)
-// 	// 		}
-// 	// 	default:
-// 	// 	}
-// 	// }
-
-// 	if err := ki.configureCoreDnsAddon(); err != nil {
-// 		return err
-// 	}
-
-// 	// If we disable default cni, nodes will not be ready and the coredns pod always be in pending.
-// 	// The health check for coreDNS should be done by someone who will install CNI.
-// 	if !ki.DisableDefaultCNI {
-// 		// wait for coredns pods available
-// 		for {
-// 			select {
-// 			case <-time.After(10 * time.Second):
-// 				dnsDp, err := ki.kubeClient.AppsV1().Deployments("kube-system").Get(context.TODO(), "coredns", metav1.GetOptions{})
-// 				if err != nil {
-// 					return fmt.Errorf("failed to get coredns deployment when waiting for available, %v", err)
-// 				}
-
-// 				if dnsDp.Status.ObservedGeneration < dnsDp.Generation {
-// 					klog.Infof("waiting for coredns generation(%d) to be observed. now observed generation is %d", dnsDp.Generation, dnsDp.Status.ObservedGeneration)
-// 					continue
-// 				}
-
-// 				if *dnsDp.Spec.Replicas != dnsDp.Status.AvailableReplicas {
-// 					klog.Infof("waiting for coredns replicas(%d) to be ready, now %d pods available", *dnsDp.Spec.Replicas, dnsDp.Status.AvailableReplicas)
-// 					continue
-// 				}
-// 				klog.Info("coredns deployment configuration is completed")
-// 				return nil
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
-
-// // configureKubeProxyAddon configures kube-proxy addon like described here
-// // https://openyurt.io/docs/user-manuals/network/service-topology#configure-kube-proxy
-// func (ki *Initializer) configureKubeProxyAddon() error {
-// 	err := k8s.PollForConfigMap("kube-system", "kube-proxy", time.Minute*2)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	config, err := k8s.GetConfigMapValue("kube-system", "kube-proxy", "config.conf")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	configMap := make(map[string]interface{})
-// 	err = yaml.Unmarshal([]byte(config), &configMap)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if configMap["featureGates"] == nil {
-// 		configMap["featureGates"] = make(map[interface{}]interface{})
-// 	}
-// 	configMap["featureGates"].(map[interface{}]interface{})["EndpointSliceProxying"] = true
-// 	if configMap["clientConnection"] != nil {
-// 		if configMap["clientConnection"].(map[interface{}]interface{})["kubeconfig"] != nil {
-// 			delete(configMap["clientConnection"].(map[interface{}]interface{}), "kubeconfig")
-// 		}
-// 	}
-
-// 	updatedConfig, err := yaml.Marshal(configMap)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return k8s.UpdateConfigMapValue("kube-system", "kube-proxy", "config.conf", string(updatedConfig))
-
-// }
-
-// // configureCoreDnsAddon configures coredns addon like described here
-// // https://openyurt.io/docs/user-manuals/network/service-topology#create-service-with-topologykeys
-// // coreDNS will shall use the service topology 'hostname' to resolve using the locally running coredns instance
-// func (ki *Initializer) configureCoreDnsAddon() error {
-// 	// configure hostname service topology for kube-dns service
-// 	svc, err := ki.kubeClient.CoreV1().Services("kube-system").Get(context.TODO(), "kube-dns", metav1.GetOptions{})
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	topologyChanged := false
-// 	if svc != nil {
-// 		if svc.Annotations == nil {
-// 			svc.Annotations = make(map[string]string)
-// 		}
-
-// 		if val, ok := svc.Annotations["openyurt.io/topologyKeys"]; ok && val == "kubernetes.io/hostname" {
-// 			// topology annotation does not need to change
-// 		} else {
-// 			svc.Annotations["openyurt.io/topologyKeys"] = "kubernetes.io/hostname"
-// 			topologyChanged = true
-// 		}
-
-// 		if topologyChanged {
-// 			_, err = ki.kubeClient.CoreV1().Services("kube-system").Update(context.TODO(), svc, metav1.UpdateOptions{})
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 	}
-
-// 	return nil
-// }
-
 func (ki *Initializer) deployOpenYurt() error {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -665,7 +516,7 @@ func (ki *Initializer) deployOpenYurt() error {
 		CloudNodes:                ki.CloudNodes,
 		EdgeNodes:                 ki.EdgeNodes,
 		WaitServantJobTimeout:     kubeutil.DefaultWaitServantJobTimeout,
-		YurthubHealthCheckTimeout: 2 * time.Minute, // yurtinit.defaultYurthubHealthCheckTimeout
+		YurthubHealthCheckTimeout: 2 * time.Minute,
 		KubeConfigPath:            ki.KubeConfig,
 		YurtManagerImage:          ki.YurtManagerImage,
 		NodeServantImage:          ki.NodeServantImage,
@@ -711,38 +562,6 @@ func getNodeNamesOfKindCluster(clusterName string, workerNodesNum int, edgeNodes
 func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 	ticker := wait.MakeExpiringIntervalTicker(time.Second, stepTimeout)
 
-	// // Checks for flannel pods to be ready on all nodes
-	// flannelCondition := func() (bool, error) {
-	// 	pods, err := k8s.GetPods("kube-system", "app=flannel")
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
-	// 	for _, pod := range pods {
-	// 		if pod.Status.Phase != v1.PodRunning {
-	// 			return false, nil
-	// 		}
-	// 	}
-	// 	return true, nil
-	// }
-	// err := wait.Poll(context.Background(), ticker, flannelCondition)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// // Checks for core-dns pods to be ready on all nodes
-	// corednsCondition := func() (bool, error) {
-	// 	pods, err := k8s.GetPods("kube-system", "k8s-app=kube-dns")
-	// 	if err != nil {
-	// 		return false, err
-	// 	}
-	// 	for _, pod := range pods {
-	// 		if pod.Status.Phase != v1.PodRunning {
-	// 			return false, nil
-	// 		}
-	// 	}
-	// 	return true, nil
-	// }
-	// wait.Poll(context.Background(), ticker, corednsCondition)
 	// Checks for ready state of all nodes
 	nodesCondition := func() (bool, error) {
 		nodes, err := k8s.GetAllNodes()
