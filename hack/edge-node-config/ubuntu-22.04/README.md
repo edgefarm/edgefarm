@@ -25,7 +25,7 @@ Run the `install.sh` script with the needed arguments. See the `--help` options 
 
 This command will download everything needed and configures the system. In the end it joins the Kubernetes Cluster.
 ```
-$ ./install.sh --token <your-bootstrap-token> --address <your-address:port> --join
+$ ./install.sh --token <your-bootstrap-token> --address <your-address:port> --join --node-ip $(cat /usr/local/etc/wt0.ip)
 ```
 
 ## Unprovisioning a edge node from the cluster
