@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  KIND_NODE_VERSION: v1.22.7
+  KIND_NODE_VERSION: v1.22.7-systemd
 
 jobs:
   check_paths:
