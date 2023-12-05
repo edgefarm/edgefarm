@@ -12,6 +12,7 @@ theme:
     - navigation.tabs
     - navigation.tabs.sticky
     - content.code.copy
+    - content.code.annotate
 extra_css:
   - stylesheets/extra.css
 extra:
@@ -33,7 +34,7 @@ plugins:
   - glightbox
 
 repo_url: https://github.com/edgefarm/edgefarm
-copyright: Copyright &copy; 2022 Ci4Rail GmbH
+copyright: Copyright &copy; 2023 Ci4Rail GmbH
 
 # Extensions
 markdown_extensions:
@@ -95,7 +96,6 @@ nav:
       - edgefarm.network: reference/network.md
       - edgefarm.monitor: reference/monitor.md
   #  - Best Practices: bestpractices/index.md
-  - User How To's: userguide/index.md
   - Architecture:
       - Design Decissions: architecture/designdecissions.md
       - Overview: architecture/overview.md
