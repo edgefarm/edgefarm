@@ -52,6 +52,12 @@
         "prepareCmd": "VERSION=${nextRelease.version} GO_OS=darwin GO_ARCH=arm64 make build"
       }
     ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "cd hack/edge-node-config && ./release.sh ../../dist"
+      }
+    ],
     "@semantic-release/release-notes-generator",
     [
       "@semantic-release/github",
@@ -74,6 +80,10 @@
           {
             "path": "dist/local-up-darwin-arm64",
             "label": "local-up-darwin-arm64"
+          },
+          {
+            "path": "dist/ubuntu-22.04-edge-node-config.tar.gz",
+            "label": "ubuntu-22.04-edge-node-config.tar.gz"
           }
         ]
       }
