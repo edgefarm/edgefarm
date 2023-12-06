@@ -25,8 +25,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/erikgeiser/promptkit/confirmation"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/api/core/v1"
@@ -91,10 +91,9 @@ func init() {
 }
 
 type kindOptions struct {
-	KindConfigPath string
-	WorkerNodesNum int
-	EdgeNodesNum   int
-
+	KindConfigPath    string
+	WorkerNodesNum    int
+	EdgeNodesNum      int
 	ClusterName       string
 	CloudNodes        string
 	OpenYurtVersion   string
@@ -177,22 +176,10 @@ func (o *kindOptions) Config() *initializerConfig {
 		}
 	}
 
-	// prepare kindConfig.KubeConfig
-	kubeConfigPath := o.KubeConfig
-	if kubeConfigPath == "" {
-		if home := os.Getenv("HOME"); home != "" {
-			kubeConfigPath = fmt.Sprintf("%s/.kube/config", home)
-			klog.V(1).Infof("--kube-config is not specified, %s will be used.", kubeConfigPath)
-		} else {
-			klog.Fatal("failed to get ${HOME} env when using default kubeconfig path")
-		}
-	}
-
 	return &initializerConfig{
 		CloudNodes:        cloudNodes.List(),
 		EdgeNodes:         edgeNodes.List(),
 		KindConfigPath:    o.KindConfigPath,
-		KubeConfig:        kubeConfigPath,
 		WorkerNodesNum:    o.WorkerNodesNum,
 		EdgeNodesNum:      o.EdgeNodesNum,
 		NodeImage:         o.NodeImage,
@@ -223,7 +210,7 @@ var (
 
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&o.EdgeNodesNum, "edge-node-num", o.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
-	flagset.StringVar(&o.KubeConfig, "kube-config", o.KubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
+	flagset.StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 	flagset.IntVar(&args.Ports.HostApiServerPort, "host-api-server-port", args.Ports.HostApiServerPort, "Specify the port of host api server.")
 	flagset.IntVar(&args.Ports.HostNatsPort, "host-nats-port", args.Ports.HostNatsPort, "Specify the port of nats to be mapped to.")
 	flagset.IntVar(&args.Ports.HostHttpPort, "host-http-port", args.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
@@ -247,10 +234,10 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 }
 
 type initializerConfig struct {
-	CloudNodes        []string
-	EdgeNodes         []string
-	KindConfigPath    string
-	KubeConfig        string
+	CloudNodes     []string
+	EdgeNodes      []string
+	KindConfigPath string
+	// KubeConfig        string
 	WorkerNodesNum    int
 	EdgeNodesNum      int
 	ClusterName       string
@@ -274,11 +261,15 @@ func newKindInitializer(out io.Writer, cfg *initializerConfig) *Initializer {
 	return &Initializer{
 		initializerConfig: *cfg,
 		out:               out,
-		operator:          kindoperator.NewKindOperator(cfg.KubeConfig),
+		operator:          kindoperator.NewKindOperator(args.KubeConfig),
 	}
 }
 
 func handleArgsSkipAndOnly() error {
+	if err := args.EvaluateKubeConfigPath(); err != nil {
+		return err
+	}
+
 	if args.NetbirdToken == "" {
 		doit := false
 		if overrideMissingNetbird {
@@ -345,7 +336,7 @@ func (ki *Initializer) Run() error {
 	}
 
 	klog.Info("Start to prepare kube client")
-	kubeconfig, err := clientcmd.BuildConfigFromFlags("", ki.KubeConfig)
+	kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
 	if err != nil {
 		return err
 	}
@@ -539,13 +530,13 @@ func (ki *Initializer) deployOpenYurt() error {
 	}
 	converter := &yurtinit.ClusterConverter{
 		RootDir:                   dir,
-		ComponentsBuilder:         kubeutil.NewBuilder(ki.KubeConfig),
+		ComponentsBuilder:         kubeutil.NewBuilder(args.KubeConfig),
 		ClientSet:                 ki.kubeClient,
 		CloudNodes:                ki.CloudNodes,
 		EdgeNodes:                 ki.EdgeNodes,
 		WaitServantJobTimeout:     kubeutil.DefaultWaitServantJobTimeout,
 		YurthubHealthCheckTimeout: 2 * time.Minute,
-		KubeConfigPath:            ki.KubeConfig,
+		KubeConfigPath:            args.KubeConfig,
 		YurtManagerImage:          ki.YurtManagerImage,
 		NodeServantImage:          ki.NodeServantImage,
 		YurthubImage:              ki.YurtHubImage,

@@ -27,7 +27,7 @@ import (
 
 // ReplaceKubeProxy deletes the kube-proxy deployment and replaces it with a Helm chart
 func ReplaceKubeProxy() error {
-	clientset, err := k8s.GetClientset(nil)
+	clientset, err := k8s.GetClientset()
 	if err != nil {
 		return err
 	}

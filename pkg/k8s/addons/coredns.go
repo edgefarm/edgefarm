@@ -30,7 +30,7 @@ import (
 
 // ReplaceCoreDNS deletes the CoreDNS deployment and replace it with a DaemonSet
 func ReplaceCoreDNS() error {
-	clientset, err := k8s.GetClientset(nil)
+	clientset, err := k8s.GetClientset()
 	if err != nil {
 		return err
 	}

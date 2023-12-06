@@ -10,7 +10,7 @@ import (
 )
 
 func PollForConfigMap(namespace, name string, timeout time.Duration) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func PollForConfigMap(namespace, name string, timeout time.Duration) error {
 }
 
 func GetConfigMapValue(namespace, name, key string) (string, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return "", err
 	}
@@ -57,7 +57,7 @@ func GetConfigMapValue(namespace, name, key string) (string, error) {
 }
 
 func UpdateConfigMapValue(namespace, name, key, value string) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}

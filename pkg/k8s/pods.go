@@ -29,7 +29,7 @@ import (
 )
 
 func GetPods(namespace string, selector string) ([]v1.Pod, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return nil, err
 	}

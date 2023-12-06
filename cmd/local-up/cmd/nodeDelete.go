@@ -18,9 +18,12 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
+	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -54,7 +57,11 @@ func NewNodeDeleteCommand(out io.Writer) *cobra.Command {
 		Use:   "delete",
 		Short: "Deletes a edge node from the cluster.",
 		Long:  "Deletes a edge node from the cluster. It also gives instructions on how to unprovision the the device.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, arguments []string) error {
+			if err := args.EvaluateKubeConfigPath(); err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
 			if err := validateDeleteNode(); err != nil {
 				return err
 			}
@@ -74,6 +81,8 @@ func init() {
 	nodeDeleteCommand := NewNodeDeleteCommand(os.Stdout)
 	nodeCmd.AddCommand(nodeDeleteCommand)
 	nodeDeleteCommand.Flags().StringVarP(&nodeNameDeleteNode, "name", "n", "", "The name of the node to delete. Must be one of the self-provisioned nodes.")
+	nodeDeleteCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
+
 }
 
 func instructionsDeleteNode() {

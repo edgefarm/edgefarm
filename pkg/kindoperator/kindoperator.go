@@ -21,6 +21,8 @@ import (
 
 	"sigs.k8s.io/kind/pkg/cluster"
 	"sigs.k8s.io/kind/pkg/log"
+
+	constants "github.com/edgefarm/edgefarm/pkg/constants"
 )
 
 const (
@@ -29,18 +31,13 @@ const (
 	KindNetworkSubnet = "172.254.0.0/16"
 )
 
-var (
-	// enableGO111MODULE will be used when 1.13 <= go version <= 1.16
-	defaultKubeConfigPath = "~/.kube/config"
-)
-
 type KindOperator struct {
 	kubeconfigPath string
 	logger         log.Logger
 }
 
 func NewKindOperator(kubeconfigPath string) *KindOperator {
-	path := defaultKubeConfigPath
+	path := constants.DefaultKubeConfigPath
 	if kubeconfigPath != "" {
 		path = kubeconfigPath
 	}
