@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -28,6 +29,7 @@ import (
 	bootstraputil "k8s.io/cluster-bootstrap/token/util"
 	"k8s.io/klog/v2"
 
+	"github.com/edgefarm/edgefarm/pkg/constants"
 	bootstraptokenv1 "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/apis/bootstraptoken/v1"
 	kubeadmconstants "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/constants"
 	nodetoken "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstraptoken/node"
@@ -67,6 +69,10 @@ func GetOrCreateJoinTokenString(cliSet kubeclientset.Interface) (string, error) 
 		// Get the human-friendly string representation for the token
 	}
 
+	return GenerateBootstrapToken(cliSet, constants.BootstrapTokenDefaultTTL)
+}
+
+func GenerateBootstrapToken(cliSet kubeclientset.Interface, TTL time.Duration) (string, error) {
 	tokenStr, err := bootstraputil.GenerateBootstrapToken()
 	if err != nil {
 		return "", fmt.Errorf("couldn't generate random token, %w", err)
@@ -82,6 +88,9 @@ func GetOrCreateJoinTokenString(cliSet kubeclientset.Interface) (string, error) 
 			Token:  token,
 			Usages: kubeadmconstants.DefaultTokenUsages,
 			Groups: kubeadmconstants.DefaultTokenGroups,
+			TTL: &metav1.Duration{
+				Duration: TTL,
+			},
 		}}); err != nil {
 		return "", err
 	}

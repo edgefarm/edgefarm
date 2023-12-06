@@ -25,7 +25,7 @@ import (
 )
 
 func GetNamespace(name string) (*v1.Namespace, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func GetNamespace(name string) (*v1.Namespace, error) {
 }
 
 func CreateNamespace(name string) (*v1.Namespace, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return nil, err
 	}

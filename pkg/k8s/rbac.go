@@ -23,7 +23,7 @@ import (
 )
 
 func DeleteServiceAccount(name, namespace string) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func DeleteServiceAccount(name, namespace string) error {
 }
 
 func DeleteClusterRole(name string) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func DeleteClusterRole(name string) error {
 }
 
 func DeleteClusterRoleBinding(name string) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}

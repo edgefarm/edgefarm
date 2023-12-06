@@ -18,14 +18,18 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/route"
 	"github.com/fatih/color"
+	"github.com/hako/durafmt"
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
 	"github.com/spf13/cobra"
 	"k8s.io/klog/v2"
@@ -33,6 +37,8 @@ import (
 
 var (
 	nodeNameJoinNode string
+	TTL              string
+	defaultTTL       string = "24h"
 )
 
 func validateJoinNode() error {
@@ -55,7 +61,11 @@ func NewNodeJoinCommand(out io.Writer) *cobra.Command {
 		Use:   "join",
 		Short: "Join a new node to the cluster.",
 		Long:  "Join a new node to the cluster by creating a new kubernetes node and giving instructions on how to join it to the cluster.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, arguments []string) error {
+			if err := args.EvaluateKubeConfigPath(); err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
 			if err := validateJoinNode(); err != nil {
 				return err
 			}
@@ -75,9 +85,12 @@ func init() {
 	nodeJoinCommand := NewNodeJoinCommand(os.Stdout)
 	nodeCmd.AddCommand(nodeJoinCommand)
 	nodeJoinCommand.Flags().StringVarP(&nodeNameJoinNode, "name", "n", "", "A unique name of the node to join. Must not be the same as an existing node.")
+	nodeJoinCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
+	nodeJoinCommand.PersistentFlags().StringVar(&TTL, "ttl", defaultTTL, "Define the TTL of the bootstrap token.")
+
 }
 
-func instructionsJoinNode() {
+func instructionsJoinNode(token string, ttl string) {
 	green := color.New(color.FgHiGreen)
 	yellow := color.New(color.FgHiYellow)
 
@@ -87,60 +100,24 @@ func instructionsJoinNode() {
 		panic(err)
 	}
 
-	green.Println("To join a physical edge node running vanilla Ubuntu 22.04 to this cluster, you need to ensure a few things:")
-	green.Printf("1. Ensure that the ")
+	green.Println("Here is some information you need to join a physical edge node to this cluster.")
+	green.Printf("Ensure that the ")
 	yellow.Printf("/etc/hosts")
 	green.Printf(" file contain the following entry:\n")
-	yellow.Printf("   %s edgefarm-control-plane\n", r.IP)
+	yellow.Printf("%s edgefarm-control-plane\n", r.IP)
 	green.Println("")
-	green.Println("2. Ensure that the cgroup2 is enabled for your system. To check run:")
-	yellow.Println("   $ grep cgroup /proc/filesystems")
-	green.Println("   If cgroup2 is enabled, you should see a line like this:")
-	yellow.Println("   nodev   cgroup2")
-	green.Println("   If cgroup2 is not enabled, enable it. Follow the instructions for your")
-	green.Println("   distribution and architecture.")
-	green.Println("")
-	green.Println("3. Ensure that docker is installed, running and uses the systemd driver.")
-	green.Println("   To check run:")
-	yellow.Println("   $ docker info | grep -i systemd")
-	green.Println("   You should see a line like this:")
-	yellow.Println("   Cgroup Driver: systemd")
-	green.Println("   If you don't see this line, you need to configure docker to use the systemd")
-	green.Println("    driver. https://docs.docker.com/engine/reference/commandline/dockerd/#configure-cgroup-driver")
-	green.Println("   For example, you can configure docker to use the cgroupfs driver by creating ")
-	green.Println("   a file at /etc/docker/daemon.json with the following contents:   ")
-	yellow.Println("   $ cat /etc/docker/daemon.json ")
-	yellow.Println("   {")
-	yellow.Println(`     "exec-opts": ["native.cgroupdriver=systemd"]`)
-	yellow.Println("   }")
-	green.Println("")
-	green.Println("4. Ensure that the swapping is disabled. To check run:")
-	yellow.Println("   $ swapon -s ")
-	green.Println("   If swap is enabled, you should see a line like this:")
-	yellow.Println("   Filename             Type        Size        Used    Priority")
-	yellow.Println("   /swapfile            file        2097148     0       -2")
-	green.Println("   If swap is enabled, disable it. Run the following command to disable swap:")
-	yellow.Println("   $ swapoff -a ")
-	yellow.Println("   $ sed -e '/swap/ s/^#*/#/' -i /etc/fstab ")
-	yellow.Println("   $ systemctl mask swap.target ")
-	green.Println("")
-	green.Println("5. Ensure that you have yurtadm installed on your the edge node. To install visit:")
-	yellow.Printf("   https://github.com/openyurtio/openyurt/releases/tag/v1.4.0")
-	green.Printf(" and download the\n   yurtadm binary for your platform.\n")
-	green.Println("")
-	green.Println("Raspberry PI note: Please make sure that these values")
-	yellow.Printf("   `cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory`")
-	green.Printf(" are present\n   in your cmdline.txt file on your boot partition.\n")
-	green.Println("")
-	green.Println("Once you have ensured that the above requirements are met, you can")
-	green.Println("   join this node to the cluster by running the following command on the node:")
-	yellow.Println(`   $ yurtadm join edgefarm-control-plane:6443  --token="abcdef.0123456789abcdef" --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=5 --reuse-cni-bin`)
+	green.Printf("Use this token ")
+	yellow.Printf("%s", token)
+	green.Printf(" to join the cluster. You have ")
+	yellow.Printf("%s", ttl)
+	green.Println(" to join the cluster before this token expires.")
 	yellow.Println("")
 	green.Println("If you experience any problems, please consult the documentation at ")
-	green.Println("https://edgefarm.github.io/edgefarm/ or file a issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
+	green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
 }
 
 func RunJoinNode() error {
+
 	klog.Infof("Adding empty node resource for %s", nodeNameJoinNode)
 	nodeManifest, err := tmplutil.SubsituteTemplate(constants.NodeManifest, map[string]string{
 		"name": nodeNameJoinNode,
@@ -157,6 +134,20 @@ func RunJoinNode() error {
 		return err
 	}
 
+	client, err := k8s.GetClientset()
+	if err != nil {
+		return err
+	}
+	ttlDuration, err := time.ParseDuration(TTL)
+	if err != nil {
+		return err
+	}
+
+	token, err := tokens.GenerateBootstrapToken(client, ttlDuration)
+	if err != nil {
+		return err
+	}
+
 	err = k8s.Apply(nodeManifest)
 	if err != nil {
 		return err
@@ -167,7 +158,8 @@ func RunJoinNode() error {
 		return err
 	}
 
-	instructionsJoinNode()
+	duraTTL := durafmt.Parse(ttlDuration)
+	instructionsJoinNode(token, duraTTL.String())
 
 	return nil
 }

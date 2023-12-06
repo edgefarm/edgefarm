@@ -61,7 +61,7 @@ func DeleteNodepool(name string) error {
 }
 
 func DeleteNode(name string) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func DeleteNode(name string) error {
 
 // GetAllNodes returns a slice with all nodes
 func GetAllNodes() ([]v1.Node, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func GetAllNodes() ([]v1.Node, error) {
 
 // GetNodes returns a slice of nodes matching the given selector.
 func GetNodes(selector *metav1.LabelSelector) ([]v1.Node, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func GetNodes(selector *metav1.LabelSelector) ([]v1.Node, error) {
 }
 
 func NodeExists(name string) (bool, error) {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return false, err
 
@@ -153,7 +153,7 @@ func CheckNodeTaint(node v1.Node, taint v1.Taint) bool {
 }
 
 func TaintNodes(nodes []v1.Node, taint v1.Taint) error {
-	clientset, err := GetClientset(nil)
+	clientset, err := GetClientset()
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func HandleNodePool(node v1.Node) error {
 	if node.Labels == nil {
 		node.Labels = map[string]string{}
 	}
-	client, err := GetClientset(nil)
+	client, err := GetClientset()
 	if err != nil {
 		return err
 	}

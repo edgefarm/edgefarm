@@ -8,6 +8,7 @@ require (
 	github.com/erikgeiser/promptkit v0.8.0
 	github.com/fatih/color v1.7.0
 	github.com/google/go-github/v30 v30.1.0
+	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.6.0
 	github.com/mittwald/go-helm-client v0.8.2
 	github.com/openyurtio/openyurt v1.4.0

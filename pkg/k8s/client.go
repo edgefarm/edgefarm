@@ -17,26 +17,17 @@ limitations under the License.
 package k8s
 
 import (
-	"path/filepath"
-
+	"github.com/edgefarm/edgefarm/pkg/args"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
 
-func getConfig(kubeconfig *string) *rest.Config {
-	configPath := ""
-	if kubeconfig == nil {
-		if home := homedir.HomeDir(); home != "" {
-			configPath = filepath.Join(home, ".kube", "config")
-		}
-	}
-
+func getConfig() *rest.Config {
 	// use the current context in kubeconfig
-	config, err := clientcmd.BuildConfigFromFlags("", configPath)
+	config, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -44,9 +35,9 @@ func getConfig(kubeconfig *string) *rest.Config {
 }
 
 // GetClientset returns a clientset for the current cluster.
-func GetClientset(kubeconfig *string) (*kubernetes.Clientset, error) {
+func GetClientset() (*kubernetes.Clientset, error) {
 	// create the clientset
-	clientset, err := kubernetes.NewForConfig(getConfig(kubeconfig))
+	clientset, err := kubernetes.NewForConfig(getConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +46,7 @@ func GetClientset(kubeconfig *string) (*kubernetes.Clientset, error) {
 
 // GetClientset returns a clientset for the current cluster.
 func GetDynamicClient(kubeconfig *string) (dynamic.Interface, error) {
-	client, err := dynamic.NewForConfig(getConfig(kubeconfig))
+	client, err := dynamic.NewForConfig(getConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +55,7 @@ func GetDynamicClient(kubeconfig *string) (dynamic.Interface, error) {
 }
 
 func GetDiscoveryClient(kubeconfig *string) (*discovery.DiscoveryClient, error) {
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(getConfig(kubeconfig))
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(getConfig())
 	if err != nil {
 		return nil, err
 	}

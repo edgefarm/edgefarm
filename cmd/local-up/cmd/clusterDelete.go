@@ -23,21 +23,26 @@ import (
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/spf13/cobra"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
+	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 )
 
 var (
-	kubeConfig string = "~/.kube/config"
-	override   bool
+	override bool
 )
 
 // localDeleteCmd represents the localDelete command
 var localDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete the local edgefarm cluster",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, arguments []string) {
 		fmt.Println("Deleting local edgefarm cluster")
-		ki := kindoperator.NewKindOperator(kubeConfig)
+		if err := args.EvaluateKubeConfigPath(); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+		ki := kindoperator.NewKindOperator(args.KubeConfig)
 		doit := false
 		if override {
 			doit = true
@@ -64,6 +69,6 @@ var localDeleteCmd = &cobra.Command{
 
 func init() {
 	localClusterCmd.AddCommand(localDeleteCmd)
-	localDeleteCmd.PersistentFlags().StringVar(&kubeConfig, "kube-config", kubeConfig, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
+	localDeleteCmd.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 	localDeleteCmd.Flags().BoolVarP(&override, "yes", "y", false, "Override confirmation prompt")
 }

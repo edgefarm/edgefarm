@@ -106,7 +106,7 @@ func AddWorkerLabelAndAutonomyAnnotation(cliSet kubeclientset.Interface, node *c
 }
 
 func LabelEdgeNodes(edgeNodes []string) error {
-	clientset, err := k8s.GetClientset(nil)
+	clientset, err := k8s.GetClientset()
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func LabelCloudNodes(cloudNodes []string) error {
 		reducedCloudNodes = append(reducedCloudNodes, name)
 	}
 
-	clientset, err := k8s.GetClientset(nil)
+	clientset, err := k8s.GetClientset()
 	if err != nil {
 		return err
 	}
