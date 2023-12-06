@@ -27,4 +27,4 @@ clean: ## remove files created during build pipeline
 docs: ## run mkdocs
 	mkdocs serve
 
-.PHONY: help all build test clean mod
+.PHONY: help all build test clean mod docs

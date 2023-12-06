@@ -19,11 +19,27 @@ The device should be running
 
 Pre-register the node using `local-up` to create the corresponding resources for the edge node. 
 
-By default, the nodename is the hostname of the edge node.
+By default, the nodename is the hostname of the edge node. If you didn't define a different TTL using the `--ttl` argument for your token, you have 24 hours to join the node to the cluster. After that, the token expires and you won't be able to join using this token.
+
+See this example to pre-register a node with the name `eagle`:
 
 ```bash
-$ local-up node join --name <nodename>
+$ local-up node join --name eagle
+I1206 12:42:34.430305  958575 nodeJoin.go:121] Adding empty node resource for eagle
+I1206 12:42:34.430418  958575 nodeJoin.go:129] Adding nodepool for node eagle
+Here is some information you need to join a physical edge node to this cluster.
+Ensure that the /etc/hosts file contain the following entry: # (1)
+192.168.1.46 edgefarm-control-plane 
+
+Use this token m7i0gd.vduhnle5x4dzs3lo to join the cluster. You have 1 day to join the cluster before this token expires. 
+# (2)
+
+If you experience any problems, please consult the documentation at 
+https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md
 ```
+
+1.  '192.168.1.46' is the IP address of the local cluster. It mus be connected to the physical node. This might be different depending on your network setup.
+2.  You need this example token 'm7i0gd.vduhnle5x4dzs3lo' later to join the node. Every node gets its own token.
 
 ## Edge Node preparations
 
@@ -34,9 +50,9 @@ Make sure that you have SSH access to the Pi and that you can log in as root.
 Install required packages
 ```bash
 sudo apt update
-sudo apt-get install unzip curl -y
+sudo apt-get install curl -y
 ```
-
+  
 ## Run the Edge Node prepare script
 
 Download the `ubuntu-22.04-edge-node-config.tar.gz` from the [EdgeFarm releases page](https://github.com/edgefarm/edgefarm/releases) and extract it on your edge node.
@@ -76,7 +92,7 @@ $ ip addr show dev wt0
 ## Join the Edge Node to the EdgeFarm cluster
 
 Run the `install.sh` script as root to join the Edge Node to the EdgeFarm cluster.
-As the bootstrap token you can either generate a new one or use within 24 hours after the cluster creation `abcdef.0123456789abcdef` as token.
+The bootstrap-token to enter is the one you got from the `local-up` command above (`m7i0gd.vduhnle5x4dzs3lo`). 
 
 ```console
 ./install.sh --address <IP:port> --token <bootstrap-token> --node-ip $(cat /usr/local/etc/wt0.ip) --join
@@ -94,10 +110,10 @@ As the bootstrap token you can either generate a new one or use within 24 hours 
 
 ## Verify the Edge Node
 
-Verify that the Edge Node is ready to use. Let's say the hostname of the node is `mynode`.
+Verify that the Edge Node is ready to use. Let's say the hostname of the node is `eagle`.
 
 ```bash
-$ kubectl get nodes | grep mynode
+$ kubectl get nodes | grep eagle
 NAME     STATUS   ROLES    AGE   VERSION
-mynode   Ready    <none>   1M    v1.22.17
+eagle    Ready    <none>   1M    v1.22.17
 ```
