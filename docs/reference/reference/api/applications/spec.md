@@ -32,15 +32,41 @@ ComponentProperties is the description of a component's properties.
   
 ### Image
 
-- **image** (string), required <br> OCI container image name. More info: [https://kubernetes.io/docs/concepts/containers/images](https://kubernetes.io/docs/concepts/containers/images).
-- **imagePullPolicy** (string), required <br> Image pull policy. One of `Always`, `Never`, `IfNotPresent`. Defaults to `Always` if :latest tag is specified, or `IfNotPresent` otherwise. More info: [https://kubernetes.io/docs/concepts/containers/images#updating-images](https://kubernetes.io/docs/concepts/containers/images#updating-images)
-- **imagePullSecrets** ([]string), optional <br> Specify image pull secrets. More info: [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry)
+- **image** (string), required <br> OCI container image name. <br>*Example:* <br>
+  ```yaml
+  image: docker.io/nginx:latest
+  ``` 
+  More info: [https://kubernetes.io/docs/concepts/containers/images](https://kubernetes.io/docs/concepts/containers/images).
+- **imagePullPolicy** (string), required <br> Image pull policy. One of `Always`, `Never`, `IfNotPresent`. Defaults to `Always` if :latest tag is specified, or `IfNotPresent` otherwise.<br>*Example:* <br>
+  ```yaml
+  imagePullPolicy: IfNotPresent
+  ``` 
+  More info: [https://kubernetes.io/docs/concepts/containers/images#updating-images](https://kubernetes.io/docs/concepts/containers/images#updating-images)
+- **imagePullSecrets** ([]string), optional <br> Specify image pull secrets. <br> *Example:* <br>
+  ```yaml
+  imagePullSecrets: 
+    - myCreds1
+    - myCreds2
+  ``` 
+  More info: [https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry)
 
 
 ### Scheduling
 
 - **nodePoolSelector** (LabelSelector), required <br> Label selector for nodepools. Every Edge Node has a corresponding nodepool. The nodepool is used to select the Edge Nodes that shall run the component. The nodePoolSelector specifies the nodepools that shall run the component.
-A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.<br>
+*Example:* <br>
+  ```yaml
+  nodePoolSelector: 
+    matchLabels:
+      foo: bar
+    matchExpressions:
+      - key: foo
+        operator: In
+        values:
+          - bar
+          - baz
+  ``` 
 More info: [https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/label-selector/#LabelSelector](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/label-selector/#LabelSelector)
 
 `LabelSelector` represents a selector that matches labels.
@@ -53,8 +79,19 @@ More info: [https://kubernetes.io/docs/reference/kubernetes-api/common-definitio
       - **key** (string), required <br> The label key that the selector applies to.
       - **operator** (string), required <br> Represents a key's relationship to a set of values. Valid operators are `In`, `NotIn`, `Exists`, `DoesNotExist`. `In` and `NotIn` operators can be used with non-empty values. `Exists` and `DoesNotExist` operators can be used with empty values.
       - **values** ([]string), optional <br> An array of string values. 
+ 
 
 - **tolerations** ([]Toleration), optional <br> The pod this Toleration is attached to tolerates any taint that matches the triple `<key,value,effect>` using the matching operator.<br>
+*Example:* <br>
+  ```yaml
+  tolerations: 
+    - key: "key"
+      operator: "Equal"
+      value: "value"
+      effect: "NoSchedule"
+    - operator: "Exists"
+      effect: "NoExecute"
+  ``` 
   `Toleration` represents a single toleration:
 
     - **key** (string), optional <br> The taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.
@@ -66,13 +103,37 @@ More info: [https://kubernetes.io/docs/reference/kubernetes-api/common-definitio
 
 ### Entrypoint
 
-- **command** ([]string), optional <br> Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. More info: [https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint).
+- **command** ([]string), optional <br> Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided. <br>
+*Example:* <br>
+  ```yaml
+  command: 
+    - "sh"
+    - "-c"
+    - "sleep infinite"
+  ``` 
+  More info: [https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint).
 
-- **args** ([]string), optional <br> Arguments to the entrypoint. The container image's CMD is used if this is not provided. More info: [https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint) and.
+- **args** ([]string), optional <br> Arguments to the entrypoint. The container image's CMD is used if this is not provided. <br>
+*Example:* <br>
+  ```yaml
+  args: 
+    - "-a"
+    - "foo"
+    - "-b"
+    - "bar"
+  ``` 
+  More info: [https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#entrypoint) and.
 
 ### Ports
 
-- **ports** ([][ContainerPort](#ContainerPort)), optional <br> List of ports to expose from the container.<br>  
+- **ports** ([][ContainerPort](#ContainerPort)), optional <br> List of ports to expose from the container.<br>  *Example:* <br>
+  ```yaml
+  ports: 
+    - name: http
+      containerPort: 80
+      protocol: TCP
+      hostPort: 8080
+  ``` 
   `ContainerPort` represents a network port in a single container.
 
     - **name** (string), optional <br> The name of the port mapping
@@ -82,7 +143,22 @@ More info: [https://kubernetes.io/docs/reference/kubernetes-api/common-definitio
 
 ### Environment Variables
 
-- **envs** ([][EnvVar](#envvar)), optional <br> List of environment variables to set in the container.<br>
+- **envs** ([][EnvVar](#envvar)), optional <br> List of environment variables to set in the container.<br>  *Example:* <br>
+  ```yaml
+  envs: 
+    - name: foo
+      value: bar
+    - name: bar
+      valueFrom:
+        configMapKeyRef:
+          name: mycm
+          key: mykey
+    - name: baz
+      valueFrom:
+        secretKeyRef:
+          name: mysecret
+          key: mykey
+  ``` 
     `EnvVar` represents an environment variable present in a Container.
 
     - **name** (string), required <br> Name of the environment variable.
@@ -100,22 +176,40 @@ More info: [https://kubernetes.io/docs/reference/kubernetes-api/common-definitio
 
 ### Resources
 
-- **requests** (Requests), optional <br> Resources that are requested by the container. <br>  `Requests` represents resources that are requested by a container.
+- **requests** (Requests), optional <br> Resources that are requested by the container.<br>  *Example:* <br>
+  ```yaml
+  requests: 
+    cpu: 1
+    memory: 128Mi
+  ``` 
+  `Requests` represents resources that are requested by a container
 
     - **requests.memory** (string), optional
       Memory resource limits. Defaults to "256Mi".
     - **requests.cpu** (string), optional
       CPU resource limits. Defaults to "250m".
 
-- **limits** (Limits), optional <br> Resources that are allowed for the container.<br>  `Limits` represents resources that are allowed for a container.
+- **limits** (Limits), optional <br> Resources that are allowed for the container.<br>  *Example:* <br>
+  ```yaml
+  limits: 
+    cpu: 1
+    memory: 128Mi
+  ``` 
+  `Limits` represents resources that are allowed for a container.
 
     - **limits.memory** (string), optional
       Memory resource limits. Defaults to "256Mi".
     - **limits.cpu** (string), optional
       CPU resource limits. Defaults to "250m".
 
-- **cpu** (string), optional <br>  Default values for CPU resources for Requests or Limits is unset.
-- **memory** (string), optional <br> Default values for Requests and Limits on Memory resources for a container. Optional.
+- **cpu** (string), optional <br>  Default values for CPU resources for Requests or Limits is unset.<br>  *Example:* <br>
+  ```yaml
+  cpu: 1
+  ``` 
+- **memory** (string), optional <br> Default values for Requests and Limits on Memory resources for a container.<br>  *Example:* <br>
+  ```yaml
+  memory: 1Gi
+  ``` 
 
 ### SecurityContext
 
