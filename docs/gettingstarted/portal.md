@@ -1,39 +1,14 @@
-# Getting Started
-
-Welcome to the Getting Started page for EdgeFarm.
-
-## Overview
-
-Here you'll learn about the terminology and how to manage EdgeFarm components like Edge Nodes, Applications, Networks using the EdgeFarm Portal.
-
-As a side note, EdgeFarm is GitOps ready. Commit your changes to your Git repository and let the CD system do the rest. You find more information about GitOps [here](https://www.cncf.io/blog/2021/09/28/gitops-101-whats-it-all-about/). 
-
-## Basic Terminology
-
-Let's talk about basic terminology. 
-
-### Edge Node
-
-A node represents a Kubernetes node. Thus, an Edge Node is a remote device e.g. Raspbrry Pi connected to the Kubernetes cluster running your workload. Edge Nodes are managed by `EdgeFarm.core`. 
-
-### Application
-
-Writing workload definitions can be hard. To make this more convinient there is `EdgeFarm.applications`. It allows you to define your workload in a very minimalist format that can be extended to your needs. Using `EdgeFarm.applications` you can roll out your custom OCI images to your Edge Nodes.
-
-### Network
-
-How to transfer application data? For this purpose `EdgeFarm.network` was developed. Create a Network and let your applications communicate no matter if running in Cloud, Edge or even exported to a third party system.
-
-## Portal
+# EdgeFarm.portal
 
 You can find the EdgeFarm Portal here: https://go.edgefarm.io
 
-### The portal simply explained
+
+## The portal simply explained
 
 The Portal is designed to make it as easy as possible to create new EdgeFarm components and to give an overview of the cluster. In the portal you will find workflows to create new components as well as information and metrics about existing components.
 Creating components, no matter which component, results in a code change in your upstream Git Repository - remember GitOps, right?
 
-### How to start?
+## How to start?
 
 Quick overview:
 

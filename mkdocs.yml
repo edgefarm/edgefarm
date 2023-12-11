@@ -13,6 +13,7 @@ theme:
     - navigation.tabs.sticky
     - content.code.copy
     - content.code.annotate
+    - content.tooltips
 extra_css:
   - stylesheets/extra.css
 extra:
@@ -83,18 +84,33 @@ nav:
       - Use Cases: overview/usecases.md
       - System Overview: overview/system.md
       - Components: overview/components.md
-  - Getting Started: gettingstarted/index.md
+  - Getting Started:
+      # - Terminology: gettingstarted/terminology.md
+      - Example Application: gettingstarted/example-application.md
+      - Portal: gettingstarted/portal.md
   - Knowledge Base:
-      - Introduction: knowledge-base/index.md
+      - knowledge-base/index.md
       - How To's:
           - ... create a local test cluster: knowledge-base/howtos/create-local-cluster.md
-          - ... join a physical edge node to the local test cluster: knowledge-base/howtos/join-a-physical-node-to-local-cluster.md
+          - ... join a physical edge node to the local test cluster: knowledge-base/howtos/join-ubuntu-22-04-edge-node.md
   - Reference:
-      - edgefarm.core: reference/core.md
-      - edgefarm.devices: reference/devices.md
-      - edgefarm.applications: reference/applications.md
-      - edgefarm.network: reference/network.md
-      - edgefarm.monitor: reference/monitor.md
+      - reference/reference.md
+      - Glossary: reference/reference/glossary.md
+      - EdgeFarm API:
+          - API Overview: reference/reference/api.md
+          - edgefarm.applications:
+              - Overview: reference/reference/api/applications/overview.md
+              - Spec: reference/reference/api/applications/spec.md
+              - Examples: reference/reference/api/applications/examples.md
+          - edgefarm.network:
+              - Overview: reference/reference/api/network/overview.md
+              - Spec: reference/reference/api/network/spec.md
+              - Examples: reference/reference/api/network/examples.md
+      # - edgefarm.core: reference/core.md
+      # - edgefarm.devices: reference/devices.md
+      # - edgefarm.applications: reference/applications.md
+      # - edgefarm.network: reference/network.md
+      # - edgefarm.monitor: reference/monitor.md
   #  - Best Practices: bestpractices/index.md
   - Architecture:
       - Design Decissions: architecture/designdecissions.md

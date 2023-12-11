@@ -36,3 +36,5 @@ All software used on the edge devices must be able to handle unreliable network 
 If this was solved and my Edge device behaved like another Kubernetes node handling unreliable connections, it would make my day-to-day life as a programmer much more pleasant.
 
 And that is why EdgeFarm is being developed.
+
+As a side note, EdgeFarm is GitOps ready. Commit your changes to your Git repository and let the CD system do the rest. You find more information about GitOps [here](https://www.cncf.io/blog/2021/09/28/gitops-101-whats-it-all-about/). 

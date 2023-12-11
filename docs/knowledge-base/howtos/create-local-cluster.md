@@ -45,7 +45,7 @@ In the end you will have a EdgeFarm cluster running in a dockerized environment.
 Download the `local-up` tool from the [EdgeFarm releases page](https://github.com/edgefarm/edgefarm/releases) or run this command:
 
 ```console
-curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin
+curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin && chmod +x ~/bin/local-up
 ```
 
 If you want to join physical edge nodes to the cluster, you need to setup a free account at [netbird.io](https://netbird.io) and create a setup-key first. Follow the [netbird docs](https://docs.netbird.io/how-to/register-machines-using-setup-keys). 

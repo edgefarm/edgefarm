@@ -28,11 +28,11 @@ $ local-up node join --name eagle
 I1206 12:42:34.430305  958575 nodeJoin.go:121] Adding empty node resource for eagle
 I1206 12:42:34.430418  958575 nodeJoin.go:129] Adding nodepool for node eagle
 Here is some information you need to join a physical edge node to this cluster.
-Ensure that the /etc/hosts file contain the following entry: # (1)
+Ensure that the /etc/hosts file contain the following entry: # (1)!
 192.168.1.46 edgefarm-control-plane 
 
 Use this token m7i0gd.vduhnle5x4dzs3lo to join the cluster. You have 1 day to join the cluster before this token expires. 
-# (2)
+# (2)!
 
 If you experience any problems, please consult the documentation at 
 https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md
@@ -82,7 +82,7 @@ You should see the interface `wt0` using `ip a` now.
 ```bash
 $ ip addr show dev wt0
 13: wt0: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1280 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/none # (1)
+    link/none # (1)!
     inet 100.127.123.145/16 brd 100.127.255.255 scope global wt0 
        valid_lft forever preferred_lft forever
 ```
