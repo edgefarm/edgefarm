@@ -12,14 +12,14 @@ Writing a manifest for `EdgeFarm.applications` is easy. Applications are describ
 
 Currently supported component types are:
 
-- edgefarm-applications - a component that allows you to run your custom OCI images on Edge Nodes
+- [edgefarm-applications](../application-spec) - a component that allows you to run your custom OCI images on Edge Nodes
 
 ### Traits
 
 Currently supported traits are:
 
-- edgefarm-network - a trait that allows you to connect your application to a network
-- edgefarm-storage - a trait that allows you to mount a volume to your application
+- [edgefarm-network](../network-trait-spec) - a trait that allows you to connect your application to a network
+- [edgefarm-storage](../storage-trait-spec) - a trait that allows you to mount a volume to your application
 
 
 

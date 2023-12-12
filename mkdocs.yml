@@ -54,7 +54,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.emoji:
       emoji_generator: !!python/name:materialx.emoji.to_svg
-      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -100,7 +100,9 @@ nav:
           - API Overview: reference/reference/api.md
           - edgefarm.applications:
               - Overview: reference/reference/api/applications/overview.md
-              - Spec: reference/reference/api/applications/spec.md
+              - Application Spec: reference/reference/api/applications/application-spec.md
+              - Network Trait Spec: reference/reference/api/applications/network-trait-spec.md
+              - Storage Trait Spec: reference/reference/api/applications/storage-trait-spec.md
               - Examples: reference/reference/api/applications/examples.md
           - edgefarm.network:
               - Overview: reference/reference/api/network/overview.md
