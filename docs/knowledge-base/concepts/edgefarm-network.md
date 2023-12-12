@@ -1,0 +1,12 @@
+<!-- TODO:
+- NATS
+- vault
+- crossplane composition
+- crossplane provider-natssecrets
+- crossplane provider-nats
+- users
+- subnetworks
+- streams
+  - standard
+  - aggregate 
+-->
