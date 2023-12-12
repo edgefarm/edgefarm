@@ -42,10 +42,8 @@ import (
 
 	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/constants"
-	ini "github.com/edgefarm/edgefarm/pkg/init"
 	yurtinit "github.com/edgefarm/edgefarm/pkg/init"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
-	"github.com/edgefarm/edgefarm/pkg/k8s/addons"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/packages"
 )
@@ -345,99 +343,98 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	klog.Info("Add edgeworker label and autonomy annotation to edge nodes")
-	if err := ini.LabelEdgeNodes(ki.EdgeNodes); err != nil {
-		return err
-	}
+	// klog.Info("Add edgeworker label and autonomy annotation to edge nodes")
+	// if err := ini.LabelEdgeNodes(ki.EdgeNodes); err != nil {
+	// 	return err
+	// }
 
-	klog.Info("Add edgeworker label and autonomy annotation to edge nodes")
-	if err := ini.LabelCloudNodes(ki.CloudNodes); err != nil {
-		return err
-	}
+	// klog.Info("Add edgeworker label and autonomy annotation to edge nodes")
+	// if err := ini.LabelCloudNodes(ki.CloudNodes); err != nil {
+	// 	return err
+	// }
 
-	if !skipClusterCreation {
-		if err := addons.ReplaceCoreDNS(); err != nil {
-			return err
-		}
+	// if !skipClusterCreation {
+	// 	if err := addons.ReplaceCoreDNS(); err != nil {
+	// 		return err
+	// 	}
 
-		klog.Infof("Deploy cluster flannel packages")
-		if err := packages.Install(packages.ClusterBootstrapFlannel); err != nil {
-			return err
-		}
-		if err := WaitForBootstrapConditions(time.Minute * 5); err != nil {
-			return err
-		}
-		if err := addons.ReplaceKubeProxy(); err != nil {
-			return err
-		}
+	// 	klog.Infof("Deploy cluster flannel packages")
+	// 	if err := packages.Install(packages.ClusterBootstrapFlannel); err != nil {
+	// 		return err
+	// 	}
+	// 	if err := WaitForBootstrapConditions(time.Minute * 5); err != nil {
+	// 		return err
+	// 	}
+	// 	if err := addons.ReplaceKubeProxy(); err != nil {
+	// 		return err
+	// 	}
 
-		// klog.Info("Start to prepare OpenYurt images for kind cluster")
-		// if err := ki.prepareImages(); err != nil {
-		// 	return err
-		// }
-	}
+	// 	// klog.Info("Start to prepare OpenYurt images for kind cluster")
+	// 	// if err := ki.prepareImages(); err != nil {
+	// 	// 	return err
+	// 	// }
+	// }
 
-	if err := packages.Install(packages.ClusterBootstrapKruise); err != nil {
-		return err
-	}
+	// if err := packages.Install(packages.ClusterBootstrapKruise); err != nil {
+	// 	return err
+	// }
 	if !skipOpenyurt {
 		klog.Info("Start to deploy OpenYurt components")
 		if err := ki.deployOpenYurt(); err != nil {
 			return err
 		}
 
-		klog.Infof("Prepare edge nodes")
-		if err := k8s.PrepareEdgeNodes(); err != nil {
-			return err
-		}
+		// klog.Infof("Prepare edge nodes")
+		// if err := k8s.PrepareEdgeNodes(); err != nil {
+		// 	return err
+		// }
 
 		if err := packages.Install(packages.NodeServantApplier); err != nil {
 			return err
 		}
-
 	}
 
-	if args.NetbirdToken != "" {
-		klog.Infof("Deploy cluster bootstrap VPN packages")
-		if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
-			return err
-		}
-	}
+	// if args.NetbirdToken != "" {
+	// 	klog.Infof("Deploy cluster bootstrap VPN packages")
+	// 	if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if !skipClusterDependencies {
-		klog.Infof("Deploy cluster dependencies")
-		if err := packages.Install(packages.ClusterDependencies); err != nil {
-			return err
-		}
-	}
+	// if !skipClusterDependencies {
+	// 	klog.Infof("Deploy cluster dependencies")
+	// 	if err := packages.Install(packages.ClusterDependencies); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if !skipBase {
-		klog.Infof("Deploy edgefarm base packages")
-		if err := packages.Install(packages.Base); err != nil {
-			return err
-		}
-	}
+	// if !skipBase {
+	// 	klog.Infof("Deploy edgefarm base packages")
+	// 	if err := packages.Install(packages.Base); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if !skipNetwork {
-		klog.Infof("Deploy edgefarm network packages")
-		if err := packages.Install(packages.Network); err != nil {
-			return err
-		}
-	}
+	// if !skipNetwork {
+	// 	klog.Infof("Deploy edgefarm network packages")
+	// 	if err := packages.Install(packages.Network); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if !skipApplications {
-		klog.Infof("Deploy edgefarm applications packages")
-		if err := packages.Install(packages.Applications); err != nil {
-			return err
-		}
-	}
+	// if !skipApplications {
+	// 	klog.Infof("Deploy edgefarm applications packages")
+	// 	if err := packages.Install(packages.Applications); err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	if !skipMonitor {
-		klog.Infof("Deploy edgefarm monitor packages")
-		if err := packages.Install(packages.Monitor); err != nil {
-			return err
-		}
-	}
+	// if !skipMonitor {
+	// 	klog.Infof("Deploy edgefarm monitor packages")
+	// 	if err := packages.Install(packages.Monitor); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	green := color.New(color.FgHiGreen)
 	yellow := color.New(color.FgHiYellow)

@@ -77,16 +77,16 @@ func (c *ClusterConverter) Run() error {
 		}
 	}()
 
-	klog.Info("Deploying yurt-manager")
-	if err := c.deployYurtManager(); err != nil {
-		klog.Errorf("failed to deploy yurt-manager with image %s, %s", c.YurtManagerImage, err)
-		return err
-	}
+	// klog.Info("Deploying yurt-manager")
+	// if err := c.deployYurtManager(); err != nil {
+	// 	klog.Errorf("failed to deploy yurt-manager with image %s, %s", c.YurtManagerImage, err)
+	// 	return err
+	// }
 
-	if err := packages.Install(packages.ClusterBootstrapYurtHub); err != nil {
-		klog.Errorf("error occurs when deploying Yurthub, %v", err)
-		return err
-	}
+	// if err := packages.Install(packages.ClusterBootstrapYurtHub); err != nil {
+	// 	klog.Errorf("error occurs when deploying Yurthub, %v", err)
+	// 	return err
+	// }
 
 	if err := c.prepareyNodeServantApplier(); err != nil {
 		klog.Errorf("error occurs when preparing node servant applier, %v", err)

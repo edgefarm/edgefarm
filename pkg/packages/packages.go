@@ -193,7 +193,7 @@ manager:
 			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
-						Name: "node-servant-applier",
+						Name: "node-servant-applier-edge",
 					},
 					Spec: &Spec{
 						Chart: []*helmclient.ChartSpec{
@@ -201,7 +201,7 @@ manager:
 								ReleaseName: "node-servant-applier",
 								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/node-servant-applier",
 								Namespace:   "kube-system",
-								Version:     "1.16.0",
+								Version:     "1.18.1",
 								UpgradeCRDs: true,
 								Wait:        true,
 								Timeout:     time.Second * 90,
@@ -251,7 +251,19 @@ image:
 
 tolerations:
   - effect: NoSchedule
-    key: edgefarm.io`
+    key: edgefarm.io
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: openyurt.io/is-edge-worker
+            operator: In
+            values:
+              - "true"
+  
+completionPolicy:
+  type: Never`
 							return fmt.Sprintf(valuesStr, workingMode, nodeServantImage, yurthubImage, enableDummyIf)
 						},
 					},

@@ -16,70 +16,71 @@
 
 package cmd
 
-// import (
-// 	"io"
-// 	"os"
+import (
+	"io"
+	"os"
 
-// 	"github.com/edgefarm/edgefarm/pkg/k8s"
-// 	"github.com/spf13/cobra"
-// 	"k8s.io/klog/v2"
-// )
+	"github.com/edgefarm/edgefarm/pkg/packages"
+	"github.com/spf13/cobra"
+)
 
-// func NewDeployCommand(out io.Writer) *cobra.Command {
-// 	cmd := &cobra.Command{
-// 		Use:   "deploy",
-// 		Short: "Deploy components to the local edgefarm cluster",
-// 		RunE: func(cmd *cobra.Command, args []string) error {
-// 			if err := Run(); err != nil {
-// 				return err
-// 			}
-// 			return nil
-// 		},
-// 		Args: cobra.NoArgs,
-// 	}
-// 	cmd.SetOut(out)
-// 	return cmd
-// }
+func NewDeployCommand(out io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deploy",
+		Short: "Deploy components to the local edgefarm cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := RunDeploy(); err != nil {
+				return err
+			}
+			return nil
+		},
+		Args: cobra.NoArgs,
+	}
+	cmd.SetOut(out)
+	return cmd
+}
 
-// func init() {
-// 	localClusterCmd.AddCommand(NewDeployCommand(os.Stdout))
-// }
+func init() {
+	localClusterCmd.AddCommand(NewDeployCommand(os.Stdout))
+}
 
-// func Run() error {
+func RunDeploy() error {
+	if err := packages.Install(packages.NodeServantApplier); err != nil {
+		return err
+	}
+	// klog.Infof("Prepare edge nodes")
+	// if err := k8s.PrepareEdgeNodes(); err != nil {
+	// 	return err
+	// }
+	// klog.Infof("Deploy cluster initial packages")
+	// if err := packages.Install(packages.Init); err != nil {
+	// 	return err
+	// }
 
-// 	// klog.Infof("Prepare edge nodes")
-// 	// if err := k8s.PrepareEdgeNodes(); err != nil {
-// 	// 	return err
-// 	// }
-// 	// klog.Infof("Deploy cluster initial packages")
-// 	// if err := packages.Install(packages.Init); err != nil {
-// 	// 	return err
-// 	// }
+	// klog.Infof("Prepare edge nodes")
+	// if err := k8s.PrepareEdgeNodes(); err != nil {
+	// 	return err
+	// }
 
-// 	// klog.Infof("Prepare edge nodes")
-// 	// if err := k8s.PrepareEdgeNodes(); err != nil {
-// 	// 	return err
-// 	// }
+	// klog.Infof("Deploy cluster base packages")
+	// if err := packages.Install(packages.Base); err != nil {
+	// 	return err
+	// }
 
-// 	// klog.Infof("Deploy cluster base packages")
-// 	// if err := packages.Install(packages.Base); err != nil {
-// 	// 	return err
-// 	// }
+	// klog.Infof("Deploy cluster dependencies packages")
+	// if err := packages.Install(packages.ClusterDependencies); err != nil {
+	// 	return err
+	// }
 
-// 	// klog.Infof("Deploy cluster dependencies packages")
-// 	// if err := packages.Install(packages.ClusterDependencies); err != nil {
-// 	// 	return err
-// 	// }
+	// klog.Infof("Deploy edgefarm network packages")
+	// if err := packages.Install(packages.Network); err != nil {
+	// 	return err
+	// }
 
-// 	// klog.Infof("Deploy edgefarm network packages")
-// 	// if err := packages.Install(packages.Network); err != nil {
-// 	// 	return err
-// 	// }
+	// // klog.Infof("Deploy edgefarm applications packages")
+	// if err := packages.Install(packages.Monitor); err != nil {
+	// 	return err
+	// }
 
-// 	// // klog.Infof("Deploy edgefarm applications packages")
-// 	// if err := packages.Install(packages.Monitor); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	return nil
-// }
+	return nil
+}
