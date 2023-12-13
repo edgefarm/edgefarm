@@ -2,8 +2,16 @@ site_name: EdgeFarm - seamless edge computing
 theme:
   name: material
   palette:
-    scheme: default
-    accent: amber
+    - scheme: slate
+      accent: amber
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+    - scheme: default
+      accent: amber
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
   logo: assets/logo.png
   features:
     - navigation.instant
