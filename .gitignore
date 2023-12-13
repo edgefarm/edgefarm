@@ -2,3 +2,4 @@
 .devspace
 dist/
 *.code-workspace
+.site

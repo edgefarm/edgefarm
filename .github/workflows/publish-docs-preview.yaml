@@ -1,0 +1,55 @@
+# .github/workflows/preview.yml
+name: Deploy docs previews
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+
+concurrency: preview-${{ github.ref }}
+
+jobs:
+  check_paths:
+    runs-on: ubuntu-latest
+    outputs:
+      docs_changed: ${{ steps.filter.outputs.docs }}
+    steps:
+      - name: Download a single artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: commitlint.yml
+          name: original-refs
+          workflow_conclusion: success
+      - name: set REF_BASE to env
+        run: |
+          echo "BASE=$(cat base.txt)" >> $GITHUB_ENV
+          echo "CURRENT_BRANCH=$(cat current-branch.txt)" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v2
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          base: ${{ env.BASE }}
+          ref: ${{ env.CURRENT_BRANCH }}
+          filters: |
+            docs:
+              - 'docs/**/*'
+
+  deploy-preview:
+    runs-on: ubuntu-latest
+    needs: check_paths
+    if: needs.check_paths.outputs.docs_changed == 'true'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-glightbox
+      - run: mkdocs build
+      - name: Deploy preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./site/
