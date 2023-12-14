@@ -132,10 +132,10 @@ An `Application` is a definition of a set of containers that can run on a Kubern
 
 | Field                                                                                             | Type                 | Description                   | Required |
 | ------------------------------------------------------------------------------------------------- | -------------------- | ----------------------------- | -------- |
-| [**configMapKeyref**](#applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref) | ConfigMapKeySelector | Selects a key of a ConfigMap. | false    |
-| [**secretKeyref**](#applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref)       | SecretKeySelector    | Selects a key of a Secret.    | false    |
+| [**configMapKeyRef**](#applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref) | ConfigMapKeySelector | Selects a key of a ConfigMap. | false    |
+| [**secretKeyRef**](#applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref)       | SecretKeySelector    | Selects a key of a Secret.    | false    |
 
-## Application.spec.components[index].properties.envs[index].valueFrom.configMapKeyref
+## Application.spec.components[index].properties.envs[index].valueFrom.configMapKeyRef
 <sup><sup>[↩ Parent](#applicationspeccomponentsindexpropertiesenvsindexvaluefrom)</sup></sup>
 
 | Field    | Type   | Description                                                          | Required |
@@ -143,7 +143,7 @@ An `Application` is a definition of a set of containers that can run on a Kubern
 | **name** | string | The name of the config map in the pod's namespace to select from.    | true     |
 | **key**  | string | The key of the config map to select from. Must be a valid secret key | true     |
 
-## Application.spec.components[index].properties.envs[index].valueFrom.secretKeyref
+## Application.spec.components[index].properties.envs[index].valueFrom.secretKeyRef
 <sup><sup>[↩ Parent](#applicationspeccomponentsindexpropertiesenvsindexvaluefrom)</sup></sup>
 
 | Field    | Type   | Description                                                       | Required |

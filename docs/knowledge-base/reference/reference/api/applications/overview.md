@@ -1,6 +1,6 @@
 # edgefarm.applications Overview
 
-`edgefarm.applications` is a simple convenience wrapper around standard Kubernets and [Openyurt](https://openyurt.io) APIs.
+As EdgeFarm uses [OpenYurt](https://openyurt.io) as a core component `edgefarm.applications` is a convenience wrapper around standard Kubernets and OpenYurt APIs.
 
 It provides a simple way to describe an application and deploy it to the EdgeFarm cluster. The application delivery model behind it is [Open Application Model](https://oam.dev/), or OAM for short and [KubeVela](https://kubevela.io/).
 
