@@ -10,7 +10,7 @@ This example consists of two parts:
 * A `producer` that run on edge nodes. It is a simple golang application and produces simulated sensor data.
 * A `consumer` that run on cloud nodes and consume the sensor data. The consumer is a basic web application that can be viewed in a browser.
 
-Both parts are connected to the `EdgeFarm.network`. The consumer drops the generated data in a stream that is buffered locally. Note, that the producer can run on many edge nodes, each collecting data individually. When the device is online, the consuming part of the network aggregates the data from all edge nodes and puts them into another stream running in the cloud. The consumer part of the network consumes this stream and displays the data in a browser.
+Both parts are connected to the `edgefarm.network`. The consumer drops the generated data in a stream that is buffered locally. Note, that the producer can run on many edge nodes, each collecting data individually. When the device is online, the consuming part of the network aggregates the data from all edge nodes and puts them into another stream running in the cloud. The consumer part of the network consumes this stream and displays the data in a browser.
 
 The following picture shows the overall architecture of the example:
 
@@ -138,7 +138,7 @@ In this example there are two stream definitions that basically act like this:
 
 There is also a user called `publish` that is allowed to publish n specific subjects - also "*.sensor". The `*` acts as a wildcard. This is needed, because the producer prefixes it's messages with its unique name. 
 
-The suNetwork `cloud-to-edge` defines that each matching edge node is equipped with a component that is part of that specific EdgeFarm.network. In the end, there is a pod running on each edge node that connects to the network. 
+The suNetwork `cloud-to-edge` defines that each matching edge node is equipped with a component that is part of that specific edgefarm.network. In the end, there is a pod running on each edge node that connects to the network. 
 
 ## Consumer explained
 

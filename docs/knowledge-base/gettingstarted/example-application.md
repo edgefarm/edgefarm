@@ -10,7 +10,7 @@ This example consists of two parts:
 * A `producer` that run on one or more edge nodes. It is a very simple application that produces simulated sensor data.
 * A `consumer` that run on cloud nodes and consume the sensor data. The consumer is a basic web application that can be viewed in a browser.
 
-Both parts are connected to the `EdgeFarm.network`. The producer drops the generated data in a stream that is buffered locally on the Edge Node. Note, that the producer can run on many edge nodes, each collecting data individually. As long as the Edge Devices are connected, the consuming part of the network aggregates the data from all Edge Nodes and puts them into another stream running in the cloud. The `consumer` application reads this stream and provides the data via the web browser.
+Both parts are connected to the `edgefarm.network`. The producer drops the generated data in a stream that is buffered locally on the Edge Node. Note, that the producer can run on many edge nodes, each collecting data individually. As long as the Edge Devices are connected, the consuming part of the network aggregates the data from all Edge Nodes and puts them into another stream running in the cloud. The `consumer` application reads this stream and provides the data via the web browser.
 
 The following picture shows the overall architecture of the example:
 
@@ -33,7 +33,7 @@ Here you'll learn how the manifests of the `producer` application and the `netwo
 
 The manifest files are located [here](https://github.com/edgefarm/edgefarm/tree/main/examples/basic/producer/deploy).
 
-The producer is deployed to the edge nodes. The following snippet shows the EdgeFarm.applications manifest:
+The producer is deployed to the edge nodes. The following snippet shows the edgefarm.applications manifest:
 
 ```yaml
 apiVersion: core.oam.dev/v1beta1 #(1)!
@@ -73,13 +73,13 @@ spec:
 10. The `cpu` resources the container is allowed to consume.
 11. The `memory` the container is allowed to consume.
 12. `traits` are additional configuration parameters that can be added to the component. 
-13. There is one trait of type `edgefarm-network` added to the component. This trait is used to connect the component to the `EdgeFarm.network`.
+13. There is one trait of type `edgefarm-network` added to the component. This trait is used to connect the component to the `edgefarm.network`.
 14. The `name` of the network to connect to.
 15. The `subnetwork` of the network to connect to.
 16. The `user` of the network to connect with.
 
 The application contains one component called `producer` that runs our OCI image mentioned before. The component is deployed to all nodes, that the corresponding nodepool has the label `example=producer`. There are also some limits defined how much CPU resources and memory the container is allowed to consume. If the application shall be enabled to communicate with a network, a trait of type `edgefarm-network` must be added. In this case, the component is connected to the network `example-network` and the user `publish` is allowed to publish data to the network. We can define multiple sub-networks in the network definition. In this case, the component is connected to the sub-network `edge-to-cloud`.
-We referenced a `EdgeFarm.network`. So let's define it. Without the network resource the application would not be able to start. The following snippet shows the network definition:
+We referenced a `edgefarm.network`. So let's define it. Without the network resource the application would not be able to start. The following snippet shows the network definition:
 
 ```yaml
 apiVersion: streams.network.edgefarm.io/v1alpha1 #(1)!
@@ -165,7 +165,7 @@ spec:
 17. `allow` defines which subjects the user is allowed to subscribe to.
 18. `deny` defines which subjects the user is not allowed to subscribe to.
 19. The `subNetworks` section defines the sub-networks that are part of the network. Imagine you have two types of Edge Nodes. One is highly potent while the other has a smaller footprint. The potent one can reserve way more file storage than the smaller one. For both types you can define differnt sub-networks with different characteristics.
-20. `name` is of the sub-network. This get referenced in the `EdgeFarm.application` manifest.
+20. `name` is of the sub-network. This get referenced in the `edgefarm.application` manifest.
 21. 
 
 The network section is split up into several sub-sections in the spec. 
@@ -180,7 +180,7 @@ In this example there are two stream definitions that basically act like this:
 
 There is also a user called `publish` that is allowed to publish n specific subjects - also "*.sensor". The `*` acts as a wildcard. This is needed, because the producer prefixes it's messages with its unique name. 
 
-The suNetwork `cloud-to-edge` defines that each matching edge node is equipped with a component that is part of that specific EdgeFarm.network. In the end, there is a pod running on each edge node that connects to the network. 
+The suNetwork `cloud-to-edge` defines that each matching edge node is equipped with a component that is part of that specific edgefarm.network. In the end, there is a pod running on each edge node that connects to the network. 
 
 ## Consumer explained
 

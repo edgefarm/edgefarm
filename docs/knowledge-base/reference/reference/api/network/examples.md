@@ -1,1 +1,1 @@
-# EdgeFarm.applications Examples
+# edgefarm.applications Examples

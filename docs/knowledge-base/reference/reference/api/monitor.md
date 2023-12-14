@@ -1,2 +1,2 @@
-# EdgeFarm.monitor API Reference
+# edgefarm.monitor API Reference
 

@@ -1,4 +1,4 @@
-# Well-Known Labels,A nnotations and Taints
+# Well-Known Labels, Annotations and Taints
 
 ## Labels
 

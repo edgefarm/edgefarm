@@ -7,12 +7,12 @@
 
 ## EdgeFarm application model
 
-Once you have a [running EdgeFarm cluster](../../cluster/create-local-cluster/), you can deploy applications to it. To do so, you create a EdgeFarm.application resource. This resource is a custom resource definition (CRD) that is specific to EdgeFarm. It defines a set of Kubernetes resources that are deployed together as a single unit. The EdgeFarm.application resource is the primary resource in the EdgeFarm application model, and it represents a single instance of your application. Once you've created an EdgeFarm.application resource, the Kubernetes control plane schedules the application's Pods to run on your selected nodes.
+Once you have a [running EdgeFarm cluster](../../cluster/create-local-cluster/), you can deploy applications to it. To do so, you create a edgefarm.application resource. This resource is a custom resource definition (CRD) that is specific to EdgeFarm. It defines a set of Kubernetes resources that are deployed together as a single unit. The edgefarm.application resource is the primary resource in the EdgeFarm application model, and it represents a single instance of your application. Once you've created an edgefarm.application resource, the Kubernetes control plane schedules the application's Pods to run on your selected nodes.
 
 ## Writing the manifest
 
-The EdgeFarm.application resource is a Kubernetes custom resource. You can create it by writing a manifest file that describes the resource. The manifest file is a YAML file that contains the EdgeFarm.application resource definition. The following example shows a manifest file that creates an EdgeFarm.application resource. 
-See the [EdgeFarm.application reference](../../../reference/reference/api/applications/overview) for a complete description of the EdgeFarm.application resource.
+The edgefarm.application resource is a Kubernetes custom resource. You can create it by writing a manifest file that describes the resource. The manifest file is a YAML file that contains the edgefarm.application resource definition. The following example shows a manifest file that creates an edgefarm.application resource. 
+See the [edgefarm.application reference](../../../reference/reference/api/applications/overview) for a complete description of the edgefarm.application resource.
 
 Let's create a file called `basic.yaml` and add the following content:
 ```yaml

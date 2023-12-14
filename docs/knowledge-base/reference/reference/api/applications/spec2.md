@@ -1,4 +1,4 @@
-# EdgeFarm.applications specification
+# edgefarm.applications specification
 
 ## Application
 
@@ -20,7 +20,7 @@ ApplicationSpec is the description of an application.
 ComponentSpec is the description of a component. 
 
 - **name** (string), required <br> The name of the component. This name must be unique between all components in an application.
-- **type** (string), required <br> The type of the component. This is used to allows the the templating engine behind `EdgeFarm.applications` to generate the correct manifest. <br> Currently the supported component is: *edgefarm-applications*
+- **type** (string), required <br> The type of the component. This is used to allows the the templating engine behind `edgefarm.applications` to generate the correct manifest. <br> Currently the supported component is: *edgefarm-applications*
 - **properties** ([ComponentProperties](#componentproperties)), required <br> Properties of the component. This is used to configure the component. The properties are specific to the component type.
 
 ## ComponentProperties

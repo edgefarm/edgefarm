@@ -1,1 +1,1 @@
-# EdgeFarm.applications Overview
+# edgefarm.applications Overview

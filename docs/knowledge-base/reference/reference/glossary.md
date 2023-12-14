@@ -16,32 +16,32 @@ Please take a look at The [Kubernetes Glossary](https://kubernetes.io/docs/refer
 **Edge Node** - a node with special edge case requirements that is located at the edge. (1)
 { .annotate }
 
-1.  A node represents a [Kubernetes node](https://kubernetes.io/docs/reference/glossary/?all=true#term-node) in general. An Edge Node is a remote device located somewhere completely different e.g. Raspberry Pi connected to the [Kubernetes cluster](https://kubernetes.io/docs/reference/glossary/?all=true#term-cluster) running your [workload](https://kubernetes.io/docs/reference/glossary/?all=true#term-workload). Edge Nodes are managed by `EdgeFarm.core`. Edge Nodes have advanced features enabled aht are needed to run your workload on the Edge in a reliable way. Edge nodes can be accessed via SSH. Edge autonomy is enabled.
+1.  A node represents a [Kubernetes node](https://kubernetes.io/docs/reference/glossary/?all=true#term-node) in general. An Edge Node is a remote device located somewhere completely different e.g. Raspberry Pi connected to the [Kubernetes cluster](https://kubernetes.io/docs/reference/glossary/?all=true#term-cluster) running your [workload](https://kubernetes.io/docs/reference/glossary/?all=true#term-workload). Edge Nodes are managed by `edgefarm.core`. Edge Nodes have advanced features enabled aht are needed to run your workload on the Edge in a reliable way. Edge nodes can be accessed via SSH. Edge autonomy is enabled.
   
 **Edge autonomy** - edge nodes can operate fully autonomously, even when the connection to the cloud is lost
 
-**EdgeFarm.core** - core component of EdgeFarm (1)
+**edgefarm.core** - core component of EdgeFarm (1)
 { .annotate }
 
-1.  `EdgeFarm.core` is responsible for node related things like enabling Edge Nodes, node registration and node autonomy.
+1.  `edgefarm.core` is responsible for node related things like enabling Edge Nodes, node registration and node autonomy.
 
-**EdgeFarm.applications** - workload definition for EdgeFarm (1)
+**edgefarm.applications** - workload definition for EdgeFarm (1)
 { .annotate }
 
-1.  `EdgeFarm.applications` is responsible for workload related things like rolling out your workload to your Edge Nodes. It is an abstraction layer on top of Kubernetes workload definitions. It allows you to define your workload in a very minimalist format that can be extended to your needs. Using `EdgeFarm.applications` you can roll out your custom OCI images and configure advanced settings like volumes, envs, commands, args. You decide which Edge Nodes shall run your workload by using labels.
+1.  `edgefarm.applications` is responsible for workload related things like rolling out your workload to your Edge Nodes. It is an abstraction layer on top of Kubernetes workload definitions. It allows you to define your workload in a very minimalist format that can be extended to your needs. Using `edgefarm.applications` you can roll out your custom OCI images and configure advanced settings like volumes, envs, commands, args. You decide which Edge Nodes shall run your workload by using labels.
 
 
-**EdgeFarm.network** - communication between workload running on Edge Nodes and/or in the cloud (1)
+**edgefarm.network** - communication between workload running on Edge Nodes and/or in the cloud (1)
 { .annotate }
 
-1.  `EdgeFarm.network` is responsible for communication between your workloads running on Edge Nodes and/or in the cloud. It allows you to define streams that act as buffer for your data. Each Edge Device that is part of a Network runs such a stream. Streams can also be used in the cloud aggregating the streams of the Edge Nodes. These streams act as buffers even when the device is offline and needs to operate fully autonomously. Create a Network and let your applications communicate no matter if running in Cloud, Edge or even exported to a third party system. `EdgeFarm.network` uses [NATS](https://nats.io/) as a message broker. NATS is a lightweight, high-performance cloud native messaging system. It is part of the [CNCF](https://www.cncf.io/).
+1.  `edgefarm.network` is responsible for communication between your workloads running on Edge Nodes and/or in the cloud. It allows you to define streams that act as buffer for your data. Each Edge Device that is part of a Network runs such a stream. Streams can also be used in the cloud aggregating the streams of the Edge Nodes. These streams act as buffers even when the device is offline and needs to operate fully autonomously. Create a Network and let your applications communicate no matter if running in Cloud, Edge or even exported to a third party system. `edgefarm.network` uses [NATS](https://nats.io/) as a message broker. NATS is a lightweight, high-performance cloud native messaging system. It is part of the [CNCF](https://www.cncf.io/).
 
-**EdgeFarm.monitor** - monitoring of EdgeFarm related components like Edge Nodes, workloads, networks (1)
+**edgefarm.monitor** - monitoring of EdgeFarm related components like Edge Nodes, workloads, networks (1)
 { .annotate }
 
-1.  `EdgeFarm.monitor` is responsible for monitoring of EdgeFarm related components like Edge Nodes, workloads, networks. It is based on [Grafana Mimir](https://grafana.com/oss/mimir/) and [Grafana](https://grafana.com/). 
+1.  `edgefarm.monitor` is responsible for monitoring of EdgeFarm related components like Edge Nodes, workloads, networks. It is based on [Grafana Mimir](https://grafana.com/oss/mimir/) and [Grafana](https://grafana.com/). 
 
-**EdgeFarm.portal** - web interface for EdgeFarm (1)
+**edgefarm.portal** - web interface for EdgeFarm (1)
 { .annotate }
 
-1.  Based on Spotifys [Backstage](https://backstage.io/) EdgeFarm.Portal is the web interface for EdgeFarm. It allows you to manage your EdgeFarm installation. It is the central place to manage your Edge Nodes, your workloads and your networks. 
+1.  Based on Spotifys [Backstage](https://backstage.io/) edgefarm.Portal is the web interface for EdgeFarm. It allows you to manage your EdgeFarm installation. It is the central place to manage your Edge Nodes, your workloads and your networks. 

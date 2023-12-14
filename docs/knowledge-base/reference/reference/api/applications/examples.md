@@ -1,6 +1,6 @@
-# EdgeFarm.applications Examples
+# edgefarm.applications Examples
 
-This section contains examples of how to use the EdgeFarm.applications API.
+This section contains examples of how to use the edgefarm.applications API.
 
 ## Example: Basic stress test
 

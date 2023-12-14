@@ -1,2 +1,2 @@
-# EdgeFarm.applications API Reference
+# edgefarm.applications API Reference
 

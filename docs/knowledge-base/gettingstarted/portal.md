@@ -1,4 +1,4 @@
-# EdgeFarm.portal
+# edgefarm.portal
 
 You can find the EdgeFarm Portal here: https://go.edgefarm.io
 

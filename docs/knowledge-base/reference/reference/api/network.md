@@ -1,2 +1,2 @@
-# EdgeFarm.network specification
+# edgefarm.network specification
 
