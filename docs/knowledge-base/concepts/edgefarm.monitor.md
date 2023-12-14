@@ -1,4 +1,4 @@
-![](../assets/architecture-edgefarm.monitor.png)
+![](../../assets/architecture-edgefarm.monitor.png)
 
 ## **(0)** Initial state
 

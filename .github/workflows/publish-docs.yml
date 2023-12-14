@@ -34,6 +34,7 @@ jobs:
           filters: |
             docs:
               - 'docs/**/*'
+              - 'mkdocs.yml'
 
   deploy:
     runs-on: ubuntu-latest

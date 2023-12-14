@@ -14,7 +14,7 @@ The EdgeFarm Knowledge Base is a collection of documents covering recommended pr
 
     ---
 
-    Understand how the components of EdgeFarm works under the hood.
+    Understand how the components of EdgeFarm work under the hood.
 
     [:octicons-arrow-right-24: Concepts](concepts)
 

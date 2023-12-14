@@ -5,12 +5,12 @@ theme:
     - scheme: slate
       accent: amber
       toggle:
-        icon: material/toggle-switch
+        icon: material/weather-night
         name: Switch to light mode
     - scheme: default
       accent: amber
       toggle:
-        icon: material/toggle-switch-off-outline
+        icon: material/weather-sunny
         name: Switch to dark mode
   logo: assets/logo.png
   features:
@@ -23,6 +23,8 @@ theme:
     - content.code.copy
     - content.code.annotate
     - content.tooltips
+  custom_dir: docs/overrides
+
 extra_css:
   - stylesheets/extra.css
 extra:
@@ -102,10 +104,12 @@ nav:
           - Portal: knowledge-base/gettingstarted/portal.md
       - Concepts:
           - Overview: knowledge-base/concepts/index.md
-          # - edgefarm.applications:
-          #     -
-          # - edgefarm.network:
-          #     -
+          - Design Decissions: knowledge-base/concepts/designdecissions.md
+          - edgefarm.core: knowledge-base/concepts/edgefarm.core.md
+          - edgefarm.devices: knowledge-base/concepts/edgefarm.devices.md
+          - edgefarm.applications: knowledge-base/concepts/edgefarm.applications.md
+          - edgefarm.network: knowledge-base/concepts/edgefarm.network.md
+          - edgefarm.monitor: knowledge-base/concepts/edgefarm.monitor.md
       - Tutorials:
           - Overview: knowledge-base/tutorials/index.md
           - Cluster:
@@ -132,17 +136,5 @@ nav:
                   - Spec: knowledge-base/reference/reference/api/network/spec.md
                   - Examples: knowledge-base/reference/reference/api/network/examples.md
           - Well-Known Labels, Annotations and Taints: knowledge-base/reference/well-known/well-known.md
-      # - edgefarm.core: reference/core.md
-      # - edgefarm.devices: reference/devices.md
-      # - edgefarm.applications: reference/applications.md
-      # - edgefarm.network: reference/network.md
-      # - edgefarm.monitor: reference/monitor.md
+  - Pricing: pricing/index.md
   #  - Best Practices: bestpractices/index.md
-  - Architecture:
-      - Design Decissions: architecture/designdecissions.md
-      - Overview: architecture/overview.md
-      - edgefarm.core: architecture/edgefarm.core.md
-      - edgefarm.devices: architecture/edgefarm.devices.md
-      - edgefarm.applications: architecture/edgefarm.applications.md
-      - edgefarm.network: architecture/edgefarm.network.md
-      - edgefarm.monitor: architecture/edgefarm.monitor.md
