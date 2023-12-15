@@ -116,9 +116,9 @@ nav:
               - Join a Ubuntu 22.04 edge node to the local test cluster: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md
           - Learn EdgeFarm Basics:
               - Deploy an App: knowledge-base/tutorials/edgefarm-basics/deploy-an-app.md
-              - Deploy an Network: knowledge-base/tutorials/edgefarm-basics/deploy-a-network.md
-              - Deploy an App with Network: knowledge-base/tutorials/edgefarm-basics/deploy-an-app-with-network.md
-              - Access Network from outside the cluster: knowledge-base/tutorials/edgefarm-basics/access-network-from-outside-the-cluster.md
+              # - Deploy an Network: knowledge-base/tutorials/edgefarm-basics/deploy-a-network.md
+              # - Deploy an App with Network: knowledge-base/tutorials/edgefarm-basics/deploy-an-app-with-network.md
+              # - Access Network from outside the cluster: knowledge-base/tutorials/edgefarm-basics/access-network-from-outside-the-cluster.md
       - Reference:
           - Overview: knowledge-base/reference/index.md
           - Glossary: knowledge-base/reference/reference/glossary.md
