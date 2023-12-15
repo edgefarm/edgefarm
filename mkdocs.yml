@@ -96,33 +96,32 @@ nav:
       - System Overview: overview/system.md
       - Components: overview/components.md
   - Knowledge Base:
-      # - Overview: knowledge-base/index.md
-      # - Getting Started:
-      #     # - Terminology: gettingstarted/terminology.md
-      #     - Overview: knowledge-base/gettingstarted/index.md
-      #     - Example Application: knowledge-base/gettingstarted/example-application.md
-      #     - Portal: knowledge-base/gettingstarted/portal.md
-      # - Concepts:
-      #     - Overview: knowledge-base/concepts/index.md
-      #     - Design Decissions: knowledge-base/concepts/designdecissions.md
-      #     - edgefarm.core: knowledge-base/concepts/edgefarm.core.md
-      #     - edgefarm.devices: knowledge-base/concepts/edgefarm.devices.md
-      #     - edgefarm.applications: knowledge-base/concepts/edgefarm.applications.md
-      #     - edgefarm.network: knowledge-base/concepts/edgefarm.network.md
-      #     - edgefarm.monitor: knowledge-base/concepts/edgefarm.monitor.md
-      # - Tutorials:
-      #     - Overview: knowledge-base/tutorials/index.md
-      #     - Cluster:
-      #         - Create a local test cluster: knowledge-base/tutorials/cluster/create-local-cluster.md
-      #         - Join a Ubuntu 22.04 edge node to the local test cluster: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md
-      #     - Learn EdgeFarm Basics:
-      #         - Deploy an App: knowledge-base/tutorials/edgefarm-basics/deploy-an-app.md
-      #         - Deploy an Network: knowledge-base/tutorials/edgefarm-basics/deploy-a-network.md
-      #         - Deploy an App with Network: knowledge-base/tutorials/edgefarm-basics/deploy-an-app-with-network.md
-      #         - Access Network from outside the cluster: knowledge-base/tutorials/edgefarm-basics/access-network-from-outside-the-cluster.md
+      - Overview: knowledge-base/index.md
+      - Getting Started:
+          - Overview: knowledge-base/gettingstarted/index.md
+          - Example Application: knowledge-base/gettingstarted/example-application.md
+          - Portal: knowledge-base/gettingstarted/portal.md
+      - Concepts:
+          - Overview: knowledge-base/concepts/index.md
+          - Design Decissions: knowledge-base/concepts/designdecissions.md
+          - Concepts:
+              - edgefarm.core: knowledge-base/concepts/edgefarm.core.md
+              - edgefarm.applications: knowledge-base/concepts/edgefarm.applications.md
+              - edgefarm.network: knowledge-base/concepts/edgefarm.network.md
+              - edgefarm.monitor: knowledge-base/concepts/edgefarm.monitor.md
+      - Tutorials:
+          # - Overview: knowledge-base/tutorials/index.md
+          - Cluster:
+              - Create a local test cluster: knowledge-base/tutorials/cluster/create-local-cluster.md
+              - Join a Ubuntu 22.04 edge node to the local test cluster: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md
+          - Learn EdgeFarm Basics:
+              - Deploy an App: knowledge-base/tutorials/edgefarm-basics/deploy-an-app.md
+              - Deploy an Network: knowledge-base/tutorials/edgefarm-basics/deploy-a-network.md
+              - Deploy an App with Network: knowledge-base/tutorials/edgefarm-basics/deploy-an-app-with-network.md
+              - Access Network from outside the cluster: knowledge-base/tutorials/edgefarm-basics/access-network-from-outside-the-cluster.md
       - Reference:
-          # - Overview: knowledge-base/reference/index.md
-          # - Glossary: knowledge-base/reference/reference/glossary.md
+          - Overview: knowledge-base/reference/index.md
+          - Glossary: knowledge-base/reference/reference/glossary.md
           - EdgeFarm API:
               - API Overview: knowledge-base/reference/reference/api.md
               - edgefarm.applications:
@@ -135,6 +134,6 @@ nav:
                   - Overview: knowledge-base/reference/reference/api/network/overview.md
                   - Spec: knowledge-base/reference/reference/api/network/spec.md
                   - Examples: knowledge-base/reference/reference/api/network/examples.md
-          # - Well-Known Labels, Annotations and Taints: knowledge-base/reference/well-known/well-known.md
+          - Well-Known Labels, Annotations and Taints: knowledge-base/reference/well-known/well-known.md
   - Pricing: pricing/index.md
   #  - Best Practices: bestpractices/index.md
