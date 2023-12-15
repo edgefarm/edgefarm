@@ -1,2 +1,0 @@
-# EdgeFarm.applications API Reference
-

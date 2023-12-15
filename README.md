@@ -128,7 +128,7 @@ service/example-consumer created
 ```
 
 What next? We're going to deploy the example producer on an edge node, and the consumer will kick it on a cloud node.
-The producer creates simulated sensor data and sends it over to the consumer using EdgeFarm.network. The consumer then displays the data in a browser.
+The producer creates simulated sensor data and sends it over to the consumer using edgefarm.network. The consumer then displays the data in a browser.
 
 Label the right node pool to run that edge application.
 

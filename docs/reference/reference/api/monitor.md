@@ -1,2 +1,0 @@
-# EdgeFarm.monitor API Reference
-

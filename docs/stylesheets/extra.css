@@ -7,3 +7,7 @@
 .md-content {
   --md-typeset-a-color: #ffaa00;
 }
+
+img {
+  border-radius: 3%;
+}

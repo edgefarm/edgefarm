@@ -1,19 +1,30 @@
-site_name: EdgeFarm
+site_name: EdgeFarm - seamless edge computing
 theme:
   name: material
   palette:
-    scheme: default
-    accent: amber
+    - scheme: slate
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+    - scheme: default
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
   logo: assets/logo.png
   features:
     - navigation.instant
     - navigation.tracking
     - navigation.sections
+    # - navigation.collapsed
     - navigation.tabs
     - navigation.tabs.sticky
     - content.code.copy
     - content.code.annotate
     - content.tooltips
+  custom_dir: docs/overrides
+
 extra_css:
   - stylesheets/extra.css
 extra:
@@ -53,7 +64,7 @@ markdown_extensions:
       smart_enable: all
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
       emoji_index: !!python/name:material.extensions.emoji.twemoji
   - pymdownx.highlight:
       anchor_linenums: true
@@ -84,41 +95,45 @@ nav:
       - Use Cases: overview/usecases.md
       - System Overview: overview/system.md
       - Components: overview/components.md
-  - Getting Started:
-      # - Terminology: gettingstarted/terminology.md
-      - Example Application: gettingstarted/example-application.md
-      - Portal: gettingstarted/portal.md
   - Knowledge Base:
-      - knowledge-base/index.md
-      - How To's:
-          - ... create a local test cluster: knowledge-base/howtos/create-local-cluster.md
-          - ... join a physical edge node to the local test cluster: knowledge-base/howtos/join-ubuntu-22-04-edge-node.md
-  - Reference:
-      - reference/reference.md
-      - Glossary: reference/reference/glossary.md
-      - EdgeFarm API:
-          - API Overview: reference/reference/api.md
-          - edgefarm.applications:
-              - Overview: reference/reference/api/applications/overview.md
-              - Application Spec: reference/reference/api/applications/application-spec.md
-              - Network Trait Spec: reference/reference/api/applications/network-trait-spec.md
-              - Storage Trait Spec: reference/reference/api/applications/storage-trait-spec.md
-              - Examples: reference/reference/api/applications/examples.md
-          - edgefarm.network:
-              - Overview: reference/reference/api/network/overview.md
-              - Spec: reference/reference/api/network/spec.md
-              - Examples: reference/reference/api/network/examples.md
-      # - edgefarm.core: reference/core.md
-      # - edgefarm.devices: reference/devices.md
-      # - edgefarm.applications: reference/applications.md
-      # - edgefarm.network: reference/network.md
-      # - edgefarm.monitor: reference/monitor.md
+      - Overview: knowledge-base/index.md
+      - Getting Started:
+          - Overview: knowledge-base/gettingstarted/index.md
+          - Example Application: knowledge-base/gettingstarted/example-application.md
+          - Portal: knowledge-base/gettingstarted/portal.md
+      - Concepts:
+          - Overview: knowledge-base/concepts/index.md
+          - Design Decissions: knowledge-base/concepts/designdecissions.md
+          - Concepts:
+              - edgefarm.core: knowledge-base/concepts/edgefarm.core.md
+              - edgefarm.applications: knowledge-base/concepts/edgefarm.applications.md
+              - edgefarm.network: knowledge-base/concepts/edgefarm.network.md
+              - edgefarm.monitor: knowledge-base/concepts/edgefarm.monitor.md
+      - Tutorials:
+          # - Overview: knowledge-base/tutorials/index.md
+          - Cluster:
+              - Create a local test cluster: knowledge-base/tutorials/cluster/create-local-cluster.md
+              - Join a Ubuntu 22.04 edge node to the local test cluster: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md
+          - Learn EdgeFarm Basics:
+              - Deploy an App: knowledge-base/tutorials/edgefarm-basics/deploy-an-app.md
+              - Deploy an Network: knowledge-base/tutorials/edgefarm-basics/deploy-a-network.md
+              - Deploy an App with Network: knowledge-base/tutorials/edgefarm-basics/deploy-an-app-with-network.md
+              - Access Network from outside the cluster: knowledge-base/tutorials/edgefarm-basics/access-network-from-outside-the-cluster.md
+      - Reference:
+          - Overview: knowledge-base/reference/index.md
+          - Glossary: knowledge-base/reference/reference/glossary.md
+          - EdgeFarm API:
+              - API Overview: knowledge-base/reference/reference/api.md
+              - edgefarm.applications:
+                  - Overview: knowledge-base/reference/reference/api/applications/overview.md
+                  - Application Spec: knowledge-base/reference/reference/api/applications/application-spec.md
+                  - Network Trait Spec: knowledge-base/reference/reference/api/applications/network-trait-spec.md
+                  - Storage Trait Spec: knowledge-base/reference/reference/api/applications/storage-trait-spec.md
+                  - Examples: knowledge-base/reference/reference/api/applications/examples.md
+              - edgefarm.network:
+                  - Overview: knowledge-base/reference/reference/api/network/overview.md
+                  - Spec: knowledge-base/reference/reference/api/network/spec.md
+                  - Examples: knowledge-base/reference/reference/api/network/examples.md
+          - Well-Known Labels, Annotations and Taints: knowledge-base/reference/well-known/well-known.md
+  - Pricing: pricing/index.md
   #  - Best Practices: bestpractices/index.md
-  - Architecture:
-      - Design Decissions: architecture/designdecissions.md
-      - Overview: architecture/overview.md
-      - edgefarm.core: architecture/edgefarm.core.md
-      - edgefarm.devices: architecture/edgefarm.devices.md
-      - edgefarm.applications: architecture/edgefarm.applications.md
-      - edgefarm.network: architecture/edgefarm.network.md
-      - edgefarm.monitor: architecture/edgefarm.monitor.md

@@ -1,2 +1,0 @@
-# EdgeFarm.network specification
-
