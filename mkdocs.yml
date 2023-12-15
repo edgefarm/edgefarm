@@ -64,7 +64,7 @@ markdown_extensions:
       smart_enable: all
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
       emoji_index: !!python/name:material.extensions.emoji.twemoji
   - pymdownx.highlight:
       anchor_linenums: true
@@ -131,10 +131,10 @@ nav:
                   - Network Trait Spec: knowledge-base/reference/reference/api/applications/network-trait-spec.md
                   - Storage Trait Spec: knowledge-base/reference/reference/api/applications/storage-trait-spec.md
                   - Examples: knowledge-base/reference/reference/api/applications/examples.md
-          #     - edgefarm.network:
-          #         - Overview: knowledge-base/reference/reference/api/network/overview.md
-          #         - Spec: knowledge-base/reference/reference/api/network/spec.md
-          #         - Examples: knowledge-base/reference/reference/api/network/examples.md
+              - edgefarm.network:
+                  - Overview: knowledge-base/reference/reference/api/network/overview.md
+                  - Spec: knowledge-base/reference/reference/api/network/spec.md
+                  - Examples: knowledge-base/reference/reference/api/network/examples.md
           # - Well-Known Labels, Annotations and Taints: knowledge-base/reference/well-known/well-known.md
   - Pricing: pricing/index.md
   #  - Best Practices: bestpractices/index.md

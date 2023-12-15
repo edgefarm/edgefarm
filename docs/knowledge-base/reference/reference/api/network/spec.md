@@ -1,7 +1,3 @@
----
-hide:
-- toc
----
 # API Reference
 
 Packages:
@@ -36,7 +32,7 @@ Resource Types:
             <th>Required</th>
         </tr>
     </thead>
-    <tbody><tr>optional
+    <tbody><tr>
       <td><b>apiVersion</b></td>
       <td>string</td>
       <td>streams.network.edgefarm.io/v1alpha1</td>
@@ -95,10 +91,12 @@ Resource Types:
         </td>
         <td>true</td>
       </tr><tr>
-        <td><b><a href="#networkspecclaimref">claimRef</a></b></td>
-        <td>object</td>
+        <td><b>compositeDeletePolicy</b></td>
+        <td>enum</td>
         <td>
           <br/>
+          <br/>
+            <i>Enum</i>: Background, Foreground<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -136,14 +134,6 @@ Resource Types:
           <br/>
           <br/>
             <i>Enum</i>: Automatic, Manual<br/>
-            <i>Default</i>: Automatic<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b><a href="#networkspecenvironmentconfigrefsindex">environmentConfigRefs</a></b></td>
-        <td>[]object</td>
-        <td>
-          <br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -154,8 +144,8 @@ Resource Types:
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#networkspecresourcerefsindex">resourceRefs</a></b></td>
-        <td>[]object</td>
+        <td><b><a href="#networkspecresourceref">resourceRef</a></b></td>
+        <td>object</td>
         <td>
           <br/>
         </td>
@@ -1707,54 +1697,6 @@ The secret to write the user credentials to
 </table>
 
 
-### Network.spec.claimRef
-<sup><sup>[↩ Parent](#networkspec)</sup></sup>
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>apiVersion</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>kind</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>namespace</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr></tbody>
-</table>
-
-
 ### Network.spec.compositionRef
 <sup><sup>[↩ Parent](#networkspec)</sup></sup>
 
@@ -1859,47 +1801,6 @@ The secret to write the user credentials to
           <br/>
         </td>
         <td>true</td>
-      </tr></tbody>
-</table>
-
-
-### Network.spec.environmentConfigRefs[index]
-<sup><sup>[↩ Parent](#networkspec)</sup></sup>
-
-
-
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>apiVersion</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>kind</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -2015,7 +1916,7 @@ The secret to write the user credentials to
 </table>
 
 
-### Network.spec.resourceRefs[index]
+### Network.spec.resourceRef
 <sup><sup>[↩ Parent](#networkspec)</sup></sup>
 
 
@@ -2051,7 +1952,7 @@ The secret to write the user credentials to
         <td>
           <br/>
         </td>
-        <td>false</td>
+        <td>true</td>
       </tr></tbody>
 </table>
 
@@ -2074,13 +1975,6 @@ The secret to write the user credentials to
     </thead>
     <tbody><tr>
         <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-        </td>
-        <td>true</td>
-      </tr><tr>
-        <td><b>namespace</b></td>
         <td>string</td>
         <td>
           <br/>
@@ -2133,6 +2027,14 @@ The secret to write the user credentials to
         <td>string</td>
         <td>
           The operator for the NATS server
+<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sysAccount</b></td>
+        <td>string</td>
+        <td>
+          The sys account name for the NATS server
 <br/>
         </td>
         <td>false</td>

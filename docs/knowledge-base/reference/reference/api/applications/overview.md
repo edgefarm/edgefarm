@@ -22,6 +22,9 @@ Currently supported traits are:
 - [edgefarm-storage](../storage-trait-spec) - a trait that allows you to mount a volume to your application
 
 
+## Examples
+
+See the [examples](./examples) page on how to learn more about `edgefarm.applications` and how to use it.
 
 
 
