@@ -118,6 +118,7 @@ wget -q --show-progress https://github.com/edgefarm/edgefarm/releases/download/c
 tar xfz ${TMP}/cni-plugins-linux-${ARCH}-v0.8.0.tgz -C /opt/cni/bin --pax-option=delete=SCHILY.*,delete=LIBARCHIVE.*
 
 cp files/kubeadm-join.conf.template ${TMP}/kubeadm-join.conf
+sed -i "s/ADDRESS/$ADDRESS/g" ${TMP}/kubeadm-join.conf
 sed -i "s/NODE_NAME/$NAME/g" ${TMP}/kubeadm-join.conf
 sed -i "s/BOOTSTRAP_TOKEN/$TOKEN/g" ${TMP}/kubeadm-join.conf
 
@@ -143,8 +144,8 @@ udevadm trigger
 ###### JOIN CLUSTER
 if $JOIN ; then
     echo -e "${green}Joining the cluster...${nc}"
-    yurtadm join ${ADDRESS} --node-name=${NAME} --token=${TOKEN} --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1 --config /etc/edgefarm/kubeadm-join.conf
+    yurtadm join ${ADDRESS} --config /etc/edgefarm/kubeadm-join.conf --node-name=${NAME} --token=${TOKEN} --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1
 else
     echo -e "${green}Everything is set up. Run the following command to join the cluster:${nc}"
-    echo yurtadm join ${ADDRESS} --node-name=${NAME} --token=\"${TOKEN}\" --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1 --config /etc/edgefarm/kubeadm-join.conf
+    echo yurtadm join ${ADDRESS} --config /etc/edgefarm/kubeadm-join.conf --node-name=${NAME} --token=${TOKEN} --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1
 fi
