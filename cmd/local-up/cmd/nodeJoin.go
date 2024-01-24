@@ -129,7 +129,7 @@ func instructionsJoinNode(token string, ttl string) error {
 	yellow.Printf("%s", token)
 	green.Printf(" to join the cluster. You have ")
 	yellow.Printf("%s", ttl)
-	green.Println(" to join the cluster before this token expires. Use --ttl to change the TTL of the token.")
+	green.Println(" to join the cluster before this token expires.")
 	yellow.Println("")
 	green.Println("If you experience any problems, please consult the documentation at ")
 	green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
