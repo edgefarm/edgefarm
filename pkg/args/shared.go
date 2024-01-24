@@ -40,7 +40,8 @@ var (
 		HostHttpPort:      80,
 		HostHttpsPort:     443,
 	}
-	NetbirdToken string
+	NetbirdToken    string
+	NetbirdSetupKey string
 
 	KubeConfig string
 )

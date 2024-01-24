@@ -25,7 +25,8 @@ metadata:
     kubernetes.io/hostname: "{{.name}}"
     openyurt.io/is-edge-worker: "true"
     apps.openyurt.io/desired-nodepool: "{{.name}}"
-    node.edgefarm.io/core: physical
+    node.edgefarm.io/machine: "physical"
+    node.edgefarm.io/type: "edge"
   annotations:
     apps.openyurt.io/binding: "true"
   name: "{{.name}}"
