@@ -2,6 +2,7 @@ package netbird
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -224,4 +225,18 @@ func Cleanup(token string, groupDel, routeDel, peerDel, setypKeysDel bool) error
 		}
 	}
 	return nil
+}
+
+func RoutingPeerIP(token string) (string, error) {
+	client := netbird.NewClient(token)
+	peers, err := client.ListPeers()
+	if err != nil {
+		return "", err
+	}
+	for _, p := range peers {
+		if p.Hostname == routerPeerName {
+			return p.IP, nil
+		}
+	}
+	return "", errors.New("routing peer not found")
 }

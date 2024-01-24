@@ -206,11 +206,9 @@ var (
 	skipBase                bool
 	skipClusterCreation     bool
 	skipOpenyurt            bool
-	// skipVPN                 bool
-	skipConfigureAddons bool
-	// vpnOnly                 bool
-	flannelOnly            bool
-	overrideMissingNetbird bool
+	skipConfigureAddons     bool
+	flannelOnly             bool
+	overrideMissingNetbird  bool
 )
 
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
@@ -220,9 +218,6 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	flagset.IntVar(&args.Ports.HostNatsPort, "host-nats-port", args.Ports.HostNatsPort, "Specify the port of nats to be mapped to.")
 	flagset.IntVar(&args.Ports.HostHttpPort, "host-http-port", args.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
 	flagset.IntVar(&args.Ports.HostHttpsPort, "host-https-port", args.Ports.HostHttpsPort, "Specify the port of https server to be mapped to.")
-	// flagset.StringVar(&args.NetbirdToken, "netbird-token", "", "Specify the netbird.io private access token. This is required to connect physical edge nodes.")
-	// flagset.BoolVar(&overrideMissingNetbird, "override-netbird", false, "Override the netbird.io token check. Use this only if you know what you are doing.")
-	flagset.StringVar(&args.Interface, "interface", "", "Network interface to connect to physical edge nodes. This is probably the same interface that is used to connect to the internet. If unset, defaults to the first default routes' interface.")
 	flagset.BoolVar(&skipApplications, "skip-applications", false, "Skip installing edgefarm.applications.")
 	flagset.BoolVar(&skipNetwork, "skip-network", false, "Skip installing edgefarm.network.")
 	flagset.BoolVar(&skipMonitor, "skip-monitor", false, "Skip installing edgefarm.monitor.")
@@ -231,9 +226,7 @@ func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
 	if os.Getenv("LOCAL_UP_EXPERIMENTAL") == "true" {
 		flagset.BoolVar(&skipClusterCreation, "skip-cluster-creation", false, "Skip creation of the cluster. WARNING: HERE BE DRAGONS. Your kube context might be wrong when using this flag. Use at your own risk.")
 		flagset.BoolVar(&skipOpenyurt, "skip-openyurt", false, "Skip installaing of openyurt components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-		// flagset.BoolVar(&skipVPN, "skip-vpn", false, "Skip installaing of VPN components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
 		flagset.BoolVar(&skipConfigureAddons, "skip-configure-addons", false, "Skip configuring addons to cluster components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-		// flagset.BoolVar(&vpnOnly, "vpn-only", false, "Only install VPN components. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
 		flagset.BoolVar(&flannelOnly, "flannel-only", false, "Only install flannel. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
 	}
 }
@@ -274,31 +267,6 @@ func handleArgsSkipAndOnly() error {
 		return err
 	}
 
-	// if args.NetbirdToken == "" {
-	// 	doit := false
-	// 	if overrideMissingNetbird {
-	// 		doit = true
-	// 	} else {
-	// 		var err error
-	// 		input := confirmation.New("No netbird.io private access token set via argument '--netbird-token'.\nYou'll get virtual edge nodes, but you won't be able to connect physical edge nodes. Proceed?", confirmation.No)
-	// 		doit, err = input.RunPrompt()
-	// 		if err != nil {
-	// 			fmt.Printf("Error: %v\n", err)
-	// 			os.Exit(1)
-	// 		}
-	// 	}
-	// 	if !doit {
-	// 		fmt.Println("Aborted")
-	// 		os.Exit(0)
-	// 	}
-	// }
-
-	// if vpnOnly && skipVPN {
-	// 	return fmt.Errorf("cannot use --vpn-only and --skip-vpn at the same time")
-	// }
-	// if skipVPN && args.NetbirdToken != "" {
-	// 	return fmt.Errorf("cannot use --skip-vpn and --netbird-token at the same time")
-	// }
 	if flannelOnly {
 		skipNetwork = true
 		skipApplications = true
@@ -308,32 +276,12 @@ func handleArgsSkipAndOnly() error {
 		skipBase = true
 		skipOpenyurt = true
 		skipConfigureAddons = true
-		// skipVPN = true
 	}
-	// if vpnOnly {
-	// 	skipVPN = false
-	// 	skipApplications = true
-	// 	skipNetwork = true
-	// 	skipMonitor = true
-	// 	skipClusterCreation = true
-	// 	skipClusterDependencies = true
-	// 	skipBase = true
-	// 	skipOpenyurt = true
-	// 	skipConfigureAddons = true
-	// }
 	return nil
 }
 
 func (ki *Initializer) Run() error {
 	var err error
-	// if !skipVPN {
-	// 	klog.Info("Start to prepare netbird")
-	// 	key, err := netbird.CreateSetupKey(args.NetbirdToken)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	args.NetbirdSetupKey = key.Key
-	// }
 	if !skipClusterCreation {
 		klog.Info("Start to prepare config for kind")
 		config, err := ki.prepareKindConfigFile()
@@ -409,15 +357,6 @@ func (ki *Initializer) Run() error {
 
 	}
 
-	// if !skipVPN {
-	// 	if args.NetbirdToken != "" {
-	// 		klog.Infof("Deploy cluster bootstrap VPN packages")
-	// 		if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// }
-
 	if !skipClusterDependencies {
 		klog.Infof("Deploy cluster dependencies")
 		if err := packages.Install(packages.ClusterDependencies); err != nil {
@@ -452,14 +391,6 @@ func (ki *Initializer) Run() error {
 			return err
 		}
 	}
-
-	// if !skipVPN {
-	// 	klog.Infof("Configuring netbird")
-	// 	err := netbird.AddRoute(args.NetbirdToken)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	green := color.New(color.FgHiGreen)
 	yellow := color.New(color.FgHiYellow)
@@ -508,10 +439,9 @@ func (ki *Initializer) Run() error {
 
 func (ki *Initializer) prepareKindConfigFile() ([]byte, error) {
 	kindConfigContent, err := tmplutil.SubsituteTemplate(constants.KindConfigTemplate, map[string]string{
-		"kubernetes_version": ki.KubernetesVersion,
-		"kind_node_image":    ki.NodeImage,
-		"cluster_name":       ki.ClusterName,
-		// "disable_default_cni":  fmt.Sprintf("%v", ki.DisableDefaultCNI),
+		"kubernetes_version":   ki.KubernetesVersion,
+		"kind_node_image":      ki.NodeImage,
+		"cluster_name":         ki.ClusterName,
 		"host_api_server_port": fmt.Sprintf("%d", args.Ports.HostApiServerPort),
 	})
 	if err != nil {
