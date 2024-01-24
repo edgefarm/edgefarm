@@ -1,9 +1,9 @@
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
-  file:
-    kubeConfigPath: /var/lib/kubelet/discovery.conf
-  tlsBootstrapToken: BOOTSTRAP_TOKEN
+  bootstrapToken:
+    token: BOOTSTRAP_TOKEN
+    apiServerEndpoint: ADDRESS
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
   name: NODE_NAME
@@ -13,7 +13,7 @@ nodeRegistration:
   kubeletExtraArgs:
     rotate-certificates: "true"
     pod-infra-container-image: registry.k8s.io/pause:3.8
-    node-labels: openyurt.io/is-edge-worker=true
+    node-labels: node.edgefarm.io/machine=physical,node.edgefarm.io/type=edge
     register-with-taints: edgefarm.io=:NoSchedule
     network-plugin: cni
     hostname-override: NODE_NAME
