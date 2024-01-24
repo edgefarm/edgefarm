@@ -4,6 +4,7 @@ discovery:
   bootstrapToken:
     token: BOOTSTRAP_TOKEN
     apiServerEndpoint: ADDRESS
+    unsafeSkipCAVerification: true
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
   name: NODE_NAME
