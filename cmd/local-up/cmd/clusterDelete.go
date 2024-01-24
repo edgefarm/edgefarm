@@ -22,14 +22,17 @@ import (
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
 
 	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
+	"github.com/edgefarm/edgefarm/pkg/netbird"
 )
 
 var (
-	override bool
+	override       bool
+	cleanupNetbird bool
 )
 
 // localDeleteCmd represents the localDelete command
@@ -56,6 +59,14 @@ var localDeleteCmd = &cobra.Command{
 			}
 		}
 		if doit {
+			if cleanupNetbird {
+				klog.Infoln("netbird.io: cleanup")
+				err := netbird.DisableVPN(true, true, true, true)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+			}
 			err := ki.KindDeleteCluster("edgefarm")
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
@@ -71,4 +82,5 @@ func init() {
 	localClusterCmd.AddCommand(localDeleteCmd)
 	localDeleteCmd.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 	localDeleteCmd.Flags().BoolVarP(&override, "yes", "y", false, "Override confirmation prompt")
+	localDeleteCmd.Flags().BoolVarP(&cleanupNetbird, "cleanup-netbird", "c", true, "Cleanup netbird.io resources")
 }

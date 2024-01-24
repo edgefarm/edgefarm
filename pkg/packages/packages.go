@@ -51,8 +51,8 @@ var (
 flannel:
   installCNIPlugin: false
   image:
-    repository: siredmar/flannel
-    tag: v0.23.4-siredmar
+    repository: docker.io/flannel/flannel
+    tag: v0.24.2
   extraVolumes:
     - name: ip
       hostPath:
@@ -73,29 +73,31 @@ flannel:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-            - key: openyurt.io/is-edge-worker
+            - key: node.edgefarm.io/type
               operator: In
               values:
-              - "true"
-            - key: node.edgefarm.io/type
-              operator: DoesNotExist`,
+              - "edge"
+            - key: node.edgefarm.io/machine
+              operator: In
+              values:
+              - "physical"`,
 							},
 							// flannel-cloud for kind nodes including virtual edge nodes
 							{
-								ReleaseName: "flannel-cloud",
+								ReleaseName: "flannel-kind",
 								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/flannel",
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
 								Version:     "1.16.0",
 								Timeout:     time.Second * 90,
-								ValuesYaml: `nameOverride: flannel-cloud
+								ValuesYaml: `nameOverride: flannel-kind
 flannel:
   installCNIPlugin: false
   installCNIConfig: true
   image:
-    repository: siredmar/flannel
-    tag: v0.23.4-siredmar
+    repository: docker.io/flannel/flannel
+    tag: v0.24.2
   command:
   - "bash"
   - "-c"
@@ -111,15 +113,15 @@ flannel:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-            - key: openyurt.io/is-edge-worker
-              operator: Exists
+            - key: node.edgefarm.io/machine
+              operator: NotIn
+              values:
+              - "physical"
+          - matchExpressions:
             - key: node.edgefarm.io/type
               operator: In
               values:
-              - "virtual"
-          - matchExpressions:
-            - key: node-role.kubernetes.io/control-plane
-              operator: Exists`,
+                - "cloud"`,
 							},
 						},
 						CreateNamespace: true,
@@ -249,6 +251,9 @@ image:
   repository: node-servant-applier
   tag: v3
 
+completionPolicy:
+  type: Never
+  
 tolerations:
   - effect: NoSchedule
     key: edgefarm.io`
@@ -368,8 +373,16 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-            - key: openyurt.io/is-edge-worker
-              operator: DoesNotExist`,
+            - key: node.edgefarm.io/converted
+              operator: NotIn
+              values:
+              - "true"
+        - matchExpressions:
+            - key: node-role.kubernetes.io/master
+              operator: Exists
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists`,
 							},
 						},
 						CreateNamespace: false,
@@ -412,8 +425,10 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-            - key: openyurt.io/is-edge-worker
-              operator: Exists`,
+            - key: node.edgefarm.io/converted
+              operator: In
+              values:
+                - "true"`,
 							},
 						},
 						CreateNamespace: false,
@@ -455,20 +470,20 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-          - key: openyurt.io/is-edge-worker
-            operator: Exists
-          - key: node.edgefarm.io/type
+          - key: node.edgefarm.io/machine
+            operator: NotIn
+            values:
+            - "physical"
+        - matchExpressions:
+          - key:   node.edgefarm.io/type
             operator: In
             values:
-              - "virtual"
-        - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists`, args.NetbirdToken)
+            - "cloud"`, args.NetbirdSetupKey)
 						},
 						CreateNamespace: true,
-						// Only install this helm chart if NetbirdToken is set via args
+						// Only install/uninstall this helm chart if NetbirdSetupKey is set
 						Condition: func() bool {
-							return args.NetbirdToken != ""
+							return args.NetbirdSetupKey != ""
 						},
 					},
 				},

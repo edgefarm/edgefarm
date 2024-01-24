@@ -70,6 +70,33 @@ func InstallHelmSpec(client helmclient.Client, spec *helmclient.ChartSpec) error
 	return nil
 }
 
+func (h *Helm) Uninstall() error {
+	if h.Spec.Condition != nil {
+		if !h.Spec.Condition() {
+			klog.Info("condition not met, skipping helm chart uninstallation for: ")
+			for _, spec := range h.Spec.Chart {
+				klog.Infof("chart: %s", spec.ChartName)
+			}
+			return nil
+		}
+	}
+	for _, spec := range h.Spec.Chart {
+		client, err := helmclient.New(&helmclient.Options{
+			Namespace: spec.Namespace,
+			Debug:     true,
+			Linting:   false,
+			DebugLog:  klog.Infof,
+		})
+		if err != nil {
+			return err
+		}
+		if err := client.UninstallRelease(spec); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (h *Helm) Install() error {
 	if h.Spec.Condition != nil {
 		if !h.Spec.Condition() {
@@ -127,6 +154,17 @@ func (p *Packages) Install() error {
 	return nil
 }
 
+func (p *Packages) Uninstall() error {
+	if p.Helm != nil {
+		for _, helm := range p.Helm {
+			if err := helm.Uninstall(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func InstallBase() error {
 	for _, pkg := range Base {
 		if err := pkg.Install(); err != nil {
@@ -148,6 +186,15 @@ func InstallDependencies() error {
 func Install(packages []Packages) error {
 	for _, pkg := range packages {
 		if err := pkg.Install(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func Uninstall(packages []Packages) error {
+	for _, pkg := range packages {
+		if err := pkg.Uninstall(); err != nil {
 			return err
 		}
 	}

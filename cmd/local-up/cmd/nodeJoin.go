@@ -28,6 +28,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/route"
+	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
@@ -42,6 +43,14 @@ var (
 )
 
 func validateJoinNode() error {
+	state, err := state.GetState()
+	if err != nil {
+		return err
+	}
+	if state.GetNetbirdSetupKey() == "" {
+		return errors.New("cluster is not VPN enabled. Please run 'local-up vpn enable' first")
+	}
+
 	if nodeNameJoinNode == "" {
 		return errors.New("name must be specified")
 	}
@@ -87,11 +96,16 @@ func init() {
 	nodeJoinCommand.Flags().StringVarP(&nodeNameJoinNode, "name", "n", "", "A unique name of the node to join. Must not be the same as an existing node.")
 	nodeJoinCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 	nodeJoinCommand.PersistentFlags().StringVar(&TTL, "ttl", defaultTTL, "Define the TTL of the bootstrap token.")
-
 }
 
-func instructionsJoinNode(token string, ttl string) {
+func instructionsJoinNode(token string, ttl string) error {
+	state, err := state.GetState()
+	if err != nil {
+		return err
+	}
+
 	green := color.New(color.FgHiGreen)
+	greenBold := color.New(color.FgHiGreen, color.Bold)
 	yellow := color.New(color.FgHiYellow)
 
 	r, err := route.GetRoute(args.Interface)
@@ -100,10 +114,17 @@ func instructionsJoinNode(token string, ttl string) {
 		panic(err)
 	}
 
-	green.Println("Here is some information you need to join a physical edge node to this cluster.")
+	green.Printf("Here is some information you need to join a physical edge node to this cluster.\n\n")
+	greenBold.Println("VPN:")
+	green.Println("Unless you already connected the physical node to netbird.io VPN, you need to connect it to the VPN first.")
+	green.Println("")
+	green.Printf("Use can use this setup-key ")
+	yellow.Printf("%s", state.GetNetbirdSetupKey())
+	green.Printf(" to connect to netbird.io VPN\n\n")
+	greenBold.Println("Kubernetes:")
 	green.Printf("Ensure that the ")
 	yellow.Printf("/etc/hosts")
-	green.Printf(" file contain the following entry:\n")
+	green.Printf(" file on your physical edge node contains the following entry:\n")
 	yellow.Printf("%s edgefarm-control-plane\n", r.IP)
 	green.Println("")
 	green.Printf("Use this token ")
@@ -114,10 +135,10 @@ func instructionsJoinNode(token string, ttl string) {
 	yellow.Println("")
 	green.Println("If you experience any problems, please consult the documentation at ")
 	green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
+	return nil
 }
 
 func RunJoinNode() error {
-
 	klog.Infof("Adding empty node resource for %s", nodeNameJoinNode)
 	nodeManifest, err := tmplutil.SubsituteTemplate(constants.NodeManifest, map[string]string{
 		"name": nodeNameJoinNode,
