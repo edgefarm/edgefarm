@@ -18,10 +18,13 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -48,6 +51,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/packages"
 	"github.com/edgefarm/edgefarm/pkg/state"
+	stringsx "github.com/icza/gox/stringsx"
 )
 
 var (
@@ -139,6 +143,42 @@ func checkFreePort(port int) bool {
 }
 
 func (o *kindOptions) Validate() error {
+	if runtime.GOOS == "linux" {
+		notGood := false
+		f, err := os.ReadFile("/proc/sys/fs/inotify/max_user_instances")
+		if err != nil {
+			return err
+		}
+
+		v, err := strconv.Atoi(stringsx.Clean(string(f)))
+		if err != nil {
+			return err
+		}
+		if v < 512 {
+			notGood = true
+			klog.Errorln("the value of /proc/sys/fs/inotify/max_user_instances must be greater or equal than 512")
+		}
+
+		f, err = os.ReadFile("/proc/sys/fs/inotify/max_user_watches")
+		if err != nil {
+			return err
+		}
+
+		v, err = strconv.Atoi(stringsx.Clean(string(f)))
+		if err != nil {
+			return err
+		}
+
+		if v < 524288 {
+			notGood = true
+			klog.Errorln("the value of /proc/sys/fs/inotify/max_user_watches must be greater or equal than 524288")
+		}
+
+		if notGood {
+			return errors.New("follow https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files to fix this issue\n")
+		}
+	}
+
 	if o.WorkerNodesNum < 1 {
 		return fmt.Errorf("the number of nodes must be greater than 0")
 	}
