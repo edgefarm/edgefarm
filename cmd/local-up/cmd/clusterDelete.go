@@ -28,6 +28,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
+	"github.com/edgefarm/edgefarm/pkg/state"
 )
 
 var (
@@ -59,18 +60,22 @@ var localDeleteCmd = &cobra.Command{
 			}
 		}
 		if doit {
-			if cleanupNetbird {
+			err := ki.KindDeleteCluster("edgefarm")
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
+			state, err := state.GetState()
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			}
+			if state.IsFullyConfigured() && cleanupNetbird {
 				klog.Infoln("netbird.io: cleanup")
 				err := netbird.DisableVPN(true, true, true, true)
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 					os.Exit(1)
 				}
-			}
-			err := ki.KindDeleteCluster("edgefarm")
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
 			}
 		} else {
 			fmt.Println("Aborted")

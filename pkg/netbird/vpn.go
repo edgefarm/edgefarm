@@ -63,6 +63,6 @@ func EnableVPN() error {
 	if err != nil {
 		return err
 	}
-
+	state.SetFullyConfigured()
 	return nil
 }
