@@ -48,12 +48,11 @@ Download the `local-up` tool from the [EdgeFarm releases page](https://github.co
 curl -sfL https://raw.githubusercontent.com/edgefarm/edgefarm/main/install.sh | sh -s -- -b ~/bin && chmod +x ~/bin/local-up
 ```
 
-If you want to join physical edge nodes to the cluster, you need to setup a free account at [netbird.io](https://netbird.io) and create a setup-key first. Follow the [netbird docs](https://docs.netbird.io/how-to/register-machines-using-setup-keys). 
-If you don't want to join physical edge nodes, you can skip this step and skip the `--netbird-token` flag.
+
 Once you've got everything set up, go ahead and run the local-up tool. This could take a while, so grab a coffee while you wait. 
 
 ```console
-local-up cluster create --netbird-token <your-netbird-token>
+local-up cluster create 
 ```
 
 If everything went well, you should see something like this:
@@ -62,4 +61,15 @@ If everything went well, you should see something like this:
 The local EdgeFarm cluster is ready to use! Have fun exploring EdgeFarm.
 To access the cluster use 'kubectl', e.g.
   $ kubectl get nodes
+```
+
+## Enable VPN
+
+If you want to join physical edge nodes to the cluster, you need to setup a free account at [netbird.io](https://netbird.io) and create a personal access token first. Follow the [netbird docs](https://docs.netbird.io/how-to/access-netbird-public-api#creating-an-access-token). 
+If you don't want to join physical edge nodes, you can skip this step.
+
+If you have a personal access token, you can enable the VPN with the following command:
+
+```console
+local-up vpn enable --token <your-access-token>
 ```
