@@ -27,7 +27,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
-	"github.com/edgefarm/edgefarm/pkg/route"
+	"github.com/edgefarm/edgefarm/pkg/netbird"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
@@ -103,16 +103,14 @@ func instructionsJoinNode(token string, ttl string) error {
 	if err != nil {
 		return err
 	}
+	routingPeer, err := netbird.RoutingPeerIP(state.GetNetbirdToken())
+	if err != nil {
+		return err
+	}
 
 	green := color.New(color.FgHiGreen)
 	greenBold := color.New(color.FgHiGreen, color.Bold)
 	yellow := color.New(color.FgHiYellow)
-
-	r, err := route.GetRoute(args.Interface)
-	if err != nil {
-		klog.Fatalf("Failed to get route: %v", err)
-		panic(err)
-	}
 
 	green.Printf("Here is some information you need to join a physical edge node to this cluster.\n\n")
 	greenBold.Println("VPN:")
@@ -120,12 +118,12 @@ func instructionsJoinNode(token string, ttl string) error {
 	green.Println("")
 	green.Printf("Use can use this setup-key ")
 	yellow.Printf("%s", state.GetNetbirdSetupKey())
-	green.Printf(" to connect to netbird.io VPN\n\n")
+	green.Printf(" to connect to netbird.io VPN.\n\n")
 	greenBold.Println("Kubernetes:")
 	green.Printf("Ensure that the ")
 	yellow.Printf("/etc/hosts")
 	green.Printf(" file on your physical edge node contains the following entry:\n")
-	yellow.Printf("%s edgefarm-control-plane\n", r.IP)
+	yellow.Printf("%s edgefarm-control-plane\n", routingPeer)
 	green.Println("")
 	green.Printf("Use this token ")
 	yellow.Printf("%s", token)

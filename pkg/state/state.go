@@ -18,6 +18,7 @@ type CurrentState struct {
 }
 
 type NetbirdState struct {
+	FullyConfigured   bool   `json:"fully_configured"`
 	NetbirdToken      string `json:"netbird_token"`
 	NetbirdSetupKey   string `json:"netbird_setup_key"`
 	NetbirdSetupKeyID string `json:"netbird_setup_key_id"`
@@ -61,6 +62,15 @@ func GetState(opts ...CurrentStateOption) (*CurrentState, error) {
 		}
 	}
 	return currentState, nil
+}
+
+func (s *CurrentState) IsFullyConfigured() bool {
+	return s.Netbird.FullyConfigured
+}
+
+func (s *CurrentState) SetFullyConfigured() {
+	s.Netbird.FullyConfigured = true
+	s.Export()
 }
 
 func (s *CurrentState) SetNetbirdSetupKey(key string) {

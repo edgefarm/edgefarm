@@ -33,8 +33,7 @@ type PortMappings struct {
 }
 
 var (
-	Interface string
-	Ports     = PortMappings{
+	Ports = PortMappings{
 		HostApiServerPort: 6443,
 		HostNatsPort:      4222,
 		HostHttpPort:      80,
