@@ -4,6 +4,34 @@ green='\033[0;32m'
 red='\033[0;31m'
 nc='\033[0m'
 
+
+# Function to check reachability
+check_reachability() {
+    # Extract host and port from the input
+    input=$1
+    host=$(echo "$input" | cut -d: -f1)
+    port=$(echo "$input" | cut -d: -f2)
+
+    # Check if the host and port are reachable
+    if nc -zv -w 2 "$host" "$port" >/dev/null 2>&1; then
+        return 0  # Success
+    else
+        return 1  # Failure
+    fi
+}
+
+is_valid_format() {
+    input=$1
+
+    # Use a regular expression to check the format
+    if [[ $input =~ ^[a-zA-Z0-9.-]+:[0-9]+$ ]]; then
+        return 0  # Valid format
+    else
+        return 1  # Invalid format
+    fi
+}
+
+
 ###### PARAMETERS HANDLING
 NAME=${NAME:-$(hostname)}
 TOKEN=${TOKEN:-}
@@ -59,6 +87,18 @@ fi
 if [ -z "$ADDRESS" ]; then
  echo -e "${red}Address must be set.${nc}"
  exit 1
+fi
+
+# Check if the address format is valid
+if ! is_valid_format "$ADDRESS"; then
+    echo "$ADDRESS is invalid. Maybe you forgot to add the port?"
+    exit 1
+fi
+
+# Check reachability
+if ! check_reachability "$ADDRESS"; then
+    echo "$ADDRESS is not reachable. Maybe you made a typo? Format must be 'host:port'."
+    exit 1
 fi
 
 # Map uname architecture to specific values
@@ -149,3 +189,4 @@ else
     echo -e "${green}Everything is set up. Run the following command to join the cluster:${nc}"
     echo yurtadm join ${ADDRESS} --config /etc/edgefarm/kubeadm-join.conf --node-name=${NAME} --token=${TOKEN} --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1
 fi
+
