@@ -62,7 +62,7 @@ flannel:
     - name: ip
       mountPath: /usr/local/etc/wt0.ip
   command: ["bash"]
-  args: ["-c" ,"/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=edge0 --public-ip=$(cat /usr/local/etc/wt0.ip) --persistent-mac"]
+  args: ["-c" ,"/opt/bin/flanneld --ip-masq --kube-subnet-mgr --iface=edge0 --public-ip=$(cat /usr/local/etc/wt0.ip)"]
   tolerations:
   - key: edgefarm.io
     effect: NoSchedule
