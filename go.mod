@@ -1,6 +1,6 @@
 module github.com/edgefarm/edgefarm
 
-go 1.21.2
+go 1.21
 
 replace github.com/edgefarm/netbird-go => /home/armin/edgefarm/netbird-go
 
