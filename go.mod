@@ -2,12 +2,10 @@ module github.com/edgefarm/edgefarm
 
 go 1.21
 
-replace github.com/edgefarm/netbird-go => /home/armin/edgefarm/netbird-go
-
 require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/docker v20.10.25+incompatible
-	github.com/edgefarm/netbird-go v1.3.2
+	github.com/edgefarm/netbird-go v1.3.4
 	github.com/erikgeiser/promptkit v0.8.0
 	github.com/fatih/color v1.7.0
 	github.com/google/go-github/v30 v30.1.0
