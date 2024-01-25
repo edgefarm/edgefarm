@@ -55,12 +55,29 @@ Once you've got everything set up, go ahead and run the local-up tool. This coul
 local-up cluster create 
 ```
 
+??? "kubeconfig path notes"
+
+    The default location for the kubeconfig file is `~/.edgefarm-local-up/kubeconfig`. This is by intention not to interfer with any existing clusters you might have. This means, you have to set the `KUBECONFIG` environment variable to use the local cluster with `kubectl`:
+
+    ```console
+    export KUBECONFIG=~/.edgefarm-local-up/kubeconfig
+    ```
+
+    or use the `--kubeconfig` flag with `kubectl`:
+
+    ```console
+    kubectl --kubeconfig ~/.edgefarm-local-up/kubeconfig get nodes
+    ```
+
+    or the even better choice: *use a tool to manage multiple kube contexts for you, e.g. [kubie](https://github.com/sbstp/kubie)**
+    
+
 If everything went well, you should see something like this:
 
 ```{: .console .no-copy}
 The local EdgeFarm cluster is ready to use! Have fun exploring EdgeFarm.
 To access the cluster use 'kubectl', e.g.
-  $ kubectl get nodes
+  $ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get nodes
 ```
 
 ## Enable VPN

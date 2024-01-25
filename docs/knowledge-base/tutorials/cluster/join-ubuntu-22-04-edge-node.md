@@ -129,7 +129,7 @@ The bootstrap-token to enter is the one you got from the `local-up` command abov
 Verify that the Edge Node is ready to use. Let's say the hostname of the node is `eagle`.
 
 ```bash
-$ kubectl get nodes | grep eagle
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get nodes | grep eagle
 NAME     STATUS   ROLES    AGE   VERSION
 eagle    Ready    <none>   1M    v1.22.17
 ```
