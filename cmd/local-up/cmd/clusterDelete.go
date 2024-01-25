@@ -60,11 +60,6 @@ var localDeleteCmd = &cobra.Command{
 			}
 		}
 		if doit {
-			err := ki.KindDeleteCluster("edgefarm")
-			if err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
-			}
 			state, err := state.GetState()
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
@@ -76,6 +71,11 @@ var localDeleteCmd = &cobra.Command{
 					fmt.Printf("Error: %v\n", err)
 					os.Exit(1)
 				}
+			}
+			err = ki.KindDeleteCluster("edgefarm")
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
 			}
 		} else {
 			fmt.Println("Aborted")

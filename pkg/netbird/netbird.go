@@ -17,12 +17,7 @@ const (
 	routerPeerName = "edgefarm-control-plane"
 )
 
-func CreateSetupKey(token string) (*netbird.SetupKey, error) {
-	state, err := state.GetState()
-	if err != nil {
-		return nil, err
-	}
-
+func CreateSetupKey(state *state.CurrentState, token string) (*netbird.SetupKey, error) {
 	client := netbird.NewClient(token)
 	groups, err := client.ListGroups()
 	if err != nil {
@@ -89,12 +84,7 @@ func CreateSetupKey(token string) (*netbird.SetupKey, error) {
 	return &setupKey, nil
 }
 
-func AddRoute(token string) error {
-	state, err := state.GetState()
-	if err != nil {
-		return err
-	}
-
+func AddRoute(state *state.CurrentState, token string) error {
 	client := netbird.NewClient(token)
 	group, err := client.GetGroup(state.Netbird.NetbirdGroupID)
 	if err != nil {
@@ -167,11 +157,7 @@ func WaitForRoutingPeer(token string) error {
 	return nil
 }
 
-func Cleanup(token string, groupDel, routeDel, peerDel, setypKeysDel bool) error {
-	state, err := state.GetState()
-	if err != nil {
-		return err
-	}
+func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, peerDel, setypKeysDel bool) error {
 	client := netbird.NewClient(token)
 	if groupDel {
 		groups, err := client.ListGroups()

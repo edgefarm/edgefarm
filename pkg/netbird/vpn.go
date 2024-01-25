@@ -27,7 +27,7 @@ func DisableVPN(groupDel, routeDel, peerDel, setypKeysDel bool) error {
 		}
 	}
 	klog.Infof("netbird.io: Cleanup")
-	err = Cleanup(args.NetbirdToken, groupDel, routeDel, peerDel, setypKeysDel)
+	err = Cleanup(state, args.NetbirdToken, groupDel, routeDel, peerDel, setypKeysDel)
 	if err != nil {
 		return err
 	}
@@ -44,11 +44,10 @@ func EnableVPN() error {
 	state.SetNetbirdToken(args.NetbirdToken)
 	klog.Infof("Prepare edge nodes")
 	klog.Info("Start to prepare netbird")
-	key, err := CreateSetupKey(args.NetbirdToken)
+	key, err := CreateSetupKey(state, args.NetbirdToken)
 	if err != nil {
 		return err
 	}
-	// state.SetNetbirdToken(args.NetbirdToken)
 	args.NetbirdSetupKey = key.Key
 
 	if args.NetbirdToken != "" {
@@ -59,7 +58,7 @@ func EnableVPN() error {
 	}
 
 	klog.Infof("Configuring netbird")
-	err = AddRoute(args.NetbirdToken)
+	err = AddRoute(state, args.NetbirdToken)
 	if err != nil {
 		return err
 	}
