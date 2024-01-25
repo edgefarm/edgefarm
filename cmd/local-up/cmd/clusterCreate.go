@@ -175,7 +175,7 @@ func (o *kindOptions) Validate() error {
 		}
 
 		if notGood {
-			return errors.New("follow https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files to fix this issue\n")
+			return errors.New("follow https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files to fix this issue")
 		}
 	}
 
@@ -248,7 +248,6 @@ var (
 	skipOpenyurt            bool
 	skipConfigureAddons     bool
 	flannelOnly             bool
-	overrideMissingNetbird  bool
 )
 
 func addFlags(flagset *pflag.FlagSet, o *kindOptions) {
@@ -334,12 +333,12 @@ func (ki *Initializer) Run() error {
 			return err
 		}
 	}
-
 	klog.Info("Start to prepare kube client")
 	kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
 	if err != nil {
 		return err
 	}
+	args.KubeConfigRestConfig = kubeconfig
 	ki.kubeClient, err = kubeclientset.NewForConfig(kubeconfig)
 	if err != nil {
 		return err

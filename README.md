@@ -92,8 +92,6 @@ Before you move on, make sure you've got the following stuff installed:
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 - [docker](https://docs.docker.com/get-docker/)
 
-If you want to join physical edge nodes to your cluster, you'll also need a free account from [netbird.io](https://netbird.io) and a [netbird setup-key](https://docs.netbird.io/how-to/register-machines-using-setup-keys).
-
 Hop over to [releases](https://github.com/edgefarm/edgefarm/releases) and grab the freshest release of the EdgeFarm `local-up` binary for your operating system or just run the following command:
 
 ```console
@@ -104,11 +102,10 @@ Time to get the cluster rolling! Execute these commands:
 
 ```console
 # This step is gonna take a minute, because we're creating a full-blown Kubernetes cluster. So, hang tight and let it do its thing!
-# Note: if you do not have a netbird token, you can skip the --netbird-token parameter. Then you'll get virtual edge nodes but won't be able to join physical edge nodes.
-$ ./local-up cluster create --netbird-token <your-netbird-token>
+$ ./local-up cluster create
 
 # Once it's all set, fire up `kubectl` and give the cluster a quick check to see if it's ready.
-$ kubectl get nodes
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get nodes
 NAME                     STATUS   ROLES                  AGE   VERSION
 edgefarm-control-plane   Ready    control-plane,master   7m    v1.22.7
 edgefarm-worker          Ready    <none>                 6m    v1.22.7
@@ -119,10 +116,10 @@ edgefarm-worker3         Ready    <none>                 7m    v1.22.7
 Let's get that example application deployed!
 
 ```console
-$ kubectl apply -f examples/basic/producer/deploy
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl apply -f examples/basic/producer/deploy
 application.core.oam.dev/example-producer created
 network.streams.network.edgefarm.io/example-network created
-$ kubectl apply -f examples/basic/consumer/deploy
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl apply -f examples/basic/consumer/deploy
 deployment.apps/example-consumer created
 service/example-consumer created
 ```
@@ -133,14 +130,14 @@ The producer creates simulated sensor data and sends it over to the consumer usi
 Label the right node pool to run that edge application.
 
 ```console
-$ kubectl label nodepools.apps.openyurt.io edgefarm-worker3 example=producer
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl label nodepools.apps.openyurt.io edgefarm-worker3 example=producer
 nodepool.apps.openyurt.io/edgefarm-worker3 labeled
 ```
 
 Hang tight, it's almost showtime! Just give it a moment and wait for those pods to get all set and ready. Almost there!
 
 ```console
-$ kubectl get pods
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get pods
 NAME                                                              READY   STATUS    RESTARTS   AGE   IP            NODE               NOMINATED NODE   READINESS GATES
 example-consumer-d69db86c8-n25vb                                  1/1     Running   0          10m   10.244.3.35   edgefarm-worker    <none>           <none>
 example-network-default-edge-to-cloud-edgefarm-worker3-5fqfsxl5   1/1     Running   0          12m   10.244.1.5    edgefarm-worker3   <none>           <none>
@@ -150,7 +147,7 @@ producer-edgefarm-worker3-s9pbw-5d6f874f65-qfqmf                  2/2     Runnin
 Let's take a peek and see what streams resources were created. Time to investigate! It could take a hot minute for those streams to be ready, so don't rush! Just sit back and be patient, it'll be worth the wait!
 
 ```console
-$ kubectl get streams.nats.crossplane.io -o wide
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get streams.nats.crossplane.io -o wide
 NAME                          EXTERNAL-NAME      READY   SYNCED   DOMAIN                                                   AGE   ADDRESS                     ACCOUNT PUB KEY                                            MESSAGES   BYTES    CONSUMERS
 example-network-25gn7-6bhcs   aggregate-stream   True    True     main                                                     10m   nats://nats.nats.svc:4222   ACDB55OTMWZM6LP4R3I3E5WRLJWWVHCWEBLN5ECYOQCN3BTH5NPDMLD4   321        2.0 MB   1
 example-network-25gn7-qxc2v   sensor-stream      True    True     example-network-default-edge-to-cloud-edgefarm-worker3   10m   nats://nats.nats.svc:4222   ACDB55OTMWZM6LP4R3I3E5WRLJWWVHCWEBLN5ECYOQCN3BTH5NPDMLD4   321        1.9 MB   0
@@ -159,10 +156,12 @@ example-network-25gn7-qxc2v   sensor-stream      True    True     example-networ
 Alright, let's get things rolling! Port forward the `example-consumer` service to your local machine and fire up your browser at http://localhost:5006/serve. Enjoy the view!
 
 ```console
-$ kubectl port-forward service/example-consumer 5006:5006
+$ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl port-forward service/example-consumer 5006:5006
 ```
 
 No sweat at all! Getting the EdgeFarm cluster up and running was a walk in the park. Your local machine is now rocking with a fully functional EdgeFarm cluster, piece of cake!
+
+You can even join physical edge nodes like a Raspberry Pi to your local cluster. Follow the docs to learn how to do this.
 
 # 💡 Usage
 

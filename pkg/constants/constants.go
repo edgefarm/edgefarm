@@ -19,6 +19,6 @@ package constants
 import "time"
 
 const (
-	DefaultKubeConfigPath    = "~/.kube/config"
+	DefaultKubeConfigPath    = "~/.edgefarm-local-up/kubeconfig"
 	BootstrapTokenDefaultTTL = time.Hour * 24
 )

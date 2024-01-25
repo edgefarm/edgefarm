@@ -22,6 +22,7 @@ import (
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 
 	"github.com/edgefarm/edgefarm/pkg/args"
@@ -41,11 +42,19 @@ var localDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete the local edgefarm cluster",
 	Run: func(cmd *cobra.Command, arguments []string) {
-		fmt.Println("Deleting local edgefarm cluster")
+		klog.Infoln("Deleting local edgefarm cluster")
 		if err := args.EvaluateKubeConfigPath(); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
+		klog.Info("Start to prepare kube client")
+		kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
+		if err != nil {
+			klog.Errorf("Failed to build kubeconfig: %v", err)
+			os.Exit(1)
+		}
+		args.KubeConfigRestConfig = kubeconfig
+
 		ki := kindoperator.NewKindOperator(args.KubeConfig)
 		doit := false
 		if override {
@@ -55,7 +64,7 @@ var localDeleteCmd = &cobra.Command{
 			input := confirmation.New("Are you sure to delete the local edgefarm cluster?", confirmation.Yes)
 			doit, err = input.RunPrompt()
 			if err != nil {
-				fmt.Printf("Error: %v\n", err)
+				klog.Errorf("Error %v", err)
 				os.Exit(1)
 			}
 		}
@@ -68,17 +77,17 @@ var localDeleteCmd = &cobra.Command{
 				klog.Infoln("netbird.io: cleanup")
 				err := netbird.DisableVPN(true, true, true, true)
 				if err != nil {
-					fmt.Printf("Error: %v\n", err)
+					klog.Errorf("Error %v", err)
 					os.Exit(1)
 				}
 			}
 			err = ki.KindDeleteCluster("edgefarm")
 			if err != nil {
-				fmt.Printf("Error: %v\n", err)
+				klog.Errorf("Error %v", err)
 				os.Exit(1)
 			}
 		} else {
-			fmt.Println("Aborted")
+			klog.Infoln("Aborted")
 		}
 	},
 }

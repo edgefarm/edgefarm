@@ -27,6 +27,7 @@ import (
 
 	"k8s.io/klog/v2"
 
+	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 )
 
@@ -81,11 +82,14 @@ func (h *Helm) Uninstall() error {
 		}
 	}
 	for _, spec := range h.Spec.Chart {
-		client, err := helmclient.New(&helmclient.Options{
-			Namespace: spec.Namespace,
-			Debug:     true,
-			Linting:   false,
-			DebugLog:  klog.Infof,
+		client, err := helmclient.NewClientFromRestConf(&helmclient.RestConfClientOptions{
+			Options: &helmclient.Options{
+				Namespace: spec.Namespace,
+				Debug:     true,
+				Linting:   false,
+				DebugLog:  klog.Infof,
+			},
+			RestConfig: args.KubeConfigRestConfig,
 		})
 		if err != nil {
 			return err
@@ -108,11 +112,14 @@ func (h *Helm) Install() error {
 		}
 	}
 	for _, spec := range h.Spec.Chart {
-		client, err := helmclient.New(&helmclient.Options{
-			Namespace: spec.Namespace,
-			Debug:     true,
-			Linting:   false,
-			DebugLog:  klog.Infof,
+		client, err := helmclient.NewClientFromRestConf(&helmclient.RestConfClientOptions{
+			Options: &helmclient.Options{
+				Namespace: spec.Namespace,
+				Debug:     true,
+				Linting:   false,
+				DebugLog:  klog.Infof,
+			},
+			RestConfig: args.KubeConfigRestConfig,
 		})
 		if h.Repo != nil {
 			if h.Repo.URL != "" {

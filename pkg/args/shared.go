@@ -22,6 +22,7 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
 
@@ -42,7 +43,8 @@ var (
 	NetbirdToken    string
 	NetbirdSetupKey string
 
-	KubeConfig string
+	KubeConfig           string
+	KubeConfigRestConfig *rest.Config
 )
 
 func EvaluateKubeConfigPath() error {

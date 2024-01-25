@@ -23,6 +23,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
 
@@ -36,6 +37,13 @@ You won't be able to run physical edge nodes using the local edgefarm cluster.`,
 			klog.Errorf("Error: %v\n", err)
 			os.Exit(1)
 		}
+		klog.Info("Start to prepare kube client")
+		kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
+		if err != nil {
+			klog.Errorf("Failed to build kubeconfig: %v", err)
+			os.Exit(1)
+		}
+		args.KubeConfigRestConfig = kubeconfig
 
 		if args.NetbirdToken == "" {
 			klog.Infof("netbird.io private access not set. Using cached token.\n")
