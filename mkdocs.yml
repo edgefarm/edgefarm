@@ -92,9 +92,7 @@ markdown_extensions:
 nav:
   - Welcome:
       - Introduction: index.md
-      - Use Cases: overview/usecases.md
-      - System Overview: overview/system.md
-      - Components: overview/components.md
+      - Use Cases: usecases/usecases.md
   - Knowledge Base:
       - Overview: knowledge-base/index.md
       - Getting Started:
@@ -103,6 +101,9 @@ nav:
           - Portal: knowledge-base/gettingstarted/portal.md
       - Concepts:
           - Overview: knowledge-base/concepts/index.md
+          - System:
+              - System Overview: knowledge-base/concepts/overview/system.md
+              - Components: knowledge-base/concepts/overview/components.md
           - Design Decissions: knowledge-base/concepts/designdecissions.md
           - Concepts:
               - edgefarm.core: knowledge-base/concepts/edgefarm.core.md
@@ -111,6 +112,7 @@ nav:
               - edgefarm.monitor: knowledge-base/concepts/edgefarm.monitor.md
       - Tutorials:
           # - Overview: knowledge-base/tutorials/index.md
+          - Overview: knowledge-base/tutorials/index.md
           - Cluster:
               - Create a local test cluster: knowledge-base/tutorials/cluster/create-local-cluster.md
               - Join a Ubuntu 22.04 edge node to the local test cluster: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md

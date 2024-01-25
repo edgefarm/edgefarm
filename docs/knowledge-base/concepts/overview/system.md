@@ -2,7 +2,7 @@
 
 A typical EdgeFarm setup consists of the following parts.
 
-![](../assets/architecture-overview.drawio.png)
+![](../../../assets/architecture-overview.drawio.png)
 
 ## Backend System
 

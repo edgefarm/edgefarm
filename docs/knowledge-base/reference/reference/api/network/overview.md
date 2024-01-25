@@ -16,5 +16,5 @@ See the [network-spec](../network-spec.md) page for more details.
 
 ## Examples
 
-See the [examples](./examples) page on how to learn more about `edgefarm.network` and how to use it.
+See the [examples](./examples.md) page on how to learn more about `edgefarm.network` and how to use it.
 

@@ -1,6 +1,6 @@
 # EdgeFarm Components
 
-![](../assets/components-overview.png)
+![](../../../assets/components-overview.png)
 
 
 EdgeFarm consists of several independently deployable components, each extending the EdgeFarm system with specific functionalities.

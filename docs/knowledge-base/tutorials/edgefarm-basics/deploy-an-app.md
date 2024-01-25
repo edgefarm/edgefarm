@@ -7,7 +7,7 @@
 
 ## EdgeFarm application model
 
-Once you have a [running EdgeFarm cluster](../../cluster/create-local-cluster/), you can deploy applications to it. To do so, you create a edgefarm.application resource. This resource is a custom resource definition (CRD) that is specific to EdgeFarm. It defines a set of Kubernetes resources that are deployed together as a single unit. The edgefarm.application resource is the primary resource in the EdgeFarm application model, and it represents a single instance of your application. Once you've created an edgefarm.application resource, the Kubernetes control plane schedules the application's Pods to run on your selected nodes.
+Once you have a [running EdgeFarm cluster](../../cluster/create-local-cluster), you can deploy applications to it. To do so, you create a edgefarm.application resource. This resource is a custom resource definition (CRD) that is specific to EdgeFarm. It defines a set of Kubernetes resources that are deployed together as a single unit. The edgefarm.application resource is the primary resource in the EdgeFarm application model, and it represents a single instance of your application. Once you've created an edgefarm.application resource, the Kubernetes control plane schedules the application's Pods to run on your selected nodes.
 
 ## Writing the manifest
 

@@ -24,7 +24,7 @@ Currently supported traits are:
 
 ## Examples
 
-See the [examples](./examples) page on how to learn more about `edgefarm.applications` and how to use it.
+See the [examples](./examples.md) page on how to learn more about `edgefarm.applications` and how to use it.
 
 
 
