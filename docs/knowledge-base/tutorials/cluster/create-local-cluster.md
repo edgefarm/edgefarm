@@ -77,7 +77,7 @@ If everything went well, you should see something like this:
 ```{: .console .no-copy}
 The local EdgeFarm cluster is ready to use! Have fun exploring EdgeFarm.
 To access the cluster use 'kubectl', e.g.
-  $ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get nodes
+  $ kubectl get nodes
 ```
 
 ## Enable VPN
@@ -88,5 +88,5 @@ If you don't want to join physical edge nodes, you can skip this step.
 If you have a personal access token, you can enable the VPN with the following command:
 
 ```console
-local-up vpn enable --token <your-access-token>
+local-up vpn enable --netbird-token <your-access-token>
 ```
