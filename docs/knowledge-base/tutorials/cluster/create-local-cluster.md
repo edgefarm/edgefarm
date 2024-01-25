@@ -55,7 +55,7 @@ Once you've got everything set up, go ahead and run the local-up tool. This coul
 local-up cluster create 
 ```
 
-??? "kubeconfig path notes"
+!!! "kubeconfig path notes"
 
     The default location for the kubeconfig file is `~/.edgefarm-local-up/kubeconfig`. This is by intention not to interfer with any existing clusters you might have. This means, you have to set the `KUBECONFIG` environment variable to use the local cluster with `kubectl`:
 
@@ -69,7 +69,7 @@ local-up cluster create
     kubectl --kubeconfig ~/.edgefarm-local-up/kubeconfig get nodes
     ```
 
-    or the even better choice: *use a tool to manage multiple kube contexts for you, e.g. [kubie](https://github.com/sbstp/kubie)**
+    or the even better choice: **use a tool to manage multiple kube contexts for you, e.g. [kubecm](https://github.com/sunny0826/kubecm) or  [kubie](https://github.com/sbstp/kubie)**
     
 
 If everything went well, you should see something like this:
