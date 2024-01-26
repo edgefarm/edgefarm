@@ -138,12 +138,6 @@ func instructionsJoinNode(token string, ttl string) error {
 
 func RunJoinNode() error {
 	klog.Infof("Adding empty node resource for %s", nodeNameJoinNode)
-	nodeManifest, err := tmplutil.SubsituteTemplate(constants.NodeManifest, map[string]string{
-		"name": nodeNameJoinNode,
-	})
-	if err != nil {
-		return err
-	}
 
 	klog.Infof("Adding nodepool for node %s", nodeNameJoinNode)
 	nodepoolManifest, err := tmplutil.SubsituteTemplate(constants.NodepoolManifest, map[string]string{
@@ -163,11 +157,6 @@ func RunJoinNode() error {
 	}
 
 	token, err := tokens.GenerateBootstrapToken(client, ttlDuration)
-	if err != nil {
-		return err
-	}
-
-	err = k8s.Apply(nodeManifest)
 	if err != nil {
 		return err
 	}

@@ -43,8 +43,16 @@ type Helm struct {
 	Spec *Spec
 }
 
+type Manifest struct {
+	Name             string
+	Manifest         string
+	Condition        func() bool
+	WaitForCondition bool
+}
+
 type Packages struct {
-	Helm []*Helm
+	Helm     []*Helm
+	Manifest []*Manifest
 }
 
 func InstallHelmSpec(client helmclient.Client, spec *helmclient.ChartSpec) error {
@@ -97,6 +105,28 @@ func (h *Helm) Uninstall() error {
 		if err := client.UninstallRelease(spec); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (m *Manifest) Install() error {
+	if m.Condition != nil {
+		if m.WaitForCondition {
+			try := retry.New(
+				retry.Count(30),
+				retry.Sleep(time.Second*2),
+				retry.Verbose(true),
+			)
+			if err := try.Single(fmt.Sprintf("Installing manifest %s", m.Name),
+				func() error {
+					return k8s.Apply(m.Manifest)
+				}); err != nil {
+				return err
+			}
+			return nil
+		}
+	} else {
+		return k8s.Apply(m.Manifest)
 	}
 	return nil
 }
@@ -154,6 +184,13 @@ func (p *Packages) Install() error {
 	if p.Helm != nil {
 		for _, helm := range p.Helm {
 			if err := helm.Install(); err != nil {
+				return err
+			}
+		}
+	}
+	if p.Manifest != nil {
+		for _, manifest := range p.Manifest {
+			if err := manifest.Install(); err != nil {
 				return err
 			}
 		}

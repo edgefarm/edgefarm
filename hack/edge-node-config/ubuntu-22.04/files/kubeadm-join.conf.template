@@ -14,7 +14,7 @@ nodeRegistration:
   kubeletExtraArgs:
     rotate-certificates: "true"
     pod-infra-container-image: registry.k8s.io/pause:3.8
-    node-labels: node.edgefarm.io/machine=physical,node.edgefarm.io/type=edge
+    node-labels: openyurt.io/is-edge-worker=true,node.edgefarm.io/machine=physical,node.edgefarm.io/type=edge,apps.openyurt.io/desired-nodepool=NODE_NAME,node.edgefarm.io/converted=true
     register-with-taints: edgefarm.io=:NoSchedule
     network-plugin: cni
     hostname-override: NODE_NAME
