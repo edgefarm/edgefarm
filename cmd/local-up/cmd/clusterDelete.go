@@ -75,7 +75,7 @@ var localDeleteCmd = &cobra.Command{
 			}
 			if state.IsFullyConfigured() && cleanupNetbird {
 				klog.Infoln("netbird.io: cleanup")
-				err := netbird.DisableVPN(true, true, true, true)
+				err := netbird.DisableVPN(false, true, true, true, true)
 				if err != nil {
 					klog.Errorf("Error %v", err)
 					os.Exit(1)

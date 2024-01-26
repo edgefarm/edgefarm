@@ -9,7 +9,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func DisableVPN(groupDel, routeDel, peerDel, setypKeysDel bool) error {
+func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error {
 	state, err := state.GetState()
 	if err != nil {
 		return err
@@ -20,12 +20,15 @@ func DisableVPN(groupDel, routeDel, peerDel, setypKeysDel bool) error {
 		return errors.New("cluster is not VPN enabled. Please run 'local-up vpn enable' first")
 	}
 
-	if args.NetbirdToken != "" {
-		klog.Infof("Uninstall VPN packages")
-		if err := packages.Uninstall(packages.ClusterBootstrapVPN); err != nil {
-			return err
+	if uninstall {
+		if args.NetbirdToken != "" {
+			klog.Infof("Uninstall VPN packages")
+			if err := packages.Uninstall(packages.ClusterBootstrapVPN); err != nil {
+				return err
+			}
 		}
 	}
+
 	klog.Infof("netbird.io: Cleanup")
 	err = Cleanup(state, args.NetbirdToken, groupDel, routeDel, peerDel, setypKeysDel)
 	if err != nil {
