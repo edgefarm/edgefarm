@@ -152,6 +152,56 @@ func CheckNodeTaint(node v1.Node, taint v1.Taint) bool {
 	return false
 }
 
+func AnnotateNodes(nodes []v1.Node, annotations map[string]string) error {
+	clientset, err := GetClientset()
+	if err != nil {
+		return err
+	}
+
+	for _, node := range nodes {
+		if node.Annotations == nil {
+			node.Annotations = map[string]string{}
+		}
+		for k, v := range annotations {
+			node.Annotations[k] = v
+		}
+		fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		fresh.Annotations = node.Annotations
+		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func LabelNodes(nodes []v1.Node, labels map[string]string) error {
+	clientset, err := GetClientset()
+	if err != nil {
+		return err
+	}
+
+	for _, node := range nodes {
+		if node.Labels == nil {
+			node.Labels = map[string]string{}
+		}
+		for k, v := range labels {
+			node.Labels[k] = v
+		}
+		fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		fresh.Labels = node.Labels
+		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func TaintNodes(nodes []v1.Node, taint v1.Taint) error {
 	clientset, err := GetClientset()
 	if err != nil {
@@ -264,6 +314,20 @@ func PrepareEdgeNodes() error {
 	if err != nil {
 		return err
 	}
+	err = AnnotateNodes(nodes, map[string]string{
+		"apps.openyurt.io/binding": "true",
+	})
+	if err != nil {
+		return err
+	}
+
+	err = LabelNodes(nodes, map[string]string{
+		"node.edgefarm.io/converted": "true",
+	})
+	if err != nil {
+		return err
+	}
+
 	err = TaintNodes(nodes, DefaultEdgeNodeTaint)
 	if err != nil {
 		return err

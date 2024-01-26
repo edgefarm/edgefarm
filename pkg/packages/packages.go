@@ -26,6 +26,7 @@ import (
 
 	"github.com/edgefarm/edgefarm/pkg/args"
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
+	"github.com/edgefarm/edgefarm/pkg/k8s"
 )
 
 var (
@@ -166,6 +167,106 @@ manager:
 		},
 	}
 
+	ClusterBootstrapKyverno = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "kyverno",
+						URL:  "https://kyverno.github.io/kyverno",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "kyverno",
+								ChartName:   "kyverno/kyverno",
+								Namespace:   "kyverno",
+								Version:     "v2.5.5",
+								UpgradeCRDs: true,
+								ValuesYaml: `generatecontrollerExtraResources:
+  - nodes
+config:
+  resourceFilters:
+  - '[Event,*,*]'
+  - '[*,kube-system,*]'
+  - '[*,kube-public,*]'
+  - '[*,kube-node-lease,*]'
+  - '[APIService,*,*]'
+  - '[TokenReview,*,*]'
+  - '[SubjectAccessReview,*,*]'
+  - '[SelfSubjectAccessReview,*,*]'
+  - '[Binding,*,*]'
+  - '[ReplicaSet,*,*]'
+  - '[ReportChangeRequest,*,*]'
+  - '[ClusterReportChangeRequest,*,*]'
+  - '[ClusterRole,*,{{ template "kyverno.fullname" . }}:*]'
+  - '[ClusterRoleBinding,*,{{ template "kyverno.fullname" . }}:*]'
+  - '[ServiceAccount,{{ include "kyverno.namespace" . }},{{ template "kyverno.serviceAccountName" . }}]'
+  - '[ConfigMap,{{ include "kyverno.namespace" . }},{{ template "kyverno.configMapName" . }}]'
+  - '[ConfigMap,{{ include "kyverno.namespace" . }},{{ template "kyverno.metricsConfigMapName" . }}]'
+  - '[Deployment,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}]'
+  - '[Job,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}-hook-pre-delete]'
+  - '[NetworkPolicy,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}]'
+  - '[PodDisruptionBudget,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}]'
+  - '[Role,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}:*]'
+  - '[RoleBinding,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}:*]'
+  - '[Secret,{{ include "kyverno.namespace" . }},{{ template "kyverno.serviceName" . }}.{{ template "kyverno.namespace" . }}.svc.*]'
+  - '[Service,{{ include "kyverno.namespace" . }},{{ template "kyverno.serviceName" . }}]'
+  - '[Service,{{ include "kyverno.namespace" . }},{{ template "kyverno.serviceName" . }}-metrics]'
+  - '[ServiceMonitor,{{ if .Values.serviceMonitor.namespace }}{{ .Values.serviceMonitor.namespace }}{{ else }}{{ template "kyverno.namespace" . }}{{ end }},{{ template "kyverno.serviceName" . }}-service-monitor]'
+  - '[Pod,{{ include "kyverno.namespace" . }},{{ template "kyverno.fullname" . }}-test]'`,
+							},
+						},
+						CreateNamespace: true,
+					},
+				},
+			},
+			Manifest: []*Manifest{
+				{
+					Name: "kyverno policy edge-node-annotation",
+					Condition: func() bool {
+						exists, err := k8s.CrdExists("clusterpolicies.kyverno.io")
+						if err != nil {
+							log.Fatal(err)
+						}
+						return exists
+					},
+					WaitForCondition: true,
+					Manifest: `apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: edge-node-annotation
+  annotations:
+    policies.kyverno.io/title: Add OpenYurt Node binding annotation
+spec:
+  rules:
+  - name: edge-node-annotation
+    match:
+      any:
+      - resources:
+          kinds:
+          - Node
+    preconditions:
+      all:
+      - key: "{{request.operation || 'BACKGROUND'}}"
+        operator: AnyIn
+        value:
+          - CREATE
+          - UPDATE
+    mutate:
+      targets:
+      - apiVersion: v1
+        kind: Node
+        name: "{{ request.object.metadata.name }}"
+      patchStrategicMerge:
+        metadata:
+          annotations:
+            +(apps.openyurt.io/binding): "true"`,
+				},
+			},
+		},
+	}
+
 	ClusterBootstrapYurtManager = []Packages{
 		{
 			Helm: []*Helm{
@@ -182,6 +283,8 @@ manager:
 								Namespace:   "kube-system",
 								Version:     "1.3.4",
 								UpgradeCRDs: true,
+								// 								ValuesYaml: `image:
+								//   tag: v1.3.4`,
 							},
 						},
 					},

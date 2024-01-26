@@ -17,24 +17,6 @@ limitations under the License.
 package constants
 
 const (
-	NodeManifest = `apiVersion: v1
-kind: Node
-metadata:
-  labels:
-    kubernetes.io/os: "{{.name}}"
-    kubernetes.io/hostname: "{{.name}}"
-    openyurt.io/is-edge-worker: "true"
-    apps.openyurt.io/desired-nodepool: "{{.name}}"
-    node.edgefarm.io/machine: "physical"
-    node.edgefarm.io/type: "edge"
-  annotations:
-    apps.openyurt.io/binding: "true"
-  name: "{{.name}}"
-spec:
-  taints:
-  - effect: NoSchedule
-    key: edgefarm.io`
-
 	NodepoolManifest = `apiVersion: apps.openyurt.io/v1beta1
 kind: NodePool
 metadata:

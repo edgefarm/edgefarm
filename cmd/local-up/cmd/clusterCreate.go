@@ -376,6 +376,10 @@ func (ki *Initializer) Run() error {
 		// }
 	}
 
+	if err := packages.Install(packages.ClusterBootstrapKyverno); err != nil {
+		return err
+	}
+
 	if err := packages.Install(packages.ClusterBootstrapKruise); err != nil {
 		return err
 	}
