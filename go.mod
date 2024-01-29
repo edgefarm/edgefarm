@@ -157,7 +157,7 @@ require (
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.22.2 // indirect
+	k8s.io/apiextensions-apiserver v0.22.2
 	k8s.io/apiserver v0.22.4 // indirect
 	k8s.io/cli-runtime v0.22.3 // indirect
 	k8s.io/component-base v0.22.4 // indirect
