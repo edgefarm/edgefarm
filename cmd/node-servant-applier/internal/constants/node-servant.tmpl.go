@@ -36,7 +36,7 @@ spec:
         - /bin/sh
         - -c
         args:
-        - "/usr/local/bin/entry.sh convert --working-mode={{.working_mode}} --yurthub-image={{.yurthub_image}} {{if .yurthub_healthcheck_timeout}}--yurthub-healthcheck-timeout={{.yurthub_healthcheck_timeout}} {{end}}--join-token={{.joinToken}} {{if .enable_dummy_if}}--enable-dummy-if={{.enable_dummy_if}}{{end}} {{if .enable_node_pool}}--enable-node-pool={{.enable_node_pool}}{{end}}"
+        - 'TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && apk add curl && /usr/local/bin/entry.sh convert --working-mode={{.working_mode}} --yurthub-image={{.yurthub_image}} {{if .yurthub_healthcheck_timeout}}--yurthub-healthcheck-timeout={{.yurthub_healthcheck_timeout}} {{end}}--join-token={{.joinToken}} {{if .enable_dummy_if}}--enable-dummy-if={{.enable_dummy_if}}{{end}} {{if .enable_node_pool}}--enable-node-pool={{.enable_node_pool}}{{end}} && curl -k -X PATCH https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT_HTTPS/api/v1/nodes/$NODE_NAME -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/merge-patch+json" --data "{\"metadata\":{\"labels\":{\"node.edgefarm.io/converted\":\"true\"}}}"'
         securityContext:
           privileged: true
         volumeMounts:
