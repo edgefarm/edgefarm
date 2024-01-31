@@ -2,8 +2,14 @@
 
 green='\033[0;32m'
 red='\033[0;31m'
+yellow='\033[0;33m'
+yellowBold='\033[1;33m'
 nc='\033[0m'
 
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run this script as root."
+  exit 1
+fi
 
 # Function to check reachability
 check_reachability() {
@@ -40,8 +46,12 @@ ADDRESS=${ADDRESS:-}
 JOIN=${JOIN:-false}
 PRECHECKS_ONLY=${PRECHECKS_ONLY:-false}
 NODE_IP=${NODE_IP:-}
+NODE_TYPE=${NODE_TYPE:-"kubeadm"}
+CONVERT=${CONVERT:-false}
+NO_DOWNLOAD=${NO_DOWNLOAD:-false}
+VERSION=${VERSION:-"1.22.17"}
 
-options=$(getopt -o "" -l "prechecks-only,join,node-ip:,address:,name:,token:,arch:,help" -- "$@")
+options=$(getopt -o "" -l "prechecks-only,join,node-ip:,address:,name:,token:,arch:,node-type:,convert,no-download,version:,help" -- "$@")
 
 if [ $? -ne 0 ]; then
  echo "Invalid arguments."
@@ -50,7 +60,7 @@ fi
 
 eval set -- "$options"
 Help() {
- echo "Usage: script --address ADDRESS --token TOKEN [--name NAME] [--arch ARCH] [--node-ip IP] [--help]"
+ echo "Usage: script --address ADDRESS --token TOKEN [--name NAME] [--arch ARCH] [--node-ip IP] [--node-type TYPE] [--help]"
  echo
  echo "Options:"
  echo "--address ADDRESS   Set the API server address. This option is mandatory."
@@ -59,7 +69,11 @@ Help() {
  echo "--arch ARCH         Set the architecture. Allowed values are arm64, amd64, and arm. Default is the current architecture. (optional)"
  echo "--node-ip IP        Set the node ip. (optional)"
  echo "--join              Run the join command rather than printing it after setting everything up. (optional)"
- echo "--prechecks-only         Run prechecks only. (optional)"
+ echo "--prechecks-only    Run prechecks only. (optional)"
+ echo "--node-type         Set the type of the node. Allowed values are 'kubeadm' or 'yurtadm'. Default is 'kubeadm'. (optional)"
+ echo "--convert           Sets the label 'node.edgefarm.io/to-be-converted' to true. Only used for kubeadm type. Default is false. (optional)"
+ echo "--no-download       Disables download of the components (kubeadm, kubelet, kubectl, cni plugins). Default is false (optional)"
+ echo "--version           Set the kubernetes version. Used to download the components. Default is 1.22.17 (optional)"
  echo "--help              Display this help message."
  echo
 }
@@ -71,8 +85,12 @@ while [ $# -gt 0 ]; do
   --token) TOKEN="$2"; shift;;
   --arch) ARCH="$2"; shift;;
   --node-ip) NODE_IP="$2"; shift;;
+  --node-type) NODE_TYPE="$2"; shift;;
+  --convert) CONVERT="true";;
+  --no-download) NO_DOWNLOAD="true";;
   --help) Help; exit;;
   --join) JOIN="true";;
+  --version) VERSION="$2"; shift;;
   --prechecks-only) PRECHECKS_ONLY="true";;
   --) shift;;
  esac
@@ -130,12 +148,58 @@ else
    PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
 fi
 
+if [[ $NODE_TYPE == *"kubeadm"* ]]; then
+    INSTALL_KUBEADM=false
+    kubeadm version > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo -e "  ${red}kubeadm missing${nc}"
+        INSTALL_KUBEADM=true
+        PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
+    else
+        KUBEADM_VERSION=$(kubeadm version | awk -F "GitVersion:\"v" '{print $2}' | awk -F "\"" '{print $1}')
+        if [ "$KUBEADM_VERSION" != "$VERSION" ]; then
+            echo -e "  ${red}kubeadm version mismatch. Found $KUBEADM_VERSION, expected $VERSION${nc}"
+            INSTALL_KUBEADM=true
+            PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
+        fi
+    fi
+
+    INSTALL_KUBELET=false
+    kubelet --version > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo -e "  ${red}kubelet missing${nc}"
+        INSTALL_KUBELET=true
+        PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
+    else
+        KUBELET_VERSION=$(kubelet --version | awk -F "Kubernetes v" '{print $2}')
+        if [ "$KUBELET_VERSION" != "$VERSION" ]; then
+            echo -e "  ${red}kubelet version mismatch. Found $KUBELET_VERSION, expected $VERSION${nc}"
+            INSTALL_KUBELET=true
+            PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
+        fi
+    fi
+
+    if [ "$INSTALL_KUBEADM" == "true" ] || [ "$INSTALL_KUBELET" == "true" ]; then
+        echo -e "${yellowBold}You need to install components with the correct version $VERSION\n"
+        echo -e "${yellow}curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes.gpg"
+        echo -e 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/kubernetes.gpg] http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list'
+        echo -e "${yellow}apt update"
+        if [ "$INSTALL_KUBEADM" == "true" ]; then
+            echo -e "${yellow}apt-get install -y kubeadm=${VERSION}-00 --reinstall${nc}"
+        fi
+        if [ "$INSTALL_KUBELET" == "true" ]; then
+            echo -e "${yellow}apt-get install -y kubelet=${VERSION}-00 --reinstall${nc}"
+        fi
+        exit 1
+    fi
+fi
+
 if [ $PRECHECK_ERRORS -gt 0 ]; then
     echo -e "${red}Prechecks failed.${nc}"
     exit 1
 fi
-echo "Prechecks passed."
 
+echo "Prechecks passed."
 ###### INSTALLATION
 
 if $PRECHECKS_ONLY == "true" ; then
@@ -150,14 +214,30 @@ mkdir -p /etc/edgefarm/
 mkdir -p /etc/systemd/system
 mkdir -p /etc/udev/rules.d
 
-echo "Downloading components..."
-wget -q --show-progress https://github.com/openyurtio/openyurt/releases/download/v1.4.0/yurtadm-v1.4.0-linux-${ARCH}.tar.gz -P ${TMP}
-tar xfz ${TMP}/yurtadm-v1.4.0-linux-${ARCH}.tar.gz  -C ${TMP} && mv ${TMP}/linux-${ARCH}/yurtadm /usr/local/bin/yurtadm && chmod +x /usr/local/bin/yurtadm
+if ! $NO_DOWNLOAD; then
+  echo "Downloading components..."
+  if [[ $NODE_TYPE == *"yurtadm"* ]]; then
+    wget -q --show-progress https://github.com/openyurtio/openyurt/releases/download/v1.4.0/yurtadm-v1.4.0-linux-${ARCH}.tar.gz -P ${TMP}
+    tar xfz ${TMP}/yurtadm-v1.4.0-linux-${ARCH}.tar.gz  -C ${TMP} && mv ${TMP}/linux-${ARCH}/yurtadm /usr/local/bin/yurtadm && chmod +x /usr/local/bin/yurtadm
+  fi
+  wget -q --show-progress https://github.com/edgefarm/edgefarm/releases/download/cni-0.8.0/cni-plugins-linux-${ARCH}-v0.8.0.tgz -P ${TMP}
+  tar xfz ${TMP}/cni-plugins-linux-${ARCH}-v0.8.0.tgz -C /opt/cni/bin --pax-option=delete=SCHILY.*,delete=LIBARCHIVE.*
+fi
 
-wget -q --show-progress https://github.com/edgefarm/edgefarm/releases/download/cni-0.8.0/cni-plugins-linux-${ARCH}-v0.8.0.tgz -P ${TMP}
-tar xfz ${TMP}/cni-plugins-linux-${ARCH}-v0.8.0.tgz -C /opt/cni/bin --pax-option=delete=SCHILY.*,delete=LIBARCHIVE.*
+
+LABELSAPPEND=""
+if [[ $NODE_TYPE == *"yurtadm"* ]]; then
+  LABELSAPPEND="node.edgefarm.io/converted=true"
+else 
+  if $CONVERT ; then
+    LABELSAPPEND="node.edgefarm.io/to-be-converted=true"
+  else
+    LABELSAPPEND="node.edgefarm.io/to-be-converted=false"
+  fi
+fi
 
 cp files/kubeadm-join.conf.template ${TMP}/kubeadm-join.conf
+sed -i "s#LABELSAPPEND#$LABELSAPPEND#g" ${TMP}/kubeadm-join.conf
 sed -i "s/ADDRESS/$ADDRESS/g" ${TMP}/kubeadm-join.conf
 sed -i "s/NODE_NAME/$NAME/g" ${TMP}/kubeadm-join.conf
 sed -i "s/BOOTSTRAP_TOKEN/$TOKEN/g" ${TMP}/kubeadm-join.conf
@@ -183,10 +263,18 @@ udevadm trigger
 
 ###### JOIN CLUSTER
 if $JOIN ; then
-    echo -e "${green}Joining the cluster...${nc}"
+  echo -e "${green}Joining the cluster...${nc}"
+  if [[ $NODE_TYPE == *"yurtadm"* ]]; then
     yurtadm join ${ADDRESS} --config /etc/edgefarm/kubeadm-join.conf --node-name=${NAME} --token=${TOKEN} --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1
+  else 
+    kubeadm join --config /etc/edgefarm/kubeadm-join.conf -v5
+  fi
 else
-    echo -e "${green}Everything is set up. Run the following command to join the cluster:${nc}"
+  echo -e "${green}Everything is set up. Run the following command to join the cluster:${nc}"
+  if [[ $NODE_TYPE == *"yurtadm"* ]]; then
     echo yurtadm join ${ADDRESS} --config /etc/edgefarm/kubeadm-join.conf --node-name=${NAME} --token=${TOKEN} --node-type=edge --discovery-token-unsafe-skip-ca-verification --v=9 --reuse-cni-bin --yurthub-image ghcr.io/openyurtio/openyurt/yurthub:v1.4.0 --cri-socket /var/run/dockershim.sock --yurthub-server-addr=192.168.168.1
+  else 
+    echo kubeadm join --config /etc/edgefarm/kubeadm-join.conf -v5
+  fi
 fi
 
