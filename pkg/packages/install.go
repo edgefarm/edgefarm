@@ -119,16 +119,17 @@ func (m *Manifest) Install() error {
 			)
 			if err := try.Single(fmt.Sprintf("Installing manifest %s", m.Name),
 				func() error {
-					return k8s.Apply(m.Manifest)
+					if c := m.Condition(); !c {
+						return fmt.Errorf("condition not met")
+					}
+					return nil
 				}); err != nil {
 				return err
 			}
-			return nil
+			return k8s.Apply(m.Manifest)
 		}
-	} else {
-		return k8s.Apply(m.Manifest)
 	}
-	return nil
+	return k8s.Apply(m.Manifest)
 }
 
 func (h *Helm) Install() error {
