@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 
-	batchv1 "k8s.io/api/batch/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
+	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/edgefarm/edgefarm/cmd/node-servant-applier/internal/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
@@ -77,6 +77,10 @@ func main() {
 	}
 	_, err = client.BatchV1().Jobs(job.GetNamespace()).Create(context.Background(), job, metav1.CreateOptions{})
 	if err != nil {
+		if errors.IsAlreadyExists(err) {
+			log.Printf("job %s already exists", job.GetName())
+			os.Exit(0)
+		}
 		log.Fatal(err)
 	}
 	os.Exit(0)

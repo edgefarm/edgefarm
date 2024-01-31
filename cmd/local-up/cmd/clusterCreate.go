@@ -380,9 +380,6 @@ func (ki *Initializer) Run() error {
 		return err
 	}
 
-	if err := packages.Install(packages.ClusterBootstrapKruise); err != nil {
-		return err
-	}
 	if !skipOpenyurt {
 		klog.Info("Start to deploy OpenYurt components")
 		if err := ki.deployOpenYurt(); err != nil {
