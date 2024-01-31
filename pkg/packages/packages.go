@@ -132,41 +132,6 @@ flannel:
 		},
 	}
 
-	ClusterBootstrapKruise = []Packages{
-		{
-			Helm: []*Helm{
-				{
-					Repo: &repo.Entry{
-						Name: "openkruise",
-						URL:  "https://openkruise.github.io/charts",
-					},
-					Spec: &Spec{
-						Chart: []*helmclient.ChartSpec{
-							{
-								ReleaseName: "kruise",
-								ChartName:   "openkruise/kruise",
-								Namespace:   "kruise-system",
-								UpgradeCRDs: true,
-								Wait:        true,
-								Version:     "1.1.0",
-								Timeout:     time.Second * 90,
-								ValuesYaml: `featureGates: "PodWebhook=false,KruiseDaemon=false,DaemonWatchingPod=false"
-installation:
-  namespace: kruise-system
-  createNamespace: false
-manager:
-  replicas: 1
-  nodeSelector:
-    kubernetes.io/hostname: edgefarm-worker`,
-							},
-						},
-						CreateNamespace: true,
-					},
-				},
-			},
-		},
-	}
-
 	ClusterBootstrapKyverno = []Packages{
 		{
 			Helm: []*Helm{
@@ -225,11 +190,8 @@ config:
 				{
 					Name: "kyverno policy edge-node-annotation",
 					Condition: func() bool {
-						exists, err := k8s.CrdExists("clusterpolicies.kyverno.io")
-						if err != nil {
-							log.Fatal(err)
-						}
-						return exists
+						_, err := k8s.CrdExists("clusterpolicies.kyverno.io")
+						return err == nil
 					},
 					WaitForCondition: true,
 					Manifest: `apiVersion: kyverno.io/v1
@@ -306,7 +268,7 @@ spec:
 								ReleaseName: "node-servant-applier",
 								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/node-servant-applier",
 								Namespace:   "kube-system",
-								Version:     "1.16.0",
+								Version:     "1.20.0",
 								UpgradeCRDs: true,
 								Wait:        true,
 								Timeout:     time.Second * 90,
@@ -348,18 +310,22 @@ spec:
   nodeServantImage: %s
   yurthubImage: %s
   enableDummyIf: %s
-
 image:
   registry: ghcr.io/edgefarm/edgefarm
   repository: node-servant-applier
-  tag: v3
-
-completionPolicy:
-  type: Never
-  
+  tag: v6
 tolerations:
   - effect: NoSchedule
-    key: edgefarm.io`
+    key: edgefarm.io
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node.edgefarm.io/to-be-converted
+          operator: In
+          values:
+          - "true"`
 							return fmt.Sprintf(valuesStr, workingMode, nodeServantImage, yurthubImage, enableDummyIf)
 						},
 					},

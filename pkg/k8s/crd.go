@@ -3,18 +3,24 @@ package k8s
 import (
 	"context"
 
-	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ListCRDs() (*v1beta1.CustomResourceDefinitionList, error) {
+func ListCRDs() (*v1.CustomResourceDefinitionList, error) {
 	clientset, err := apiextensionsclientset.NewForConfig(getConfig())
 	if err != nil {
 		return nil, err
 	}
 
-	return clientset.ApiextensionsV1beta1().CustomResourceDefinitions().List(context.TODO(), metav1.ListOptions{})
+	crdList, err := clientset.ApiextensionsV1().CustomResourceDefinitions().List(context.Background(), metav1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return crdList, nil
 }
 
 func CrdExists(name string) (bool, error) {

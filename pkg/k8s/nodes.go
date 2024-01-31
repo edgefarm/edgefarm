@@ -322,7 +322,7 @@ func PrepareEdgeNodes() error {
 	}
 
 	err = LabelNodes(nodes, map[string]string{
-		"node.edgefarm.io/converted": "true",
+		"node.edgefarm.io/to-be-converted": "true",
 	})
 	if err != nil {
 		return err
