@@ -16,6 +16,7 @@ require (
 	github.com/openyurtio/openyurt v1.4.0
 	github.com/pytimer/k8sutil v0.0.0-20221114090626-86d6279d8e52
 	github.com/s0rg/retry v1.1.2
+	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/oauth2 v0.8.0
