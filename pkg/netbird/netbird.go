@@ -3,6 +3,7 @@ package netbird
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -37,7 +38,7 @@ func CreateSetupKey(state *state.CurrentState, token string) (*netbird.SetupKey,
 	if createGroup {
 		klog.Infoln("netbird.io: creating group")
 		g, err := client.CreateGroup(&netbird.Group{
-			Name:       "edgefarm-local",
+			Name:       fmt.Sprintf("%s-%s", identifier, GetRandomID(8)),
 			PeersCount: 0,
 			Peers:      []netbird.GroupPeers{},
 		})
@@ -66,7 +67,7 @@ func CreateSetupKey(state *state.CurrentState, token string) (*netbird.SetupKey,
 	if createSetupkey {
 		klog.Infoln("netbird.io: creating setup-key")
 		s, err := client.CreateSetupKey(&netbird.SetupKey{
-			Name:       identifier,
+			Name:       fmt.Sprintf("%s-%s", identifier, GetRandomID(8)),
 			ExpiresIn:  8640000,
 			Type:       "reusable",
 			Revoked:    false,
@@ -86,7 +87,7 @@ func CreateSetupKey(state *state.CurrentState, token string) (*netbird.SetupKey,
 
 func AddRoute(state *state.CurrentState, token string) error {
 	client := netbird.NewClient(token)
-	group, err := client.GetGroup(state.Netbird.NetbirdGroupID)
+	group, err := client.GetGroup(state.GetNetbirdGroupID())
 	if err != nil {
 		return err
 	}
