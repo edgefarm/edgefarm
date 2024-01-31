@@ -467,6 +467,9 @@ github.com/russross/blackfriday
 # github.com/s0rg/retry v1.1.2
 ## explicit; go 1.17
 github.com/s0rg/retry
+# github.com/satori/go.uuid v1.2.0
+## explicit
+github.com/satori/go.uuid
 # github.com/shopspring/decimal v1.2.0
 ## explicit; go 1.13
 github.com/shopspring/decimal
