@@ -1,5 +1,16 @@
 #!/bin/bash
-yurtadm reset -f
+
+# Try to reset via yurtadm first
+yurtadm --help > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  yurtadm reset -f
+else
+  # Try to reset via kubeadm as a fallback
+  kubeadm --help > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    kubeadm reset -f
+  fi
+fi
 rm -rf /etc/cni/net.d
 ip link set cni0 down
 ip link delete cni0
