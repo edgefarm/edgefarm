@@ -23,6 +23,7 @@ import (
 
 	helmclient "github.com/mittwald/go-helm-client"
 	"helm.sh/helm/v3/pkg/repo"
+	"k8s.io/klog/v2"
 
 	"github.com/edgefarm/edgefarm/pkg/args"
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
@@ -190,8 +191,19 @@ config:
 				{
 					Name: "kyverno policy edge-node-annotation",
 					Condition: func() bool {
-						_, err := k8s.CrdExists("clusterpolicies.kyverno.io")
-						return err == nil
+						exists, err := k8s.CrdExists("clusterpolicies.kyverno.io")
+						if err != nil {
+							klog.Error(err)
+							return false
+						}
+						if !exists {
+							return false
+						}
+						est, err := k8s.CrdEstablished("clusterpolicies.kyverno.io")
+						if err != nil {
+							return false
+						}
+						return est
 					},
 					WaitForCondition: true,
 					Manifest: `apiVersion: kyverno.io/v1
