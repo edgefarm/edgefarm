@@ -22,15 +22,14 @@ import (
 	"fmt"
 	"html/template"
 	"regexp"
+	"time"
 
-	"github.com/openyurtio/openyurt/pkg/projectinfo"
-	corev1 "k8s.io/api/core/v1"
+	"github.com/s0rg/retry"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	kubeclientset "k8s.io/client-go/kubernetes"
 	yaml "sigs.k8s.io/yaml"
 )
 
@@ -165,14 +164,25 @@ func AnnotateNodes(nodes []v1.Node, annotations map[string]string) error {
 		for k, v := range annotations {
 			node.Annotations[k] = v
 		}
-		fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
-		if err != nil {
+		try := retry.New(
+			retry.Count(30),
+			retry.Sleep(time.Second),
+			retry.Verbose(true),
+		)
+		if err := try.Single("Updating node", func() error {
+			fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			fresh.Annotations = node.Annotations
+			if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
-		fresh.Annotations = node.Annotations
-		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
-			return err
-		}
+
 	}
 	return nil
 }
@@ -190,14 +200,25 @@ func LabelNodes(nodes []v1.Node, labels map[string]string) error {
 		for k, v := range labels {
 			node.Labels[k] = v
 		}
-		fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
-		if err != nil {
+		try := retry.New(
+			retry.Count(30),
+			retry.Sleep(time.Second),
+			retry.Verbose(true),
+		)
+		if err := try.Single("Updating node", func() error {
+			fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			fresh.Labels = node.Labels
+			if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
-		fresh.Labels = node.Labels
-		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
-			return err
-		}
+
 	}
 	return nil
 }
@@ -215,12 +236,22 @@ func TaintNodes(nodes []v1.Node, taint v1.Taint) error {
 		if CheckNodeTaint(node, taint) {
 			continue
 		}
-		fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		fresh.Spec.Taints = append(fresh.Spec.Taints, taint)
-		if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+		try := retry.New(
+			retry.Count(30),
+			retry.Sleep(time.Second),
+			retry.Verbose(true),
+		)
+		if err := try.Single("Updating node", func() error {
+			fresh, err := clientset.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			fresh.Spec.Taints = append(fresh.Spec.Taints, taint)
+			if _, err := clientset.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
 	}
@@ -251,12 +282,23 @@ func HandleNodePool(node v1.Node) error {
 	if err != nil {
 		return err
 	}
-	fresh, err := client.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	fresh.Labels["apps.openyurt.io/desired-nodepool"] = fresh.Name
-	if _, err := client.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+
+	try := retry.New(
+		retry.Count(30),
+		retry.Sleep(time.Second),
+		retry.Verbose(true),
+	)
+	if err := try.Single("Updating node", func() error {
+		fresh, err := client.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		fresh.Labels["apps.openyurt.io/desired-nodepool"] = fresh.Name
+		if _, err := client.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return err
 	}
 
@@ -339,24 +381,4 @@ func PrepareEdgeNodes() error {
 		}
 	}
 	return nil
-}
-
-// AnnotateNode add a new annotation (<key>=<val>) to the given node
-func AnnotateNode(cliSet kubeclientset.Interface, node *corev1.Node, key, val string) (*corev1.Node, error) {
-	node.Annotations[key] = val
-	newNode, err := cliSet.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return newNode, nil
-}
-
-func AddEdgeWorkerLabelAndAutonomyAnnotation(cliSet kubeclientset.Interface, node *corev1.Node, lVal, aVal string) (*corev1.Node, error) {
-	node.Labels[projectinfo.GetEdgeWorkerLabelKey()] = lVal
-	node.Annotations[projectinfo.GetAutonomyAnnotation()] = aVal
-	newNode, err := cliSet.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return newNode, nil
 }

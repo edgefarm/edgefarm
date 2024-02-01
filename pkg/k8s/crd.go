@@ -36,3 +36,21 @@ func CrdExists(name string) (bool, error) {
 	}
 	return false, nil
 }
+
+func CrdEstablished(name string) (bool, error) {
+	clientset, err := apiextensionsclientset.NewForConfig(getConfig())
+	if err != nil {
+		return false, err
+	}
+	crd, err := clientset.ApiextensionsV1().CustomResourceDefinitions().Get(context.Background(), name, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	for _, cond := range crd.Status.Conditions {
+		if cond.Type == v1.Established && cond.Status == v1.ConditionTrue {
+			return true, nil
+		}
+	}
+	return false, nil
+}
