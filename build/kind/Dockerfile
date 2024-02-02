@@ -14,7 +14,7 @@ RUN case ${TARGETPLATFORM} in \
     rm /tmp/cni-plugins.tgz
 
 # use kind node v1.24.0 as it contains systemd as default cgroup driver
-FROM kindest/node:v1.24.0
+FROM kindest/node:v1.29.1
 COPY --from=kube /opt/cni/ /opt/cni
 COPY --from=kube /usr/bin/kubelet /usr/bin/kubelet
 COPY --from=kube /usr/bin/kubeadm /usr/bin/kubeadm
