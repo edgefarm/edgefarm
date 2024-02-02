@@ -60,14 +60,14 @@ fi
 
 eval set -- "$options"
 Help() {
- echo "Usage: script --address ADDRESS --token TOKEN [--name NAME] [--arch ARCH] [--node-ip IP] [--node-type TYPE] [--help]"
+ echo "Usage: script --address ADDRESS --token TOKEN --node-ip IP [--name NAME] [--arch ARCH] [--node-type TYPE] [--convert] [--join] [--no-download] [--help]"
  echo
  echo "Options:"
  echo "--address ADDRESS   Set the API server address. This option is mandatory."
  echo "--token TOKEN       Set the token. This option is mandatory."
  echo "--name NAME         Set the node name. Default is the hostname. (optional)"
  echo "--arch ARCH         Set the architecture. Allowed values are arm64, amd64, and arm. Default is the current architecture. (optional)"
- echo "--node-ip IP        Set the node ip. (optional)"
+ echo "--node-ip IP        Set the node ip."
  echo "--join              Run the join command rather than printing it after setting everything up. (optional)"
  echo "--prechecks-only    Run prechecks only. (optional)"
  echo "--node-type         Set the type of the node. Allowed values are 'kubeadm' or 'yurtadm'. Default is 'kubeadm'. (optional)"
@@ -104,6 +104,11 @@ fi
 
 if [ -z "$ADDRESS" ]; then
  echo -e "${red}Address must be set.${nc}"
+ exit 1
+fi
+
+if [ -z "$NODE_IP" ]; then
+ echo -e "${red}node-ip must be set.${nc}"
  exit 1
 fi
 
@@ -215,13 +220,11 @@ mkdir -p /etc/systemd/system
 mkdir -p /etc/udev/rules.d
 
 if ! $NO_DOWNLOAD; then
-  echo "Downloading components..."
   if [[ $NODE_TYPE == *"yurtadm"* ]]; then
+    echo "Downloading components..."
     wget -q --show-progress https://github.com/openyurtio/openyurt/releases/download/v1.4.0/yurtadm-v1.4.0-linux-${ARCH}.tar.gz -P ${TMP}
     tar xfz ${TMP}/yurtadm-v1.4.0-linux-${ARCH}.tar.gz  -C ${TMP} && mv ${TMP}/linux-${ARCH}/yurtadm /usr/local/bin/yurtadm && chmod +x /usr/local/bin/yurtadm
   fi
-  wget -q --show-progress https://github.com/edgefarm/edgefarm/releases/download/cni-0.8.0/cni-plugins-linux-${ARCH}-v0.8.0.tgz -P ${TMP}
-  tar xfz ${TMP}/cni-plugins-linux-${ARCH}-v0.8.0.tgz -C /opt/cni/bin --pax-option=delete=SCHILY.*,delete=LIBARCHIVE.*
 fi
 
 

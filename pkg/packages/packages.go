@@ -47,14 +47,23 @@ var (
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.16.0",
+								Version:     "1.21.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-edge
 flannel:
-  installCNIPlugin: false
+  installCNIPlugin: true
+  installCNIConfig: true
   image:
     repository: docker.io/flannel/flannel
     tag: v0.24.2
+  image_cni:
+    repository: ghcr.io/edgefarm/edgefarm/cni-plugins
+    tag: v1
+    command:
+      - /bin/sh
+      - -c
+    args:
+      - mkdir -p /opt/cni/bin && cp /cni/* /opt/cni/bin && chmod +x /opt/cni/bin/*
   extraVolumes:
     - name: ip
       hostPath:
@@ -84,6 +93,7 @@ flannel:
               values:
               - "physical"`,
 							},
+
 							// flannel-cloud for kind nodes including virtual edge nodes
 							{
 								ReleaseName: "flannel-kind",
@@ -91,15 +101,23 @@ flannel:
 								Namespace:   "kube-flannel",
 								UpgradeCRDs: true,
 								Wait:        true,
-								Version:     "1.16.0",
+								Version:     "1.21.0",
 								Timeout:     time.Second * 90,
 								ValuesYaml: `nameOverride: flannel-kind
 flannel:
-  installCNIPlugin: false
+  installCNIPlugin: true
   installCNIConfig: true
   image:
     repository: docker.io/flannel/flannel
     tag: v0.24.2
+  image_cni:
+    repository: ghcr.io/edgefarm/edgefarm/cni-plugins
+    tag: v1
+    command:
+      - /bin/sh
+      - -c
+    args:
+      - mkdir -p /opt/cni/bin && cp /cni/* /opt/cni/bin && chmod +x /opt/cni/bin/*
   command:
   - "bash"
   - "-c"
@@ -280,7 +298,7 @@ spec:
 								ReleaseName: "node-servant-applier",
 								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/node-servant-applier",
 								Namespace:   "kube-system",
-								Version:     "1.20.0",
+								Version:     "1.23.0",
 								UpgradeCRDs: true,
 								Wait:        true,
 								Timeout:     time.Second * 90,
@@ -325,7 +343,7 @@ spec:
 image:
   registry: ghcr.io/edgefarm/edgefarm
   repository: node-servant-applier
-  tag: v6
+  tag: v8
 tolerations:
   - effect: NoSchedule
     key: edgefarm.io

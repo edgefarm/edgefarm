@@ -1,0 +1,85 @@
+name: release-cni-plugins-image
+
+on:
+  workflow_run:
+    workflows: ["Lint Commit Messages"]
+    types:
+      - completed
+    branches:
+      - main
+      - beta
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  check_paths:
+    runs-on: ubuntu-latest
+    outputs:
+      source_changed: ${{ steps.filter.outputs.source }}
+    steps:
+      - name: Download a single artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: commitlint.yml
+          name: original-refs
+          workflow_conclusion: success
+
+      - name: set REF_BASE to env
+        run: |
+          echo "BASE=$(cat base.txt)" >> $GITHUB_ENV
+          echo "CURRENT_BRANCH=$(cat current-branch.txt)" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          base: ${{ env.BASE }}
+          ref: ${{ env.CURRENT_BRANCH }}
+          filters: |
+            source:
+              - 'build/cni-plugins/Dockerfile'
+
+  release-cni-plugins-image:
+    needs: check_paths
+    if: needs.check_paths.outputs.source_changed == 'true'
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.PACKAGES_TOKEN }}
+
+      - name: Calculate new version number
+        id: new_version
+        run: |
+          output=$(docker run --rm ghcr.io/regclient/regctl:v0.4.5 tag ls ghcr.io/edgefarm/edgefarm/cni-plugins)
+          versions=($(echo $output | grep -oP 'v\K[0-9]+'))
+          IFS=$'\n' sorted_versions=($(sort -nr <<<"${versions[*]}"))
+          new_version=v$((sorted_versions[0]+1))
+          echo "::set-output name=NEW_VERSION::$new_version"
+        shell: bash
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./build/cni-plugins/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ghcr.io/edgefarm/edgefarm/cni-plugins:${{ steps.new_version.outputs.NEW_VERSION }}
