@@ -74,15 +74,17 @@ func main() {
 	if _, err := client.BatchV1().Jobs(job.GetNamespace()).Get(context.Background(), job.GetName(), metav1.GetOptions{}); err == nil {
 		log.Printf("job %s already exists", job.GetName())
 		os.Exit(0)
-	}
-	_, err = client.BatchV1().Jobs(job.GetNamespace()).Create(context.Background(), job, metav1.CreateOptions{})
-	if err != nil {
-		if errors.IsAlreadyExists(err) {
-			log.Printf("job %s already exists", job.GetName())
-			os.Exit(0)
+	} else {
+		_, err = client.BatchV1().Jobs(job.GetNamespace()).Create(context.Background(), job, metav1.CreateOptions{})
+		if err != nil {
+			if errors.IsAlreadyExists(err) {
+				log.Printf("job %s already exists", job.GetName())
+				os.Exit(0)
+			}
+			log.Fatal(err)
 		}
-		log.Fatal(err)
 	}
+
 	os.Exit(0)
 }
 

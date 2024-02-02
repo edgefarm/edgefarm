@@ -26,16 +26,20 @@ spec:
         configMap:
           defaultMode: 420
           name: {{.configmap_name}}
+      - name: node-convert-script
+        configMap:
+          defaultMode: 420
+          name: node-convert-script
       serviceAccount: node-servant-convert
       containers:
       - name: node-servant
         image: {{.node_servant_image}}
         imagePullPolicy: IfNotPresent
         command:
-        - /bin/sh
+        - sh 
         - -c
-        args:
-        - 'TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) && apk add curl && /usr/local/bin/entry.sh convert --working-mode={{.working_mode}} --yurthub-image={{.yurthub_image}} {{if .yurthub_healthcheck_timeout}}--yurthub-healthcheck-timeout={{.yurthub_healthcheck_timeout}} {{end}}--join-token={{.joinToken}} {{if .enable_dummy_if}}--enable-dummy-if={{.enable_dummy_if}}{{end}} {{if .enable_node_pool}}--enable-node-pool={{.enable_node_pool}}{{end}} && curl -k -X PATCH https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT_HTTPS/api/v1/nodes/$NODE_NAME -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/merge-patch+json" --data "{\"metadata\":{\"labels\":{\"node.edgefarm.io/converted\":\"true\",\"node.edgefarm.io/to-be-converted\":\"false\"}}}"'
+        args: 
+        - cp /script/run.sh /run.sh && chmod +x /run.sh && /run.sh
         securityContext:
           privileged: true
         volumeMounts:
@@ -43,6 +47,8 @@ spec:
           name: host-root
         - mountPath: /openyurt/data
           name: configmap
+        - mountPath: /script
+          name: node-convert-script
         env:
         - name: NODE_NAME
           valueFrom:
@@ -52,5 +58,10 @@ spec:
         - name: KUBELET_SVC
           value: {{.kubeadm_conf_path}}
           {{end}}
-`
+        - name: WORKING_MODE
+          value: {{.working_mode}}
+        - name: YURTHUB_IMAGE
+          value: {{.yurthub_image}}
+        - name: JOIN_TOKEN
+          value: {{.joinToken}}`
 )
