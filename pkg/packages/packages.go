@@ -557,7 +557,11 @@ affinity:
 							},
 						},
 						ValuesFunc: func() string {
-							return fmt.Sprintf(`config:
+							return fmt.Sprintf(`image:
+  repository: docker.io/netbirdio/netbird
+  pullPolicy: IfNotPresent
+  tag: "0.24.4"
+config: 
   managementURL: https://api.wiretrustee.com:443
   auth:
     secret: netbird-auth
