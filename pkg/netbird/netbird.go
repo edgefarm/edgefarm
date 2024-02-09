@@ -227,3 +227,46 @@ func RoutingPeerIP(token string) (string, error) {
 	}
 	return "", errors.New("routing peer not found")
 }
+
+func GetGroupPeers(token string) ([]netbird.Peer, error) {
+	client := netbird.NewClient(token)
+	peers, err := client.ListPeers()
+	if err != nil {
+		return nil, err
+	}
+	state, err := state.GetState()
+	if err != nil {
+		return nil, err
+	}
+	relevantPeers := []netbird.Peer{}
+	groupId := state.GetNetbirdGroupID()
+	for _, p := range peers {
+		for _, g := range p.Groups {
+			if g.ID == groupId {
+				relevantPeers = append(relevantPeers, p)
+				break
+			}
+		}
+	}
+
+	return relevantPeers, nil
+}
+
+func GetGroup(token string, id string) (*netbird.Group, error) {
+	client := netbird.NewClient(token)
+	return client.GetGroup(id)
+}
+
+func GetPeerByHostname(token, hostname string) (*netbird.Peer, error) {
+	client := netbird.NewClient(token)
+	peers, err := client.ListPeers()
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range peers {
+		if p.Hostname == hostname {
+			return &p, nil
+		}
+	}
+	return nil, errors.New("peer not found")
+}
