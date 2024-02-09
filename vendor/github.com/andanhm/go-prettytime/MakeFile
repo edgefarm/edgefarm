@@ -1,0 +1,19 @@
+# The import path is where your repository can be found.
+# To import sub packages, always pretend the full import path.
+# If you change this, run `make clean`. Read more: https://git.io/vM7zV
+IMPORT_PATH := github.com/andanhm/go-prettytime
+
+version := 1.1.0 # When V is set, print commands and build progress.
+
+# Space separated patterns of packages to skip in list, test, format.
+IGNORED_PACKAGES := /vendor/
+
+all: test build
+build:
+	go build -o prettytime -v
+doc:
+	go doc
+test:
+	go test -v ./...
+clean:
+	go clean
