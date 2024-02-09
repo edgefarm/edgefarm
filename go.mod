@@ -3,6 +3,7 @@ module github.com/edgefarm/edgefarm
 go 1.21
 
 require (
+	github.com/andanhm/go-prettytime v1.1.0
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/docker v20.10.25+incompatible
 	github.com/edgefarm/netbird-go v1.3.4
@@ -12,6 +13,7 @@ require (
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.6.0
 	github.com/icza/gox v0.0.0-20230924165045-adcb03233bb5
+	github.com/jedib0t/go-pretty/v6 v6.5.4
 	github.com/mittwald/go-helm-client v0.8.2
 	github.com/openyurtio/openyurt v1.4.0
 	github.com/pytimer/k8sutil v0.0.0-20221114090626-86d6279d8e52
@@ -104,7 +106,7 @@ require (
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.1.1 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
@@ -147,8 +149,8 @@ require (
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
