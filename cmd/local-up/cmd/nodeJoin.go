@@ -23,11 +23,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
+	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"

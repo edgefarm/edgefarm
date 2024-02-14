@@ -27,8 +27,8 @@ import (
 
 	"k8s.io/klog/v2"
 
-	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	args "github.com/edgefarm/edgefarm/pkg/shared"
 )
 
 type Spec struct {
@@ -205,24 +205,6 @@ func (p *Packages) Uninstall() error {
 			if err := helm.Uninstall(); err != nil {
 				return err
 			}
-		}
-	}
-	return nil
-}
-
-func InstallBase() error {
-	for _, pkg := range Base {
-		if err := pkg.Install(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func InstallDependencies() error {
-	for _, pkg := range ClusterDependencies {
-		if err := pkg.Install(); err != nil {
-			return err
 		}
 	}
 	return nil

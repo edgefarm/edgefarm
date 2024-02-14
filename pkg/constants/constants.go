@@ -21,4 +21,11 @@ import "time"
 const (
 	DefaultKubeConfigPath    = "~/.edgefarm-local-up/kubeconfig"
 	BootstrapTokenDefaultTTL = time.Hour * 24
+	OpenYurtVersion          = "v1.4.0"
+)
+
+var (
+	YurtHubImageFormat     = "ghcr.io/openyurtio/openyurt/yurthub:%s"
+	YurtManagerImageFormat = "ghcr.io/openyurtio/openyurt/yurt-manager:%s"
+	NodeServantImageFormat = "ghcr.io/openyurtio/openyurt/node-servant:%s"
 )

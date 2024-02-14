@@ -66,6 +66,8 @@ nodes:
 
 	KindEdgeRole = `  - role: worker
     image: {{.kind_node_image}}
+    labels:
+      openyurt.io/is-edge-worker: "true"
     kubeadmConfigPatches:
     - |
       kind: ClusterConfiguration
