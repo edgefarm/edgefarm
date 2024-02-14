@@ -3,8 +3,8 @@ package netbird
 import (
 	"errors"
 
-	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/packages"
+	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"k8s.io/klog/v2"
 )
@@ -23,7 +23,7 @@ func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error
 	if uninstall {
 		if args.NetbirdToken != "" {
 			klog.Infof("Uninstall VPN packages")
-			if err := packages.Uninstall(packages.ClusterBootstrapVPN); err != nil {
+			if err := packages.Uninstall(packages.VPN); err != nil {
 				return err
 			}
 		}
@@ -55,7 +55,7 @@ func EnableVPN() error {
 
 	if args.NetbirdToken != "" {
 		klog.Infof("Deploy cluster bootstrap VPN packages")
-		if err := packages.Install(packages.ClusterBootstrapVPN); err != nil {
+		if err := packages.Install(packages.VPN); err != nil {
 			return err
 		}
 	}
