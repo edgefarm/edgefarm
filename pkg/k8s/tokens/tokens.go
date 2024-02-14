@@ -30,12 +30,18 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/edgefarm/edgefarm/pkg/constants"
+	"github.com/edgefarm/edgefarm/pkg/k8s"
 	bootstraptokenv1 "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/apis/bootstraptoken/v1"
 	kubeadmconstants "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/constants"
 	nodetoken "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstraptoken/node"
 )
 
-func GetOrCreateJoinTokenString(cliSet kubeclientset.Interface) (string, error) {
+func GetOrCreateJoinTokenString() (string, error) {
+	cliSet, err := k8s.GetClientset()
+	if err != nil {
+		return "", fmt.Errorf("failed to get clientset: %v", err)
+	}
+
 	tokenSelector := fields.SelectorFromSet(
 		map[string]string{
 			// TODO: We hard-code "type" here until `field_constants.go` that is

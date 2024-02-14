@@ -17,7 +17,7 @@ limitations under the License.
 package k8s
 
 import (
-	"github.com/edgefarm/edgefarm/pkg/args"
+	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"

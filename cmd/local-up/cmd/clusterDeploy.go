@@ -16,93 +16,68 @@ limitations under the License.
 
 package cmd
 
-// import (
-// 	"fmt"
-// 	"io"
-// 	"os"
+import (
+	"fmt"
+	"io"
+	"os"
 
-// 	"github.com/edgefarm/edgefarm/pkg/args"
-// 	"github.com/edgefarm/edgefarm/pkg/k8s"
-// 	"github.com/edgefarm/edgefarm/pkg/packages"
-// 	"github.com/spf13/cobra"
-// 	"k8s.io/client-go/tools/clientcmd"
-// 	"k8s.io/klog/v2"
-// )
+	deploy "github.com/edgefarm/edgefarm/pkg/deploy"
+	"github.com/edgefarm/edgefarm/pkg/shared"
+	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2"
+)
 
-// func NewDeployCommand(out io.Writer) *cobra.Command {
-// 	cmd := &cobra.Command{
-// 		Use:   "deploy",
-// 		Short: "Deploy components to the local edgefarm cluster",
-// 		RunE: func(cmd *cobra.Command, arguments []string) error {
-// 			if err := args.EvaluateKubeConfigPath(); err != nil {
-// 				fmt.Printf("Error: %v\n", err)
-// 				os.Exit(1)
-// 			}
-// 			klog.Info("Start to prepare kube client")
-// 			kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
-// 			if err != nil {
-// 				klog.Errorf("Failed to build kubeconfig: %v", err)
-// 				os.Exit(1)
-// 			}
-// 			args.KubeConfigRestConfig = kubeconfig
-// 			if err := RunDeploy(); err != nil {
-// 				return err
-// 			}
-// 			return nil
-// 		},
-// 		Args: cobra.NoArgs,
-// 	}
-// 	cmd.SetOut(out)
-// 	return cmd
-// }
+func NewDeployCommand(out io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deploy",
+		Short: "Deploy components to the local edgefarm cluster",
+		RunE: func(cmd *cobra.Command, arguments []string) error {
+			if err := shared.EvaluateKubeConfigPath(); err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
+			klog.Info("Start to prepare kube client")
+			kubeconfig, err := clientcmd.BuildConfigFromFlags("", shared.KubeConfig)
+			if err != nil {
+				klog.Errorf("Failed to build kubeconfig: %v", err)
+				os.Exit(1)
+			}
+			if shared.Args.Only.Crossplane ||
+				shared.Args.Only.Kyverno ||
+				shared.Args.Only.Metacontroller ||
+				shared.Args.Only.Vault ||
+				shared.Args.Only.VaultOperator ||
+				shared.Args.Only.EdgeFarmApplications ||
+				shared.Args.Only.EdgeFarmCore ||
+				shared.Args.Only.EdgeFarmMonitor ||
+				shared.Args.Only.CertManager ||
+				shared.Args.Only.Ingress ||
+				shared.Args.Only.EdgeFarmNetwork {
+				shared.Args.Skip = shared.ConvertOnlyToSkip(shared.Args.Only)
+			}
+			shared.KubeConfigRestConfig = kubeconfig
+			if err := RunDeploy(); err != nil {
+				return err
+			}
+			return nil
+		},
+		Args: cobra.NoArgs,
+	}
+	cmd.SetOut(out)
+	shared.AddSharedFlags(cmd.Flags())
+	deploy.AddFlagsForDeploy(cmd.Flags())
+	return cmd
+}
 
-// func init() {
-// 	localClusterCmd.AddCommand(NewDeployCommand(os.Stdout))
-// 	// localDeleteCmd.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
-// }
+func init() {
+	localClusterCmd.AddCommand(NewDeployCommand(os.Stdout))
+	// localDeleteCmd.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
+}
 
-// func RunDeploy() error {
-// 	l, err := k8s.ListCRDs()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	klog.Infof("CRDs: %v", l)
-// 	if err := packages.Install(packages.ClusterBootstrapKyverno); err != nil {
-// 		return err
-// 	}
-// 	// klog.Infof("Prepare edge nodes")
-// 	// if err := k8s.PrepareEdgeNodes(); err != nil {
-// 	// 	return err
-// 	// }
-// 	// klog.Infof("Deploy cluster initial packages")
-// 	// if err := packages.Install(packages.Init); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	// klog.Infof("Prepare edge nodes")
-// 	// if err := k8s.PrepareEdgeNodes(); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	// klog.Infof("Deploy cluster base packages")
-// 	// if err := packages.Install(packages.Base); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	// klog.Infof("Deploy cluster dependencies packages")
-// 	// if err := packages.Install(packages.ClusterDependencies); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	// klog.Infof("Deploy edgefarm network packages")
-// 	// if err := packages.Install(packages.Network); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	// // klog.Infof("Deploy edgefarm applications packages")
-// 	// if err := packages.Install(packages.Monitor); err != nil {
-// 	// 	return err
-// 	// }
-
-// 	return nil
-// }
+func RunDeploy() error {
+	if err := deploy.Deploy(); err != nil {
+		return err
+	}
+	return nil
+}

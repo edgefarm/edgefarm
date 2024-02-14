@@ -25,13 +25,13 @@ import (
 	"helm.sh/helm/v3/pkg/repo"
 	"k8s.io/klog/v2"
 
-	"github.com/edgefarm/edgefarm/pkg/args"
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	args "github.com/edgefarm/edgefarm/pkg/shared"
 )
 
 var (
-	ClusterBootstrapFlannel = []Packages{
+	Flannel = []Packages{
 		{
 			Helm: []*Helm{
 				// flannel-edge used for physical edge devices
@@ -151,7 +151,7 @@ flannel:
 		},
 	}
 
-	ClusterBootstrapKyverno = []Packages{
+	Kyverno = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -259,7 +259,7 @@ spec:
 		},
 	}
 
-	ClusterBootstrapYurtManager = []Packages{
+	YurtManager = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -275,8 +275,6 @@ spec:
 								Namespace:   "kube-system",
 								Version:     "1.3.4",
 								UpgradeCRDs: true,
-								// 								ValuesYaml: `image:
-								//   tag: v1.3.4`,
 							},
 						},
 					},
@@ -364,7 +362,7 @@ affinity:
 		},
 	}
 
-	ClusterBootstrapYurtHub = []Packages{
+	YurtHub = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -400,7 +398,7 @@ image:
 		},
 	}
 
-	ClusterBootstrapCoreDNS = []Packages{
+	CoreDNS = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -434,7 +432,7 @@ dnsConfig:
 		},
 	}
 
-	ClusterBootstrapKubeProxy = []Packages{
+	KubeProxy = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -537,7 +535,7 @@ affinity:
 		},
 	}
 
-	ClusterBootstrapVPN = []Packages{
+	VPN = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -594,7 +592,7 @@ affinity:
 		},
 	}
 
-	ClusterDependencies = []Packages{
+	Ingress = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -635,6 +633,12 @@ affinity:
 						CreateNamespace: true,
 					},
 				},
+			},
+		},
+	}
+	CertManager = []Packages{
+		{
+			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
 						Name: "cert-manager",
@@ -664,6 +668,12 @@ cainjector:
 						CreateNamespace: true,
 					},
 				},
+			},
+		},
+	}
+	Crossplane = []Packages{
+		{
+			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
 						Name: "crossplane-stable",
@@ -712,6 +722,12 @@ xfn:
 						CreateNamespace: true,
 					},
 				},
+			},
+		},
+	}
+	VaultOperator = []Packages{
+		{
+			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
 						Name: "vault",
@@ -739,6 +755,12 @@ xfn:
 						CreateNamespace: true,
 					},
 				},
+			},
+		},
+	}
+	Metacontroller = []Packages{
+		{
+			Helm: []*Helm{
 				{
 					Repo: &repo.Entry{
 						Name: "metacontroller",
@@ -759,7 +781,7 @@ xfn:
 			},
 		},
 	}
-	Base = []Packages{
+	Vault = []Packages{
 		{
 			Helm: []*Helm{
 				{

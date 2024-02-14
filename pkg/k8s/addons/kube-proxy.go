@@ -45,7 +45,7 @@ func ReplaceKubeProxy() error {
 		return err
 	}
 
-	if err := packages.Install(packages.ClusterBootstrapKubeProxy); err != nil {
+	if err := packages.Install(packages.KubeProxy); err != nil {
 		return err
 	}
 

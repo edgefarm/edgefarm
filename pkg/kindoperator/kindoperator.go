@@ -23,6 +23,7 @@ import (
 	"sigs.k8s.io/kind/pkg/log"
 
 	constants "github.com/edgefarm/edgefarm/pkg/constants"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 )
 
 const (
@@ -36,15 +37,20 @@ type KindOperator struct {
 	logger         log.Logger
 }
 
-func NewKindOperator(kubeconfigPath string) *KindOperator {
+func NewKindOperator(kubeconfigPath string) (*KindOperator, error) {
 	path := constants.DefaultKubeConfigPath
 	if kubeconfigPath != "" {
 		path = kubeconfigPath
 	}
+	path, err := shared.Expand(path)
+	if err != nil {
+		return nil, err
+	}
+
 	return &KindOperator{
 		kubeconfigPath: path,
 		logger:         NewLogger(os.Stdout, 0),
-	}
+	}, nil
 }
 
 func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {

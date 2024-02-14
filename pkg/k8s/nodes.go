@@ -30,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/klog/v2"
 	yaml "sigs.k8s.io/yaml"
 )
 
@@ -134,6 +135,14 @@ func GetEdgeNodes() ([]v1.Node, error) {
 	return GetNodes(&metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			"openyurt.io/is-edge-worker": "true",
+		},
+	})
+}
+
+func GetCloudNodes() ([]v1.Node, error) {
+	return GetNodes(&metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"openyurt.io/is-edge-worker": "false",
 		},
 	})
 }
@@ -356,6 +365,10 @@ func PrepareEdgeNodes() error {
 	if err != nil {
 		return err
 	}
+	if len(nodes) == 0 {
+		return nil
+	}
+	klog.Infof("Prepare edge nodes")
 	err = AnnotateNodes(nodes, map[string]string{
 		"apps.openyurt.io/binding": "true",
 	})
@@ -371,6 +384,15 @@ func PrepareEdgeNodes() error {
 	}
 
 	err = TaintNodes(nodes, DefaultEdgeNodeTaint)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateEdgeNodepools() error {
+	nodes, err := GetEdgeNodes()
 	if err != nil {
 		return err
 	}

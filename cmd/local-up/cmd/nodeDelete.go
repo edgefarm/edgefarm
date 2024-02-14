@@ -22,9 +22,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/edgefarm/edgefarm/pkg/args"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"k8s.io/klog/v2"

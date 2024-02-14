@@ -65,7 +65,7 @@ func ReplaceCoreDNS() error {
 		return err
 	}
 
-	if err := packages.Install(packages.ClusterBootstrapCoreDNS); err != nil {
+	if err := packages.Install(packages.CoreDNS); err != nil {
 		return err
 	}
 
