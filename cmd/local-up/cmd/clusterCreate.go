@@ -259,7 +259,6 @@ func (o *kindOptions) Config() *initializerConfig {
 
 func addFlagsForCreate(flagset *pflag.FlagSet) {
 	flagset.IntVar(&shared.EdgeNodesNum, "edge-node-num", shared.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
-	flagset.StringVar(&shared.ConfigPath, "config", shared.ConfigPath, "Path to the edgefarm config file.")
 	flagset.BoolVar(&generateConfig, "generate-config", false, "Generates a config file and exit.")
 	flagset.StringVar(&clusterType, "type", "local", fmt.Sprintf("Config type to generate. Valid values are %s", func() string {
 		res := ""

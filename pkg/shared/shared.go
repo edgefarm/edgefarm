@@ -201,4 +201,6 @@ func Expand(path string) (string, error) {
 
 func AddSharedFlags(flagset *pflag.FlagSet) {
 	flagset.StringVar(&KubeConfig, "kube-config", constants.DefaultKubeConfigPath, fmt.Sprintf("Path where the kubeconfig file of new cluster will be stored. The default is %s", constants.DefaultKubeConfigPath))
+	flagset.StringVar(&ConfigPath, "config", ConfigPath, "Path to the edgefarm config file.")
+
 }
