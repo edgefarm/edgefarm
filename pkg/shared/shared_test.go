@@ -10,8 +10,8 @@ import (
 func TestOnly(t *testing.T) {
 	assert := assert.New(t)
 	onlyFlags := OnlyFlags{
-		Network: true,
-		Flannel: true,
+		EdgeFarmNetwork: true,
+		Flannel:         true,
 	}
 
 	skipFlags := ConvertOnlyToSkip(onlyFlags)
