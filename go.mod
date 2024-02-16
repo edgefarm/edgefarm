@@ -27,13 +27,19 @@ require (
 	k8s.io/apimachinery v0.22.4
 	k8s.io/client-go v0.22.4
 	k8s.io/cluster-bootstrap v0.22.3
+	k8s.io/code-generator v0.22.3
 	k8s.io/klog/v2 v2.100.1
 	sigs.k8s.io/kind v0.12.0
 	sigs.k8s.io/yaml v1.3.0
 	tideland.dev/go/wait v0.2.0
 )
 
-require gopkg.in/yaml.v2 v2.4.0 // indirect
+require (
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c // indirect
+)
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
