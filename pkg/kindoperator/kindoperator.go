@@ -27,7 +27,6 @@ import (
 )
 
 const (
-	KindClusterName   = "edgefarm"
 	KindNetworkName   = "edgefarm"
 	KindNetworkSubnet = "172.254.0.0/16"
 )
@@ -75,11 +74,11 @@ func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 		cluster.CreateWithRetain(true),
 		cluster.CreateWithWaitForReady(0),
 		cluster.CreateWithKubeconfigPath(k.kubeconfigPath),
-		cluster.CreateWithDisplayUsage(true),
-		cluster.CreateWithDisplaySalutation(true),
+		cluster.CreateWithDisplayUsage(false),
+		cluster.CreateWithDisplaySalutation(false),
 	}
 
-	err = provider.Create(KindClusterName, options...)
+	err = provider.Create(shared.ClusterName, options...)
 	if err != nil {
 		return err
 	}
@@ -89,7 +88,7 @@ func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 
 func (k *KindOperator) KindDeleteCluster(name string) error {
 	provider := cluster.NewProvider()
-	err := provider.Delete(KindClusterName, k.kubeconfigPath)
+	err := provider.Delete(shared.ClusterName, k.kubeconfigPath)
 	if err != nil {
 		return err
 	}

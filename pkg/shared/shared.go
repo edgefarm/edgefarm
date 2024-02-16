@@ -50,6 +50,8 @@ var (
 	KubeConfigRestConfig *rest.Config
 	ConfigPath           string
 	EdgeNodesNum         = 2
+	ClusterName          = "edgefarm"
+	CloudClusterName     = "edgefarm"
 )
 
 type SkipFlags struct {

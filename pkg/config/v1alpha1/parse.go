@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"fmt"
 	"os"
 
 	api "github.com/edgefarm/edgefarm/apis/config/v1alpha1"
@@ -29,11 +30,15 @@ func Load(path string) (*api.Cluster, error) {
 
 func Parse(c *api.Cluster) error {
 	if c.Spec.Type == Local.String() {
+		shared.ClusterName = c.Spec.Local.Name
 		shared.Ports.HostApiServerPort = c.Spec.Local.ApiServerPort
 		shared.Ports.HostNatsPort = c.Spec.Local.NatsPort
 		shared.Ports.HostHttpPort = c.Spec.Local.HttpPort
 		shared.Ports.HostHttpsPort = c.Spec.Local.HttpsPort
 		shared.EdgeNodesNum = c.Spec.Local.VirtualEdgeNodes
+	} else if c.Spec.Type == Hetzner.String() {
+		shared.ClusterName = fmt.Sprintf("%s-bootstrap", c.Spec.Hetzner.Name)
+		shared.CloudClusterName = c.Spec.Hetzner.Name
 	}
 	shared.KubeConfig = c.Spec.General.KubeConfigPath
 	return nil
