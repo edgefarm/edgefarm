@@ -23,7 +23,12 @@ func SetDefaultsCluster(obj *Cluster) {
 	obj.Spec.Type = "local"
 }
 
+func SetDefaultsGeneral(obj *General) {
+	obj.KubeConfigPath = "~/.edgefarm-local-up/kubeconfig"
+}
+
 func SetDefaultsLocal(obj *Local) {
+	obj.Name = "edgefarm"
 	obj.ApiServerPort = 6443
 	obj.NatsPort = 4222
 	obj.HttpPort = 80
@@ -32,12 +37,9 @@ func SetDefaultsLocal(obj *Local) {
 }
 
 func SetDefaultsHetzner(obj *Hetzner) {
+	obj.Name = "edgefarm"
 	obj.HCloudToken = "<your hcloud token>"
 	obj.HetznerRobotUser = "<your robot user>"
 	obj.HetznerRobotPassword = "<your robot password>"
 	obj.KubeConfigPath = "~/.edgefarm-local-up/hetzner"
-}
-
-func SetDefaultsGeneral(obj *General) {
-	obj.KubeConfigPath = "~/.edgefarm-local-up/kubeconfig"
 }

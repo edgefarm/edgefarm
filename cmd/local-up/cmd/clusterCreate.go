@@ -144,11 +144,11 @@ func newKindOptions() *kindOptions {
 	return &kindOptions{
 		WorkerNodesNum:    1,
 		EdgeNodesNum:      shared.EdgeNodesNum,
-		ClusterName:       "edgefarm",
+		ClusterName:       shared.ClusterName,
 		OpenYurtVersion:   "v1.4.0",
 		KubernetesVersion: "v1.22.7",
 		IgnoreError:       true,
-		CloudNodes:        "edgefarm-control-plane,edgefarm-worker",
+		CloudNodes:        fmt.Sprintf("%s-control-plane,%s-worker", shared.ClusterName, shared.ClusterName),
 		NodeImage:         "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7-systemd",
 	}
 }
