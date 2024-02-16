@@ -52,6 +52,7 @@ var (
 	EdgeNodesNum         = 2
 	ClusterName          = "edgefarm"
 	CloudClusterName     = "edgefarm"
+	ClusterType          string
 )
 
 type SkipFlags struct {

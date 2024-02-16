@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package constants
+package local
 
 const (
-	KindConfigTemplate = `apiVersion: kind.x-k8s.io/v1alpha4
+	kindConfigTemplate = `apiVersion: kind.x-k8s.io/v1alpha4
 kind: Cluster
 name: {{.cluster_name}}
 networking:
@@ -42,7 +42,7 @@ nodes:
     - containerPort: 6443
       hostPort: {{.host_api_server_port}}`
 
-	KindWorkerRoleTemplate = `  - role: worker
+	kindWorkerRoleTemplate = `  - role: worker
     image: {{.kind_node_image}}
     extraPortMappings:
     - containerPort: 4222
@@ -64,7 +64,7 @@ nodes:
       kind: KubeletConfiguration
       cgroupDriver: systemd`
 
-	KindEdgeRole = `  - role: worker
+	kindEdgeRole = `  - role: worker
     image: {{.kind_node_image}}
     labels:
       openyurt.io/is-edge-worker: "true"
