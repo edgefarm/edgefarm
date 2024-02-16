@@ -43,15 +43,17 @@ type General struct {
 
 // +k8s:deepcopy-gen=true
 type Local struct {
-	ApiServerPort    int `yaml:"apiServerPort,omitempty" json:"apiServerPort,omitempty"`
-	NatsPort         int `yaml:"natsPort,omitempty" json:"natsPort,omitempty"`
-	HttpPort         int `yaml:"httpPort,omitempty" json:"httpPort,omitempty"`
-	HttpsPort        int `yaml:"httpsPort,omitempty" json:"httpsPort,omitempty"`
-	VirtualEdgeNodes int `yaml:"virtualEdgeNodes,omitempty" json:"virtualEdgeNodes,omitempty"`
+	Name             string `yaml:"name,omitempty" json:"name,omitempty"`
+	ApiServerPort    int    `yaml:"apiServerPort,omitempty" json:"apiServerPort,omitempty"`
+	NatsPort         int    `yaml:"natsPort,omitempty" json:"natsPort,omitempty"`
+	HttpPort         int    `yaml:"httpPort,omitempty" json:"httpPort,omitempty"`
+	HttpsPort        int    `yaml:"httpsPort,omitempty" json:"httpsPort,omitempty"`
+	VirtualEdgeNodes int    `yaml:"virtualEdgeNodes,omitempty" json:"virtualEdgeNodes,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
 type Hetzner struct {
+	Name string `yaml:"name,omitempty" json:"name,omitempty"`
 	//  The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions
 	HCloudToken string `yaml:"hcloudToken,omitempty" json:"hcloudToken,omitempty"`
 	// The Robot user and password are created here https://robot.hetzner.com/preferences/index -> 'Webservice and app settings'
