@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	deploy "github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/spf13/cobra"
@@ -33,6 +34,19 @@ func NewDeployCommand(out io.Writer) *cobra.Command {
 		Use:   "deploy",
 		Short: "Deploy components to the local edgefarm cluster",
 		RunE: func(cmd *cobra.Command, arguments []string) error {
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+			}
+
 			if err := shared.EvaluateKubeConfigPath(); err != nil {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)

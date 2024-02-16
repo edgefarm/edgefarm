@@ -27,6 +27,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
 	"github.com/edgefarm/edgefarm/pkg/shared"
@@ -45,6 +46,19 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 		Use:   "delete",
 		Short: "Delete the local edgefarm cluster",
 		Run: func(cmd *cobra.Command, arguments []string) {
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+			}
+
 			klog.Infoln("Deleting local edgefarm cluster")
 			if err := args.EvaluateKubeConfigPath(); err != nil {
 				fmt.Printf("Error: %v\n", err)
@@ -114,5 +128,4 @@ func init() {
 func addDeleteArgs(flagset *pflag.FlagSet) {
 	flagset.BoolVarP(&override, "yes", "y", false, "Override confirmation prompt")
 	flagset.BoolVarP(&cleanupNetbird, "cleanup-netbird", "c", true, "Cleanup netbird.io resources")
-
 }
