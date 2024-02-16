@@ -36,12 +36,15 @@ import (
 	nodetoken "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstraptoken/node"
 )
 
-func GetOrCreateJoinTokenString() (string, error) {
-	cliSet, err := k8s.GetClientset()
-	if err != nil {
-		return "", fmt.Errorf("failed to get clientset: %v", err)
-	}
+func GetOrCreateJoinTokenString(cliSet *kubeclientset.Clientset) (string, error) {
+	var err error
+	if cliSet == nil {
+		cliSet, err = k8s.GetClientset()
+		if err != nil {
+			return "", fmt.Errorf("failed to get clientset: %v", err)
+		}
 
+	}
 	tokenSelector := fields.SelectorFromSet(
 		map[string]string{
 			// TODO: We hard-code "type" here until `field_constants.go` that is

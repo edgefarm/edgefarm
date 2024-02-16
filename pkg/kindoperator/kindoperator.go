@@ -71,7 +71,6 @@ func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 		return err
 	}
 	options := []cluster.CreateOption{
-
 		cluster.CreateWithRawConfig(config),
 		cluster.CreateWithRetain(true),
 		cluster.CreateWithWaitForReady(0),
