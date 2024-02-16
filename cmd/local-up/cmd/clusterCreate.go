@@ -35,11 +35,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/kustomize/kyaml/yaml"
 	"tideland.dev/go/wait"
 
 	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
 
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	deploy "github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
@@ -51,13 +53,42 @@ import (
 	stringsx "github.com/icza/gox/stringsx"
 )
 
-func NewCreateCommand(out io.Writer) *cobra.Command {
-	o := newKindOptions()
+var (
+	clusterType    string
+	generateConfig bool
+)
 
+func NewCreateCommand(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create the local edgefarm cluster",
 		RunE: func(cmd *cobra.Command, arguments []string) error {
+			if generateConfig {
+				err := configv1.ValidateType(clusterType)
+				if err != nil {
+					return err
+				}
+				if clusterType != "" {
+					c := configv1.NewConfig(configv1.ConfigType(clusterType))
+					str, err := yaml.Marshal(c)
+					if err != nil {
+						return err
+					}
+					fmt.Println(string(str))
+					os.Exit(0)
+				}
+			}
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					return err
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					return err
+				}
+			}
+
 			_, err := state.GetState()
 			if err != nil {
 				return err
@@ -70,6 +101,7 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 			if shared.Args.Only.CoreDNS || shared.Args.Only.Flannel || shared.Args.Only.KubeProxy {
 				shared.Args.Skip = shared.ConvertOnlyToSkip(shared.Args.Only)
 			}
+			o := newKindOptions()
 			if err := o.Validate(); err != nil {
 				return err
 			}
@@ -86,7 +118,7 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 	}
 	cmd.SetOut(out)
 	shared.AddSharedFlags(cmd.Flags())
-	addFlagsForCreate(cmd.Flags(), o)
+	addFlagsForCreate(cmd.Flags())
 	deploy.AddFlagsForDeploy(cmd.Flags())
 	return cmd
 }
@@ -103,7 +135,6 @@ type kindOptions struct {
 	CloudNodes        string
 	OpenYurtVersion   string
 	KubernetesVersion string
-	UseLocalImages    bool
 	KubeConfig        string
 	IgnoreError       bool
 	NodeImage         string
@@ -112,11 +143,10 @@ type kindOptions struct {
 func newKindOptions() *kindOptions {
 	return &kindOptions{
 		WorkerNodesNum:    1,
-		EdgeNodesNum:      2,
+		EdgeNodesNum:      shared.EdgeNodesNum,
 		ClusterName:       "edgefarm",
 		OpenYurtVersion:   "v1.4.0",
 		KubernetesVersion: "v1.22.7",
-		UseLocalImages:    false,
 		IgnoreError:       true,
 		CloudNodes:        "edgefarm-control-plane,edgefarm-worker",
 		NodeImage:         "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7-systemd",
@@ -224,12 +254,20 @@ func (o *kindOptions) Config() *initializerConfig {
 		NodeImage:         o.NodeImage,
 		ClusterName:       o.ClusterName,
 		KubernetesVersion: o.KubernetesVersion,
-		UseLocalImage:     o.UseLocalImages,
 	}
 }
 
-func addFlagsForCreate(flagset *pflag.FlagSet, o *kindOptions) {
-	flagset.IntVar(&o.EdgeNodesNum, "edge-node-num", o.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
+func addFlagsForCreate(flagset *pflag.FlagSet) {
+	flagset.IntVar(&shared.EdgeNodesNum, "edge-node-num", shared.EdgeNodesNum, "Specify the edge node number of the kind cluster.")
+	flagset.StringVar(&shared.ConfigPath, "config", shared.ConfigPath, "Path to the edgefarm config file.")
+	flagset.BoolVar(&generateConfig, "generate-config", false, "Generates a config file and exit.")
+	flagset.StringVar(&clusterType, "type", "local", fmt.Sprintf("Config type to generate. Valid values are %s", func() string {
+		res := ""
+		for _, t := range configv1.ValidClusterTypes {
+			res += t.String() + ","
+		}
+		return res[:len(res)-1]
+	}()))
 	flagset.IntVar(&shared.Ports.HostApiServerPort, "host-api-server-port", shared.Ports.HostApiServerPort, "Specify the port of host api server.")
 	flagset.IntVar(&shared.Ports.HostNatsPort, "host-nats-port", shared.Ports.HostNatsPort, "Specify the port of nats to be mapped to.")
 	flagset.IntVar(&shared.Ports.HostHttpPort, "host-http-port", shared.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
@@ -403,6 +441,7 @@ func (ki *Initializer) prepareKindConfigFile() ([]byte, error) {
 		}
 		kindConfigContent = strings.Join([]string{kindConfigContent, worker}, "\n")
 	}
+	fmt.Println(kindConfigContent)
 	return []byte(kindConfigContent), nil
 }
 

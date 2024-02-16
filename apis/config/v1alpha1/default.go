@@ -18,4 +18,26 @@ package v1alpha1
 
 // SetDefaultsCluster sets uninitialized fieWlds to their default value.
 func SetDefaultsCluster(obj *Cluster) {
+	obj.Kind = "Cluster"
+	obj.APIVersion = "config.edgefarm.io/v1alpha1"
+	obj.Spec.Type = "local"
+}
+
+func SetDefaultsLocal(obj *Local) {
+	obj.ApiServerPort = 6443
+	obj.NatsPort = 4222
+	obj.HttpPort = 80
+	obj.HttpsPort = 443
+	obj.VirtualEdgeNodes = 2
+}
+
+func SetDefaultsHetzner(obj *Hetzner) {
+	obj.HCloudToken = "<your hcloud token>"
+	obj.HetznerRobotUser = "<your robot user>"
+	obj.HetznerRobotPassword = "<your robot password>"
+	obj.KubeConfigPath = "~/.edgefarm-local-up/hetzner"
+}
+
+func SetDefaultsGeneral(obj *General) {
+	obj.KubeConfigPath = "~/.edgefarm-local-up/kubeconfig"
 }

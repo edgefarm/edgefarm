@@ -48,6 +48,8 @@ var (
 
 	KubeConfig           string
 	KubeConfigRestConfig *rest.Config
+	ConfigPath           string
+	EdgeNodesNum         = 2
 )
 
 type SkipFlags struct {

@@ -187,7 +187,7 @@ func LabelCloudNodes(cloudNodes []string) error {
 }
 
 func (c *DeployOpenYurt) prepareyNodeServantApplier() error {
-	joinToken, err := tokens.GetOrCreateJoinTokenString()
+	joinToken, err := tokens.GetOrCreateJoinTokenString(nil)
 	if err != nil || joinToken == "" {
 		return fmt.Errorf("fail to get join token: %w", err)
 	}
