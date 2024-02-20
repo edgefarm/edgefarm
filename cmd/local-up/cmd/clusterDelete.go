@@ -27,6 +27,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 
+	"github.com/edgefarm/edgefarm/pkg/clusters/capi"
+	"github.com/edgefarm/edgefarm/pkg/clusters/hetzner"
 	"github.com/edgefarm/edgefarm/pkg/clusters/local"
 	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
@@ -46,6 +48,9 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 		Use:   "delete",
 		Short: "Delete the local edgefarm cluster",
 		Run: func(cmd *cobra.Command, arguments []string) {
+			clusterConfig := configv1.NewConfig(configv1.Local)
+			clusterConfig.Spec.Type = configv1.Local.String()
+			shared.ClusterConfig = &clusterConfig
 			if shared.ConfigPath != "" {
 				c, err := configv1.Load(shared.ConfigPath)
 				if err != nil {
@@ -71,6 +76,22 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 				os.Exit(1)
 			}
 			args.KubeConfigRestConfig = kubeconfig
+			switch {
+			case shared.ClusterConfig.Spec.Type == configv1.Local.String():
+				args.CloudKubeConfigRestConfig = nil
+			case shared.ClusterConfig.Spec.Type == configv1.Hetzner.String():
+				args.CloudKubeConfig = shared.ClusterConfig.Spec.Hetzner.KubeConfigPath
+				e, err := shared.Expand(args.CloudKubeConfig)
+				if err != nil {
+					klog.Errorf("Failed to expand cloud kubeconfig: %v", err)
+					os.Exit(1)
+				}
+				args.CloudKubeConfigRestConfig, err = clientcmd.BuildConfigFromFlags("", e)
+				if err != nil {
+					klog.Errorf("Failed to build cloud kubeconfig: %v", err)
+					os.Exit(1)
+				}
+			}
 
 			doit := false
 			if override {
@@ -97,11 +118,27 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 						os.Exit(1)
 					}
 				}
-				err = local.DeleteCluster()
-				if err != nil {
-					klog.Errorf("Error %v", err)
-					os.Exit(1)
+				switch {
+				case shared.ClusterConfig.Spec.Type == configv1.Local.String():
+					err = local.DeleteCluster()
+					if err != nil {
+						klog.Errorf("Error %v", err)
+						os.Exit(1)
+					}
+				case shared.ClusterConfig.Spec.Type == configv1.Hetzner.String():
+					err = hetzner.DeleteCluster()
+					if err != nil {
+						klog.Errorf("Error %v", err)
+						os.Exit(1)
+					}
+					err = capi.DeleteCluster()
+					if err != nil {
+						klog.Errorf("Error %v", err)
+						os.Exit(1)
+					}
+
 				}
+
 			} else {
 				klog.Infoln("Aborted")
 			}
@@ -115,8 +152,6 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 
 func init() {
 	localClusterCmd.AddCommand(NewClusterDeleteCommand(os.Stdout))
-	// localDeleteCmd.Flags().BoolVarP(&override, "yes", "y", false, "Override confirmation prompt")
-	// localDeleteCmd.Flags().BoolVarP(&cleanupNetbird, "cleanup-netbird", "c", true, "Cleanup netbird.io resources")
 }
 
 func addDeleteArgs(flagset *pflag.FlagSet) {
