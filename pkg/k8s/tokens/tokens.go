@@ -25,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	kubeclientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	bootstrapapi "k8s.io/cluster-bootstrap/token/api"
 	bootstraputil "k8s.io/cluster-bootstrap/token/util"
 	"k8s.io/klog/v2"
@@ -36,14 +37,11 @@ import (
 	nodetoken "github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstraptoken/node"
 )
 
-func GetOrCreateJoinTokenString(cliSet *kubeclientset.Clientset) (string, error) {
+func GetOrCreateJoinTokenString(kubeconfig *rest.Config) (string, error) {
 	var err error
-	if cliSet == nil {
-		cliSet, err = k8s.GetClientset()
-		if err != nil {
-			return "", fmt.Errorf("failed to get clientset: %v", err)
-		}
-
+	cliSet, err := k8s.GetClientset(kubeconfig)
+	if err != nil {
+		return "", fmt.Errorf("failed to get clientset: %v", err)
 	}
 	tokenSelector := fields.SelectorFromSet(
 		map[string]string{

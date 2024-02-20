@@ -1,3 +1,19 @@
+/*
+Copyright © 2024 EdgeFarm Authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package local
 
 import (
@@ -11,6 +27,8 @@ import (
 	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
 
+	"github.com/edgefarm/edgefarm/pkg/clusters"
+	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/addons"
@@ -21,7 +39,6 @@ import (
 	"github.com/fatih/color"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 	"tideland.dev/go/wait"
 )
@@ -123,7 +140,7 @@ func newKindOptions() *kindOptions {
 		EdgeNodesNum:      shared.EdgeNodesNum,
 		ClusterName:       shared.ClusterName,
 		OpenYurtVersion:   "v1.4.0",
-		KubernetesVersion: "v1.22.7",
+		KubernetesVersion: constants.KubernetesVersion,
 		IgnoreError:       true,
 		CloudNodes:        fmt.Sprintf("%s-control-plane,%s-worker", shared.ClusterName, shared.ClusterName),
 		NodeImage:         "ghcr.io/edgefarm/edgefarm/kind-node:v1.22.7-systemd",
@@ -160,25 +177,24 @@ func (ki *Initializer) Run() error {
 	}
 
 	klog.Info("Cluster created")
-	kubeconfig, err := clientcmd.BuildConfigFromFlags("", shared.KubeConfig)
+	shared.KubeConfigRestConfig, err = clusters.PrepareKubeClient(shared.ClusterConfig.Spec.General.KubeConfigPath)
 	if err != nil {
 		return err
 	}
-	shared.KubeConfigRestConfig = kubeconfig
 
-	if err := k8s.PrepareEdgeNodes(); err != nil {
+	if err := k8s.PrepareEdgeNodes(shared.KubeConfigRestConfig); err != nil {
 		return err
 	}
 
 	if !shared.Args.Skip.CoreDNS {
 		klog.Infof("Deploy cluster coredns packages")
-		if err := addons.ReplaceCoreDNS(); err != nil {
+		if err := addons.ReplaceCoreDNS(shared.KubeConfigRestConfig); err != nil {
 			return err
 		}
 	}
 	if !shared.Args.Skip.Flannel {
 		klog.Infof("Deploy cluster flannel packages")
-		if err := packages.Install(packages.Flannel); err != nil {
+		if err := packages.Install(shared.KubeConfigRestConfig, packages.Flannel); err != nil {
 			return err
 		}
 		if err := WaitForBootstrapConditions(time.Minute * 5); err != nil {
@@ -187,13 +203,13 @@ func (ki *Initializer) Run() error {
 	}
 	if !shared.Args.Skip.KubeProxy {
 		klog.Infof("Deploy cluster kube-proxy packages")
-		if err := addons.ReplaceKubeProxy(); err != nil {
+		if err := addons.ReplaceKubeProxy(shared.KubeConfigRestConfig); err != nil {
 			return err
 		}
 	}
 
 	if shared.Args.Deploy {
-		if err := deploy.Deploy(); err != nil {
+		if err := deploy.Deploy(shared.KubeConfigRestConfig); err != nil {
 			return err
 		}
 	} else {
@@ -265,7 +281,7 @@ func WaitForBootstrapConditions(stepTimeout time.Duration) error {
 
 	// Checks for ready state of all nodes
 	nodesCondition := func() (bool, error) {
-		nodes, err := k8s.GetAllNodes()
+		nodes, err := k8s.GetAllNodes(shared.KubeConfigRestConfig)
 		if err != nil {
 			return false, err
 		}

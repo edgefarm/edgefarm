@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 EdgeFarm Authors
+Copyright © 2024 EdgeFarm Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package constants
+package local
 
-import "time"
+import (
+	"os"
 
-const (
-	DefaultKubeConfigPath    = "~/.edgefarm-local-up/kubeconfig"
-	BootstrapTokenDefaultTTL = time.Hour * 24
-	OpenYurtVersion          = "v1.4.0"
-	KubernetesVersion        = "v1.22.17"
+	"github.com/edgefarm/edgefarm/pkg/kindoperator"
+	"github.com/edgefarm/edgefarm/pkg/shared"
+	"k8s.io/klog/v2"
 )
 
-var (
-	YurtHubImageFormat     = "ghcr.io/openyurtio/openyurt/yurthub:%s"
-	YurtManagerImageFormat = "ghcr.io/openyurtio/openyurt/yurt-manager:%s"
-	NodeServantImageFormat = "ghcr.io/openyurtio/openyurt/node-servant:%s"
-)
+func DeleteCluster() error {
+	ki, err := kindoperator.NewKindOperator(shared.KubeConfig)
+	if err != nil {
+		klog.Errorf("Error %v", err)
+		os.Exit(1)
+	}
+	return ki.KindDeleteCluster(shared.ClusterName)
+}

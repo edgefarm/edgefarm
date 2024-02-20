@@ -27,6 +27,7 @@ import (
 
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
 )
 
@@ -209,7 +210,7 @@ config:
 				{
 					Name: "kyverno policy edge-node-annotation",
 					Condition: func() bool {
-						exists, err := k8s.CrdExists("clusterpolicies.kyverno.io")
+						exists, err := k8s.CrdExists(shared.KubeConfigRestConfig, "clusterpolicies.kyverno.io")
 						if err != nil {
 							klog.Error(err)
 							return false
@@ -217,7 +218,7 @@ config:
 						if !exists {
 							return false
 						}
-						est, err := k8s.CrdEstablished("clusterpolicies.kyverno.io")
+						est, err := k8s.CrdEstablished(shared.KubeConfigRestConfig, "clusterpolicies.kyverno.io")
 						if err != nil {
 							return false
 						}
@@ -628,41 +629,6 @@ affinity:
       https: 32443
   hostPort:
     enabled: true`,
-							},
-						},
-						CreateNamespace: true,
-					},
-				},
-			},
-		},
-	}
-	CertManager = []Packages{
-		{
-			Helm: []*Helm{
-				{
-					Repo: &repo.Entry{
-						Name: "cert-manager",
-						URL:  "https://charts.jetstack.io",
-					},
-					Spec: &Spec{
-						Chart: []*helmclient.ChartSpec{
-							{
-								ReleaseName: "cert-manager",
-								ChartName:   "cert-manager/cert-manager",
-								Namespace:   "cert-manager",
-								UpgradeCRDs: true,
-								Wait:        true,
-								Version:     "v1.12.0",
-								Timeout:     time.Second * 300,
-								ValuesYaml: `installCRDs: true
-image:
-  repository: ghcr.io/edgefarm/helm-charts/cert-manager-controller
-webhook:
-  image:
-    repository: ghcr.io/edgefarm/helm-charts/cert-manager-webhook
-cainjector:
-  image:
-    repository: ghcr.io/edgefarm/helm-charts/cert-manager-cainjector`,
 							},
 						},
 						CreateNamespace: true,

@@ -4,15 +4,16 @@ import (
 	"context"
 
 	"github.com/pytimer/k8sutil/apply"
+	"k8s.io/client-go/rest"
 )
 
-func Apply(manifest string) error {
-	dynamicClient, err := GetDynamicClient(nil)
+func Apply(config *rest.Config, manifest string) error {
+	dynamicClient, err := GetDynamicClient(config)
 	if err != nil {
 		return err
 	}
 
-	discoveryClient, err := GetDiscoveryClient(nil)
+	discoveryClient, err := GetDiscoveryClient(config)
 	if err != nil {
 		return err
 	}

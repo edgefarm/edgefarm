@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/edgefarm/edgefarm/apis/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/spf13/pflag"
 	"k8s.io/client-go/rest"
@@ -46,13 +47,16 @@ var (
 	NetbirdToken    string
 	NetbirdSetupKey string
 
-	KubeConfig           string
-	KubeConfigRestConfig *rest.Config
-	ConfigPath           string
-	EdgeNodesNum         = 2
-	ClusterName          = "edgefarm"
-	CloudClusterName     = "edgefarm"
-	ClusterType          string
+	KubeConfig                string
+	KubeConfigRestConfig      *rest.Config
+	CloudKubeConfig           string
+	CloudKubeConfigRestConfig *rest.Config
+	ConfigPath                string
+	EdgeNodesNum              = 2
+	ClusterName               = "edgefarm"
+	CloudClusterName          = "edgefarm"
+	ClusterType               string
+	ClusterConfig             *v1alpha1.Cluster
 )
 
 type SkipFlags struct {

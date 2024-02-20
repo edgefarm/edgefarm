@@ -53,11 +53,28 @@ type Local struct {
 
 // +k8s:deepcopy-gen=true
 type Hetzner struct {
+	// The name of the cluster
 	Name string `yaml:"name,omitempty" json:"name,omitempty"`
+	// The number of control plane machines
+	ControlPlaneMachineCount int `yaml:"controlPlaneMachineCount,omitempty" json:"controlPlaneMachineCount,omitempty"`
+	// The number of worker machines
+	WorkerMachineCount int `yaml:"workerMachineCount,omitempty" json:"workerMachineCount,omitempty"`
+	// The region where the cluster should be created
+	HetznerCloudRegion string `yaml:"hetznerCloudRegion,omitempty" json:"hetznerCloudRegion,omitempty"`
+	// The type of the control plane machine
+	HetznerCloudControlPlaneMachineType string `yaml:"hetznerCloudControlPlaneMachineType,omitempty" json:"hetznerCloudControlPlaneMachineType,omitempty"`
+	// The type of the worker machine
+	HetznerCloudWorkerMachineType string `yaml:"hetznerCloudWorkerMachineType,omitempty" json:"hetznerCloudWorkerMachineType,omitempty"`
+	// The SSH key that should be used to access the machines
+	HetznerCloudSSHKey string `yaml:"hetznerCloudSSHKey,omitempty" json:"hetznerCloudSSHKey,omitempty"`
 	//  The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions
 	HCloudToken string `yaml:"hcloudToken,omitempty" json:"hcloudToken,omitempty"`
 	// The Robot user and password are created here https://robot.hetzner.com/preferences/index -> 'Webservice and app settings'
 	HetznerRobotUser     string `yaml:"robotUser,omitempty" json:"robotUser,omitempty"`
 	HetznerRobotPassword string `yaml:"robotPassword,omitempty" json:"robotPassword,omitempty"`
-	KubeConfigPath       string `yaml:"kubeConfigPath,omitempty" json:"kubeConfigPath,omitempty"`
+	// The KubeConfigPath is the path where the kubeconfig file should be stored
+	KubeConfigPath string `yaml:"kubeConfigPath,omitempty" json:"kubeConfigPath,omitempty"`
+
+	SSHPrivateKeyPath string `yaml:"sshPrivateKeyPath,omitempty" json:"sshPrivateKeyPath,omitempty"`
+	SSHPublicKeyPath  string `yaml:"sshPublicKeyPath,omitempty" json:"sshPublicKeyPath,omitempty"`
 }

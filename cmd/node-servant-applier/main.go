@@ -13,9 +13,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/edgefarm/edgefarm/cmd/node-servant-applier/internal/constants"
+	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/k8s/yaml"
-	kubeclientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
@@ -33,12 +33,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	client, err := kubeclientset.NewForConfig(kubeconfig)
+	client, err := k8s.GetClientset(kubeconfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	joinToken, err := tokens.GetOrCreateJoinTokenString(client)
+	joinToken, err := tokens.GetOrCreateJoinTokenString(kubeconfig)
 	if err != nil || joinToken == "" {
 		log.Fatal(err)
 	}

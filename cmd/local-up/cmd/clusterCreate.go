@@ -29,7 +29,8 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/kustomize/kyaml/yaml"
 
-	"github.com/edgefarm/edgefarm/pkg/cluster/local"
+	"github.com/edgefarm/edgefarm/pkg/clusters/hetzner"
+	"github.com/edgefarm/edgefarm/pkg/clusters/local"
 	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	deploy "github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/shared"
@@ -88,8 +89,11 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if shared.ClusterType == configv1.Local.String() {
+			switch {
+			case shared.ClusterType == configv1.Local.String():
 				return local.CreateCluster()
+			case shared.ClusterType == configv1.Hetzner.String():
+				return hetzner.CreateCluster(shared.KubeConfigRestConfig)
 			}
 			return nil
 		},

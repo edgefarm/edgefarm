@@ -22,10 +22,11 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
-func GetNamespace(name string) (*v1.Namespace, error) {
-	clientset, err := GetClientset()
+func GetNamespace(kubeconfig *rest.Config, name string) (*v1.Namespace, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +34,8 @@ func GetNamespace(name string) (*v1.Namespace, error) {
 	return clientset.CoreV1().Namespaces().Get(context.Background(), name, metav1.GetOptions{})
 }
 
-func CreateNamespace(name string) (*v1.Namespace, error) {
-	clientset, err := GetClientset()
+func CreateNamespace(kubeconfig *rest.Config, name string) (*v1.Namespace, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -47,9 +48,9 @@ func CreateNamespace(name string) (*v1.Namespace, error) {
 	return clientset.CoreV1().Namespaces().Create(context.Background(), ns, metav1.CreateOptions{})
 }
 
-func CreateNamespaceIfNotExist(name string) (*v1.Namespace, error) {
+func CreateNamespaceIfNotExist(kubeconfig *rest.Config, name string) (*v1.Namespace, error) {
 	create := false
-	ns, err := GetNamespace(name)
+	ns, err := GetNamespace(kubeconfig, name)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			create = true
@@ -58,7 +59,7 @@ func CreateNamespaceIfNotExist(name string) (*v1.Namespace, error) {
 		}
 	}
 	if create {
-		ns, err = CreateNamespace(name)
+		ns, err = CreateNamespace(kubeconfig, name)
 	}
 	return ns, err
 }

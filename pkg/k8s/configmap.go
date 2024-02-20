@@ -7,10 +7,11 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
-func PollForConfigMap(namespace, name string, timeout time.Duration) error {
-	clientset, err := GetClientset()
+func PollForConfigMap(kubeconfig *rest.Config, namespace, name string, timeout time.Duration) error {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -34,8 +35,8 @@ func PollForConfigMap(namespace, name string, timeout time.Duration) error {
 	}
 }
 
-func GetConfigMapValue(namespace, name, key string) (string, error) {
-	clientset, err := GetClientset()
+func GetConfigMapValue(kubeconfig *rest.Config, namespace, name, key string) (string, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return "", err
 	}
@@ -56,8 +57,8 @@ func GetConfigMapValue(namespace, name, key string) (string, error) {
 	return value, nil
 }
 
-func UpdateConfigMapValue(namespace, name, key, value string) error {
-	clientset, err := GetClientset()
+func UpdateConfigMapValue(kubeconfig *rest.Config, namespace, name, key, value string) error {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
