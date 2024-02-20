@@ -24,6 +24,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/clusters/capi"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/shared"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func DeleteCluster() error {
@@ -33,16 +34,21 @@ func DeleteCluster() error {
 		return err
 	}
 	if err = k8s.DeleteCluster(shared.CloudClusterName, "default", shared.KubeConfigRestConfig); err != nil {
+		if errors.IsNotFound(err) {
+			goto proceed
+		}
 		return err
 	}
-
-	deleted, err := k8s.WaitForClusterDeleted(shared.CloudClusterName, "default", time.Minute*5, shared.KubeConfigRestConfig)
-	if err != nil {
-		return err
+	{
+		deleted, err := k8s.WaitForClusterDeleted(shared.CloudClusterName, "default", time.Minute*5, shared.KubeConfigRestConfig)
+		if err != nil {
+			return err
+		}
+		if !deleted {
+			return fmt.Errorf("cluster %s not deleted", shared.CloudClusterName)
+		}
 	}
-	if !deleted {
-		return fmt.Errorf("Cluster %s not deleted", shared.CloudClusterName)
-	}
+proceed:
 
 	if err := capi.DeleteCluster(); err != nil {
 		return err

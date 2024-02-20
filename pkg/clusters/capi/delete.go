@@ -25,10 +25,15 @@ import (
 )
 
 func DeleteCluster() error {
-	ki, err := kindoperator.NewKindOperator(shared.KubeConfig)
-	if err != nil {
-		klog.Errorf("Error %v", err)
-		os.Exit(1)
+	if os.Getenv("LOCAL_UP_SKIP_CAPI_BOOTSTRAP") == "true" {
+		klog.Infoln("Skipping deleting CAPI cluster")
+	} else {
+		ki, err := kindoperator.NewKindOperator(shared.KubeConfig)
+		if err != nil {
+			klog.Errorf("Error %v", err)
+			os.Exit(1)
+		}
+		return ki.KindDeleteCluster(shared.ClusterName)
 	}
-	return ki.KindDeleteCluster(shared.ClusterName)
+	return nil
 }

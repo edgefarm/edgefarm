@@ -30,21 +30,18 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/rsa"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	"k8s.io/client-go/rest"
-	"k8s.io/klog/v2"
 )
 
 func CreateCluster(config *rest.Config) error {
-	// check if env variable LOCAL_UP_SKIP_CAPI_BOOTSTRAP exists
-
-	if os.Getenv("LOCAL_UP_SKIP_CAPI_BOOTSTRAP") == "true" {
-		klog.Infoln("Skipping creating CAPI cluster")
-	} else {
-		if err := capi.CreateCluster(); err != nil {
-			return err
-		}
+	if err := capi.CreateCluster(); err != nil {
+		return err
 	}
 
 	if err := packages.Install(config, packages.ClusterAPIOperatorHetzner); err != nil {
+		return err
+	}
+
+	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "caph-system", map[string]string{"cluster.x-k8s.io/provider": "infrastructure-hetzner"}, time.Minute*5); err != nil {
 		return err
 	}
 
