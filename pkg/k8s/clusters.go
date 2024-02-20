@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/s0rg/retry"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -67,6 +68,9 @@ func WaitForClusterDeleted(name, namespace string, timeout time.Duration, config
 		func() error {
 			c, err := GetCluster(name, "default", config)
 			if err != nil {
+				if errors.IsNotFound(err) {
+					return nil
+				}
 				return err
 			}
 			if c != nil {

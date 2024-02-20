@@ -65,7 +65,7 @@ func WaitForCrdEstablished(kubeconfig *rest.Config, name string, timeout time.Du
 		retry.Sleep(time.Second),
 		retry.Verbose(true),
 	)
-	if err := try.Single(fmt.Sprintf("Waitinf for CRD %s to be established", name),
+	if err := try.Single(fmt.Sprintf("Waiting for CRD %s to be established", name),
 		func() error {
 			est, err := CrdEstablished(kubeconfig, name)
 			if err != nil {
