@@ -27,12 +27,14 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
 
@@ -42,7 +44,7 @@ var (
 	defaultTTL       string = "24h"
 )
 
-func validateJoinNode() error {
+func validateJoinNode(config *rest.Config) error {
 	state, err := state.GetState()
 	if err != nil {
 		return err
@@ -54,7 +56,7 @@ func validateJoinNode() error {
 	if nodeNameJoinNode == "" {
 		return errors.New("name must be specified")
 	}
-	exists, err := k8s.NodeExists(nodeNameJoinNode)
+	exists, err := k8s.NodeExists(config, nodeNameJoinNode)
 	if err != nil {
 		return err
 	}
@@ -65,7 +67,7 @@ func validateJoinNode() error {
 	return nil
 }
 
-func NewNodeJoinCommand(out io.Writer) *cobra.Command {
+func NewNodeJoinCommand(config *rest.Config, out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "join",
 		Short: "Join a new node to the cluster.",
@@ -75,7 +77,7 @@ func NewNodeJoinCommand(out io.Writer) *cobra.Command {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)
 			}
-			if err := validateJoinNode(); err != nil {
+			if err := validateJoinNode(config); err != nil {
 				return err
 			}
 
@@ -91,7 +93,7 @@ func NewNodeJoinCommand(out io.Writer) *cobra.Command {
 }
 
 func init() {
-	nodeJoinCommand := NewNodeJoinCommand(os.Stdout)
+	nodeJoinCommand := NewNodeJoinCommand(shared.KubeConfigRestConfig, os.Stdout)
 	nodeCmd.AddCommand(nodeJoinCommand)
 	nodeJoinCommand.Flags().StringVarP(&nodeNameJoinNode, "name", "n", "", "A unique name of the node to join. Must not be the same as an existing node.")
 	nodeJoinCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
@@ -147,7 +149,7 @@ func RunJoinNode() error {
 		return err
 	}
 
-	client, err := k8s.GetClientset()
+	client, err := k8s.GetClientset(shared.KubeConfigRestConfig)
 	if err != nil {
 		return err
 	}
@@ -161,7 +163,7 @@ func RunJoinNode() error {
 		return err
 	}
 
-	err = k8s.Apply(nodepoolManifest)
+	err = k8s.Apply(shared.KubeConfigRestConfig, nodepoolManifest)
 	if err != nil {
 		return err
 	}

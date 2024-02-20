@@ -3,11 +3,12 @@ package k8s
 import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
 
-func NodePoolResourceExists() (bool, error) {
-	client, err := GetClientset()
+func NodePoolResourceExists(kubeconfig *rest.Config) (bool, error) {
+	client, err := GetClientset(kubeconfig)
 	if err != nil {
 		return false, err
 	}

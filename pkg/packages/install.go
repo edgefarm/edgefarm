@@ -19,16 +19,18 @@ package packages
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	helmclient "github.com/mittwald/go-helm-client"
 	"github.com/s0rg/retry"
 	"helm.sh/helm/v3/pkg/repo"
 
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 
 	"github.com/edgefarm/edgefarm/pkg/k8s"
-	args "github.com/edgefarm/edgefarm/pkg/shared"
 )
 
 type Spec struct {
@@ -46,7 +48,9 @@ type Helm struct {
 type Manifest struct {
 	Name             string
 	Manifest         string
+	URI              string
 	Condition        func() bool
+	PreHook          func(manifest string) (string, error)
 	WaitForCondition bool
 }
 
@@ -79,7 +83,7 @@ func InstallHelmSpec(client helmclient.Client, spec *helmclient.ChartSpec) error
 	return nil
 }
 
-func (h *Helm) Uninstall() error {
+func (h *Helm) Uninstall(kubeconfig *rest.Config) error {
 	if h.Spec.Condition != nil {
 		if !h.Spec.Condition() {
 			klog.Info("condition not met, skipping helm chart uninstallation for: ")
@@ -97,7 +101,7 @@ func (h *Helm) Uninstall() error {
 				Linting:   false,
 				DebugLog:  klog.Infof,
 			},
-			RestConfig: args.KubeConfigRestConfig,
+			RestConfig: kubeconfig,
 		})
 		if err != nil {
 			return err
@@ -109,7 +113,26 @@ func (h *Helm) Uninstall() error {
 	return nil
 }
 
-func (m *Manifest) Install() error {
+func (m *Manifest) getManifest() (string, error) {
+	klog.Infof("Intalling manifest for %s\n", m.Name)
+	if m.URI != "" {
+		klog.Infof("Getting from %s\n", m.URI)
+		return downloadFromURI(m.URI)
+	}
+	return m.Manifest, nil
+}
+
+func (m *Manifest) Install(kubeconfig *rest.Config) error {
+	manifest, err := m.getManifest()
+	if err != nil {
+		return err
+	}
+	if m.PreHook != nil {
+		manifest, err = m.PreHook(manifest)
+		if err != nil {
+			return err
+		}
+	}
 	if m.Condition != nil {
 		if m.WaitForCondition {
 			try := retry.New(
@@ -126,13 +149,32 @@ func (m *Manifest) Install() error {
 				}); err != nil {
 				return err
 			}
-			return k8s.Apply(m.Manifest)
+			return k8s.Apply(kubeconfig, manifest)
 		}
 	}
-	return k8s.Apply(m.Manifest)
+	return k8s.Apply(kubeconfig, manifest)
 }
 
-func (h *Helm) Install() error {
+func downloadFromURI(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Status code
+	if resp.StatusCode != http.StatusOK {
+		return "", err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+func (h *Helm) Install(kubeconfig *rest.Config) error {
 	if h.Spec.Condition != nil {
 		if !h.Spec.Condition() {
 			klog.Info("condition not met, skipping helm chart installation for: ")
@@ -150,7 +192,7 @@ func (h *Helm) Install() error {
 				Linting:   false,
 				DebugLog:  klog.Infof,
 			},
-			RestConfig: args.KubeConfigRestConfig,
+			RestConfig: kubeconfig,
 		})
 		if h.Repo != nil {
 			if h.Repo.URL != "" {
@@ -169,7 +211,7 @@ func (h *Helm) Install() error {
 
 		if h.Spec.CreateNamespace {
 			klog.Infof("chart: %s: creating namespace %s", spec.ChartName, spec.Namespace)
-			_, err := k8s.CreateNamespaceIfNotExist(spec.Namespace)
+			_, err := k8s.CreateNamespaceIfNotExist(kubeconfig, spec.Namespace)
 			if err != nil {
 				return err
 			}
@@ -181,17 +223,17 @@ func (h *Helm) Install() error {
 	return nil
 }
 
-func (p *Packages) Install() error {
+func (p *Packages) Install(kubeconfig *rest.Config) error {
 	if p.Helm != nil {
 		for _, helm := range p.Helm {
-			if err := helm.Install(); err != nil {
+			if err := helm.Install(kubeconfig); err != nil {
 				return err
 			}
 		}
 	}
 	if p.Manifest != nil {
 		for _, manifest := range p.Manifest {
-			if err := manifest.Install(); err != nil {
+			if err := manifest.Install(kubeconfig); err != nil {
 				return err
 			}
 		}
@@ -199,10 +241,10 @@ func (p *Packages) Install() error {
 	return nil
 }
 
-func (p *Packages) Uninstall() error {
+func (p *Packages) Uninstall(kubeconfig *rest.Config) error {
 	if p.Helm != nil {
 		for _, helm := range p.Helm {
-			if err := helm.Uninstall(); err != nil {
+			if err := helm.Uninstall(kubeconfig); err != nil {
 				return err
 			}
 		}
@@ -210,37 +252,20 @@ func (p *Packages) Uninstall() error {
 	return nil
 }
 
-func Install(packages []Packages) error {
+func Install(kubeconfig *rest.Config, packages []Packages) error {
 	for _, pkg := range packages {
-		if err := pkg.Install(); err != nil {
+		if err := pkg.Install(kubeconfig); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func Uninstall(packages []Packages) error {
+func Uninstall(kubeconfig *rest.Config, packages []Packages) error {
 	for _, pkg := range packages {
-		if err := pkg.Uninstall(); err != nil {
+		if err := pkg.Uninstall(kubeconfig); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func InstallPackage(pkg Packages) error {
-	return pkg.Install()
-}
-
-func InstallPackageByName(name string, pkgs []Packages) error {
-	for _, pkg := range pkgs {
-		if pkg.Helm != nil {
-			for _, helm := range pkg.Helm {
-				if helm.Repo.Name == name {
-					return helm.Install()
-				}
-			}
-		}
-	}
-	return fmt.Errorf("package %s not found", name)
 }

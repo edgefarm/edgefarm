@@ -24,9 +24,11 @@ import (
 
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
 
@@ -34,11 +36,11 @@ var (
 	nodeNameDeleteNode string
 )
 
-func validateDeleteNode() error {
+func validateDeleteNode(config *rest.Config) error {
 	if nodeNameDeleteNode == "" {
 		return errors.New("name must be specified")
 	}
-	exists, err := k8s.NodeExists(nodeNameDeleteNode)
+	exists, err := k8s.NodeExists(config, nodeNameDeleteNode)
 	if err != nil {
 		return err
 	}
@@ -52,7 +54,7 @@ func validateDeleteNode() error {
 	return nil
 }
 
-func NewNodeDeleteCommand(out io.Writer) *cobra.Command {
+func NewNodeDeleteCommand(config *rest.Config, out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Deletes a edge node from the cluster.",
@@ -62,7 +64,7 @@ func NewNodeDeleteCommand(out io.Writer) *cobra.Command {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)
 			}
-			if err := validateDeleteNode(); err != nil {
+			if err := validateDeleteNode(config); err != nil {
 				return err
 			}
 
@@ -78,7 +80,7 @@ func NewNodeDeleteCommand(out io.Writer) *cobra.Command {
 }
 
 func init() {
-	nodeDeleteCommand := NewNodeDeleteCommand(os.Stdout)
+	nodeDeleteCommand := NewNodeDeleteCommand(shared.KubeConfigRestConfig, os.Stdout)
 	nodeCmd.AddCommand(nodeDeleteCommand)
 	nodeDeleteCommand.Flags().StringVarP(&nodeNameDeleteNode, "name", "n", "", "The name of the node to delete. Must be one of the self-provisioned nodes.")
 	nodeDeleteCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
@@ -104,13 +106,13 @@ func instructionsDeleteNode() {
 
 func Run() error {
 	klog.Infof("Delete node %s", nodeNameDeleteNode)
-	err := k8s.DeleteNode(nodeNameDeleteNode)
+	err := k8s.DeleteNode(shared.KubeConfigRestConfig, nodeNameDeleteNode)
 	if err != nil {
 		return err
 	}
 
 	klog.Infof("Delete nodepool for node %s", nodeNameDeleteNode)
-	err = k8s.DeleteNodepool(nodeNameDeleteNode)
+	err = k8s.DeleteNodepool(shared.KubeConfigRestConfig, nodeNameDeleteNode)
 	if err != nil {
 		return err
 	}

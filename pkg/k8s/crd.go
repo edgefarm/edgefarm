@@ -2,14 +2,18 @@ package k8s
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/s0rg/retry"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextensionsclientset "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
-func ListCRDs() (*v1.CustomResourceDefinitionList, error) {
-	clientset, err := apiextensionsclientset.NewForConfig(getConfig())
+func ListCRDs(kubeconfig *rest.Config) (*v1.CustomResourceDefinitionList, error) {
+	clientset, err := apiextensionsclientset.NewForConfig(getConfig(kubeconfig))
 	if err != nil {
 		return nil, err
 	}
@@ -23,8 +27,8 @@ func ListCRDs() (*v1.CustomResourceDefinitionList, error) {
 	return crdList, nil
 }
 
-func CrdExists(name string) (bool, error) {
-	crdList, err := ListCRDs()
+func CrdExists(kubeconfig *rest.Config, name string) (bool, error) {
+	crdList, err := ListCRDs(kubeconfig)
 	if err != nil {
 		return false, err
 	}
@@ -37,8 +41,8 @@ func CrdExists(name string) (bool, error) {
 	return false, nil
 }
 
-func CrdEstablished(name string) (bool, error) {
-	clientset, err := apiextensionsclientset.NewForConfig(getConfig())
+func CrdEstablished(kubeconfig *rest.Config, name string) (bool, error) {
+	clientset, err := apiextensionsclientset.NewForConfig(getConfig(kubeconfig))
 	if err != nil {
 		return false, err
 	}
@@ -53,4 +57,26 @@ func CrdEstablished(name string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func WaitForCrdEstablished(kubeconfig *rest.Config, name string, timeout time.Duration) (bool, error) {
+	try := retry.New(
+		retry.Count(int(timeout.Seconds())),
+		retry.Sleep(time.Second),
+		retry.Verbose(true),
+	)
+	if err := try.Single(fmt.Sprintf("Waitinf for CRD %s to be established", name),
+		func() error {
+			est, err := CrdEstablished(kubeconfig, name)
+			if err != nil {
+				return err
+			}
+			if est {
+				return nil
+			}
+			return nil
+		}); err != nil {
+		return false, err
+	}
+	return true, nil
 }

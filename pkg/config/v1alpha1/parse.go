@@ -29,6 +29,7 @@ func Load(path string) (*api.Cluster, error) {
 }
 
 func Parse(c *api.Cluster) error {
+	shared.ClusterConfig = c
 	shared.ClusterType = c.Spec.Type
 	if c.Spec.Type == Local.String() {
 		shared.ClusterName = c.Spec.Local.Name

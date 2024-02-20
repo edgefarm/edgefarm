@@ -27,8 +27,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 
+	"github.com/edgefarm/edgefarm/pkg/clusters/local"
 	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
-	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
@@ -72,12 +72,6 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 			}
 			args.KubeConfigRestConfig = kubeconfig
 
-			ki, err := kindoperator.NewKindOperator(args.KubeConfig)
-			if err != nil {
-				klog.Errorf("Error %v", err)
-				os.Exit(1)
-			}
-
 			doit := false
 			if override {
 				doit = true
@@ -103,7 +97,7 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 						os.Exit(1)
 					}
 				}
-				err = ki.KindDeleteCluster("edgefarm")
+				err = local.DeleteCluster()
 				if err != nil {
 					klog.Errorf("Error %v", err)
 					os.Exit(1)

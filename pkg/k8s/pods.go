@@ -24,12 +24,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeclientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	kubectllogs "k8s.io/kubectl/pkg/cmd/logs"
 )
 
-func GetPods(namespace string, selector string) ([]v1.Pod, error) {
-	clientset, err := GetClientset()
+func GetPods(kubeconfig *rest.Config, namespace string, selector string) ([]v1.Pod, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return nil, err
 	}

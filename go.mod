@@ -174,7 +174,7 @@ require (
 	oras.land/oras-go v0.4.0 // indirect
 	sigs.k8s.io/controller-runtime v0.10.3 // indirect
 	sigs.k8s.io/kustomize/api v0.8.11 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.11.0 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.11.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.1.2 // indirect
 )
 
