@@ -18,34 +18,26 @@ package k8s
 
 import (
 	"context"
+	"fmt"
 
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 )
 
-func DeleteServiceAccount(kubeconfig *rest.Config, name, namespace string) error {
+func GetSecret(kubeconfig *rest.Config, name, namespace string) (*v1.Secret, error) {
 	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return clientset.CoreV1().ServiceAccounts(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	return clientset.CoreV1().Secrets(namespace).Get(context.Background(), name, metav1.GetOptions{})
 }
 
-func DeleteClusterRole(kubeconfig *rest.Config, name string) error {
-	clientset, err := GetClientset(kubeconfig)
-	if err != nil {
-		return err
+func SecretValue(secret *v1.Secret, key string) (string, error) {
+	val, exists := secret.Data[key]
+	if !exists {
+		return "", fmt.Errorf("key %s not found in secret", key)
 	}
-
-	return clientset.RbacV1().ClusterRoles().Delete(context.Background(), name, metav1.DeleteOptions{})
-}
-
-func DeleteClusterRoleBinding(kubeconfig *rest.Config, name string) error {
-	clientset, err := GetClientset(kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	return clientset.RbacV1().ClusterRoleBindings().Delete(context.Background(), name, metav1.DeleteOptions{})
+	return string(val), nil
 }

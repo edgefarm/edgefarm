@@ -26,11 +26,12 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
 // ReplaceCoreDNS deletes the CoreDNS deployment and replace it with a DaemonSet
-func ReplaceCoreDNS() error {
-	clientset, err := k8s.GetClientset()
+func ReplaceCoreDNS(kubeconfig *rest.Config) error {
+	clientset, err := k8s.GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -65,14 +66,14 @@ func ReplaceCoreDNS() error {
 		return err
 	}
 
-	if err := packages.Install(packages.CoreDNS); err != nil {
+	if err := packages.Install(kubeconfig, packages.CoreDNS); err != nil {
 		return err
 	}
 
 	ticker := wait.MakeExpiringIntervalTicker(time.Second, time.Second*60)
 
 	condition := func() (bool, error) {
-		pods, err := k8s.GetPods("kube-system", "k8s-app=kube-dns")
+		pods, err := k8s.GetPods(kubeconfig, "kube-system", "k8s-app=kube-dns")
 		if err != nil {
 			return false, err
 		}

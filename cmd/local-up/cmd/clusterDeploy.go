@@ -90,7 +90,8 @@ func init() {
 }
 
 func RunDeploy() error {
-	if err := deploy.Deploy(); err != nil {
+	// todo: distinguish between local and capi clusters
+	if err := deploy.Deploy(shared.KubeConfigRestConfig); err != nil {
 		return err
 	}
 	return nil

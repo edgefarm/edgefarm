@@ -30,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	yaml "sigs.k8s.io/yaml"
 )
@@ -48,8 +49,8 @@ var (
 	}
 )
 
-func DeleteNodepool(name string) error {
-	dynamic, err := GetDynamicClient(nil)
+func DeleteNodepool(kubeconfig *rest.Config, name string) error {
+	dynamic, err := GetDynamicClient(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -60,8 +61,8 @@ func DeleteNodepool(name string) error {
 	}).Delete(context.Background(), name, metav1.DeleteOptions{})
 }
 
-func DeleteNode(name string) error {
-	clientset, err := GetClientset()
+func DeleteNode(kubeconfig *rest.Config, name string) error {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -69,8 +70,8 @@ func DeleteNode(name string) error {
 }
 
 // GetAllNodes returns a slice with all nodes
-func GetAllNodes() ([]v1.Node, error) {
-	clientset, err := GetClientset()
+func GetAllNodes(kubeconfig *rest.Config) ([]v1.Node, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +84,8 @@ func GetAllNodes() ([]v1.Node, error) {
 }
 
 // GetNodes returns a slice of nodes matching the given selector.
-func GetNodes(selector *metav1.LabelSelector) ([]v1.Node, error) {
-	clientset, err := GetClientset()
+func GetNodes(kubeconfig *rest.Config, selector *metav1.LabelSelector) ([]v1.Node, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +99,8 @@ func GetNodes(selector *metav1.LabelSelector) ([]v1.Node, error) {
 	return nodes.Items, nil
 }
 
-func NodeExists(name string) (bool, error) {
-	clientset, err := GetClientset()
+func NodeExists(kubeconfig *rest.Config, name string) (bool, error) {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return false, err
 
@@ -131,16 +132,16 @@ func ValidatePhysicalNodeName(name string) error {
 	return nil
 }
 
-func GetEdgeNodes() ([]v1.Node, error) {
-	return GetNodes(&metav1.LabelSelector{
+func GetEdgeNodes(kubeconfig *rest.Config) ([]v1.Node, error) {
+	return GetNodes(kubeconfig, &metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			"openyurt.io/is-edge-worker": "true",
 		},
 	})
 }
 
-func GetCloudNodes() ([]v1.Node, error) {
-	return GetNodes(&metav1.LabelSelector{
+func GetCloudNodes(kubeconfig *rest.Config) ([]v1.Node, error) {
+	return GetNodes(kubeconfig, &metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			"openyurt.io/is-edge-worker": "false",
 		},
@@ -160,8 +161,8 @@ func CheckNodeTaint(node v1.Node, taint v1.Taint) bool {
 	return false
 }
 
-func AnnotateNodes(nodes []v1.Node, annotations map[string]string) error {
-	clientset, err := GetClientset()
+func AnnotateNodes(kubeconfig *rest.Config, nodes []v1.Node, annotations map[string]string) error {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -196,8 +197,8 @@ func AnnotateNodes(nodes []v1.Node, annotations map[string]string) error {
 	return nil
 }
 
-func LabelNodes(nodes []v1.Node, labels map[string]string) error {
-	clientset, err := GetClientset()
+func LabelNodes(kubeconfig *rest.Config, nodes []v1.Node, labels map[string]string) error {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -232,8 +233,8 @@ func LabelNodes(nodes []v1.Node, labels map[string]string) error {
 	return nil
 }
 
-func TaintNodes(nodes []v1.Node, taint v1.Taint) error {
-	clientset, err := GetClientset()
+func TaintNodes(kubeconfig *rest.Config, nodes []v1.Node, taint v1.Taint) error {
+	clientset, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -283,11 +284,11 @@ spec:
 )
 
 // HandleNodePool creates a nodepool resource and create the corresponding label on the node
-func HandleNodePool(node v1.Node) error {
+func HandleNodePool(kubeconfig *rest.Config, node v1.Node) error {
 	if node.Labels == nil {
 		node.Labels = map[string]string{}
 	}
-	client, err := GetClientset()
+	client, err := GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -360,8 +361,8 @@ func HandleNodePool(node v1.Node) error {
 
 }
 
-func PrepareEdgeNodes() error {
-	nodes, err := GetEdgeNodes()
+func PrepareEdgeNodes(kubeconfig *rest.Config) error {
+	nodes, err := GetEdgeNodes(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -369,21 +370,21 @@ func PrepareEdgeNodes() error {
 		return nil
 	}
 	klog.Infof("Prepare edge nodes")
-	err = AnnotateNodes(nodes, map[string]string{
+	err = AnnotateNodes(kubeconfig, nodes, map[string]string{
 		"apps.openyurt.io/binding": "true",
 	})
 	if err != nil {
 		return err
 	}
 
-	err = LabelNodes(nodes, map[string]string{
+	err = LabelNodes(kubeconfig, nodes, map[string]string{
 		"node.edgefarm.io/to-be-converted": "true",
 	})
 	if err != nil {
 		return err
 	}
 
-	err = TaintNodes(nodes, DefaultEdgeNodeTaint)
+	err = TaintNodes(kubeconfig, nodes, DefaultEdgeNodeTaint)
 	if err != nil {
 		return err
 	}
@@ -391,13 +392,13 @@ func PrepareEdgeNodes() error {
 	return nil
 }
 
-func CreateEdgeNodepools() error {
-	nodes, err := GetEdgeNodes()
+func CreateEdgeNodepools(kubeconfig *rest.Config) error {
+	nodes, err := GetEdgeNodes(kubeconfig)
 	if err != nil {
 		return err
 	}
 	for _, node := range nodes {
-		err = HandleNodePool(node)
+		err = HandleNodePool(kubeconfig, node)
 		if err != nil {
 			return err
 		}

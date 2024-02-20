@@ -24,6 +24,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/spf13/cobra"
@@ -98,7 +99,8 @@ var localVPNStatusCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		nodes, err := k8s.GetAllNodes()
+		// todo: distinguish between local and capi clusters
+		nodes, err := k8s.GetAllNodes(shared.KubeConfigRestConfig)
 		if err != nil {
 			klog.Errorf("Failed to get nodes: %v", err)
 			os.Exit(1)

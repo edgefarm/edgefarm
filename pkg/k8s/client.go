@@ -25,7 +25,19 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func getConfig() *rest.Config {
+func GetConfigFromKubeconfig(kubeconfig string) *rest.Config {
+	// use the current context in kubeconfig
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+	return config
+}
+
+func getConfig(config *rest.Config) *rest.Config {
+	if config != nil {
+		return config
+	}
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
 	if err != nil {
@@ -35,9 +47,9 @@ func getConfig() *rest.Config {
 }
 
 // GetClientset returns a clientset for the current cluster.
-func GetClientset() (*kubernetes.Clientset, error) {
+func GetClientset(config *rest.Config) (*kubernetes.Clientset, error) {
 	// create the clientset
-	clientset, err := kubernetes.NewForConfig(getConfig())
+	clientset, err := kubernetes.NewForConfig(getConfig(config))
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +57,8 @@ func GetClientset() (*kubernetes.Clientset, error) {
 }
 
 // GetClientset returns a clientset for the current cluster.
-func GetDynamicClient(kubeconfig *string) (dynamic.Interface, error) {
-	client, err := dynamic.NewForConfig(getConfig())
+func GetDynamicClient(config *rest.Config) (dynamic.Interface, error) {
+	client, err := dynamic.NewForConfig(getConfig(config))
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +66,8 @@ func GetDynamicClient(kubeconfig *string) (dynamic.Interface, error) {
 	return client, nil
 }
 
-func GetDiscoveryClient(kubeconfig *string) (*discovery.DiscoveryClient, error) {
-	discoveryClient, err := discovery.NewDiscoveryClientForConfig(getConfig())
+func GetDiscoveryClient(config *rest.Config) (*discovery.DiscoveryClient, error) {
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(getConfig(config))
 	if err != nil {
 		return nil, err
 	}

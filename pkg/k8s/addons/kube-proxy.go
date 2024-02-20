@@ -23,11 +23,12 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/packages"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/rest"
 )
 
 // ReplaceKubeProxy deletes the kube-proxy deployment and replaces it with a Helm chart
-func ReplaceKubeProxy() error {
-	clientset, err := k8s.GetClientset()
+func ReplaceKubeProxy(kubeconfig *rest.Config) error {
+	clientset, err := k8s.GetClientset(kubeconfig)
 	if err != nil {
 		return err
 	}
@@ -45,7 +46,7 @@ func ReplaceKubeProxy() error {
 		return err
 	}
 
-	if err := packages.Install(packages.KubeProxy); err != nil {
+	if err := packages.Install(kubeconfig, packages.KubeProxy); err != nil {
 		return err
 	}
 

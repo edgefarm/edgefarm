@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 EdgeFarm Authors
+Copyright © 2024 EdgeFarm Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package constants
-
-import "time"
+package capi
 
 const (
-	DefaultKubeConfigPath    = "~/.edgefarm-local-up/kubeconfig"
-	BootstrapTokenDefaultTTL = time.Hour * 24
-	OpenYurtVersion          = "v1.4.0"
-	KubernetesVersion        = "v1.22.17"
-)
-
-var (
-	YurtHubImageFormat     = "ghcr.io/openyurtio/openyurt/yurthub:%s"
-	YurtManagerImageFormat = "ghcr.io/openyurtio/openyurt/yurt-manager:%s"
-	NodeServantImageFormat = "ghcr.io/openyurtio/openyurt/node-servant:%s"
+	kindConfigTemplate = `apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: {{.cluster_name}}`
 )

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/edgefarm/edgefarm/pkg/constants"
-	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/openyurt"
 	"github.com/edgefarm/edgefarm/pkg/packages"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/fatih/color"
 	"github.com/spf13/pflag"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 )
 
@@ -45,56 +45,52 @@ func AddFlagsForDeploy(flagset *pflag.FlagSet) {
 	}
 }
 
-func Deploy() error {
-	client, err := k8s.GetClientset()
-	if err != nil {
-		return err
-	}
+func Deploy(config *rest.Config) error {
 	if !shared.Args.Skip.Ingress {
 		klog.Infoln("Deploy ingress packages")
-		if err := packages.Install(packages.Ingress); err != nil {
+		if err := packages.Install(config, packages.Ingress); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.CertManager {
 		klog.Infoln("Deploy cert-manager packages")
-		if err := packages.Install(packages.CertManager); err != nil {
+		if err := packages.Install(config, packages.CertManager); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.Kyverno {
 		klog.Infoln("Deploy kyverno packages")
-		if err := packages.Install(packages.Kyverno); err != nil {
+		if err := packages.Install(config, packages.Kyverno); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.Crossplane {
 		klog.Infoln("Deploy crossplane packages")
-		if err := packages.Install(packages.Crossplane); err != nil {
+		if err := packages.Install(config, packages.Crossplane); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.Metacontroller {
 		klog.Infoln("Deploy metacontroller packages")
-		if err := packages.Install(packages.Metacontroller); err != nil {
+		if err := packages.Install(config, packages.Metacontroller); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.VaultOperator {
 		klog.Infoln("Deploy vault-operator packages")
-		if err := packages.Install(packages.VaultOperator); err != nil {
+		if err := packages.Install(config, packages.VaultOperator); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.Vault {
 		klog.Infoln("Deploy vault packages")
-		if err := packages.Install(packages.Vault); err != nil {
+		if err := packages.Install(config, packages.Vault); err != nil {
 			return err
 		}
 	}
@@ -102,14 +98,13 @@ func Deploy() error {
 	if !shared.Args.Skip.EdgeFarmCore {
 		klog.Info("Start to deploy OpenYurt components")
 		openyurtDeployer := &openyurt.DeployOpenYurt{
-			ClientSet:                 client,
 			YurthubHealthCheckTimeout: 2 * time.Minute,
 			YurthubImage:              fmt.Sprintf(constants.YurtHubImageFormat, constants.OpenYurtVersion),
 			YurtManagerImage:          fmt.Sprintf(constants.YurtManagerImageFormat, constants.OpenYurtVersion),
 			NodeServantImage:          fmt.Sprintf(constants.NodeServantImageFormat, constants.OpenYurtVersion),
 			EnableDummyIf:             true,
 		}
-		if err := openyurtDeployer.Run(); err != nil {
+		if err := openyurtDeployer.Run(config); err != nil {
 			klog.Errorf("errors occurred when deploying openyurt components")
 			return err
 		}
@@ -117,14 +112,14 @@ func Deploy() error {
 
 	if !shared.Args.Skip.EdgeFarmApplications {
 		klog.Infof("Deploy edgefarm applications packages")
-		if err := packages.Install(packages.Applications); err != nil {
+		if err := packages.Install(config, packages.Applications); err != nil {
 			return err
 		}
 	}
 
 	if !shared.Args.Skip.EdgeFarmNetwork {
 		klog.Infof("Deploy edgefarm network packages")
-		if err := packages.Install(packages.Network); err != nil {
+		if err := packages.Install(config, packages.Network); err != nil {
 			return err
 		}
 	}
@@ -132,7 +127,7 @@ func Deploy() error {
 	if !shared.Args.Skip.EdgeFarmMonitor {
 
 		klog.Infof("Deploy edgefarm applications packages")
-		if err := packages.Install(packages.Monitor); err != nil {
+		if err := packages.Install(config, packages.Monitor); err != nil {
 			return err
 		}
 	}

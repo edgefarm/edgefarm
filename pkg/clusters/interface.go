@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 EdgeFarm Authors
+Copyright © 2024 EdgeFarm Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package constants
+package clusters
 
-import "time"
-
-const (
-	DefaultKubeConfigPath    = "~/.edgefarm-local-up/kubeconfig"
-	BootstrapTokenDefaultTTL = time.Hour * 24
-	OpenYurtVersion          = "v1.4.0"
-	KubernetesVersion        = "v1.22.17"
-)
-
-var (
-	YurtHubImageFormat     = "ghcr.io/openyurtio/openyurt/yurthub:%s"
-	YurtManagerImageFormat = "ghcr.io/openyurtio/openyurt/yurt-manager:%s"
-	NodeServantImageFormat = "ghcr.io/openyurtio/openyurt/node-servant:%s"
-)
+type Cluster interface {
+	// CreateCluster creates a new cloud cluster
+	CreateCluster() error
+	// DeleteCluster deletes a cloud cluster
+	DeleteCluster() error
+	// GetKubeConfig returns the kubeconfig
+	GetKubeConfig() (string, error)
+	// // GetClusterStatus returns the status of a cloud cluster
+	// GetClusterStatus() (string, error)
+	// // GetClusterConfig returns the config of a cloud cluster
+	// GetClusterConfig() (string, error)
+}

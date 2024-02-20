@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kubeclientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
@@ -37,7 +38,6 @@ import (
 
 	"github.com/openyurtio/openyurt/pkg/projectinfo"
 	strutil "github.com/openyurtio/openyurt/pkg/util/strings"
-	"github.com/openyurtio/openyurt/test/e2e/cmd/init/lock"
 )
 
 const (
@@ -49,7 +49,7 @@ const (
 )
 
 type DeployOpenYurt struct {
-	ClientSet                 kubeclientset.Interface
+	// ClientSet                 kubeclientset.Interface
 	YurthubHealthCheckTimeout time.Duration
 	YurtManagerImage          string
 	NodeServantImage          string
@@ -57,17 +57,8 @@ type DeployOpenYurt struct {
 	EnableDummyIf             bool
 }
 
-func (c *DeployOpenYurt) Run() error {
-	if err := lock.AcquireLock(c.ClientSet); err != nil {
-		return err
-	}
-	defer func() {
-		if releaseLockErr := lock.ReleaseLock(c.ClientSet); releaseLockErr != nil {
-			klog.Error(releaseLockErr)
-		}
-	}()
-
-	edgeNodes, err := k8s.GetEdgeNodes()
+func (c *DeployOpenYurt) Run(config *rest.Config) error {
+	edgeNodes, err := k8s.GetEdgeNodes(config)
 	if err != nil {
 		return err
 	}
@@ -78,11 +69,11 @@ func (c *DeployOpenYurt) Run() error {
 	}
 
 	klog.Info("Add edgeworker label and autonomy annotation to edge nodes")
-	if err := LabelEdgeNodes(en); err != nil {
+	if err := LabelEdgeNodes(config, en); err != nil {
 		return err
 	}
 
-	cloudNodes, err := k8s.GetCloudNodes()
+	cloudNodes, err := k8s.GetCloudNodes(config)
 	if err != nil {
 		return err
 	}
@@ -92,32 +83,32 @@ func (c *DeployOpenYurt) Run() error {
 	}
 
 	klog.Info("Add edgeworker label and autonomy annotation to edge nodes")
-	if err := LabelCloudNodes(cn); err != nil {
+	if err := LabelCloudNodes(config, cn); err != nil {
 		return err
 	}
 
 	klog.Info("Deploying yurt-manager")
-	if err := c.deployYurtManager(); err != nil {
+	if err := c.deployYurtManager(config); err != nil {
 		klog.Errorf("failed to deploy yurt-manager with image %s, %s", c.YurtManagerImage, err)
 		return err
 	}
 
-	if err := packages.Install(packages.YurtHub); err != nil {
+	if err := packages.Install(config, packages.YurtHub); err != nil {
 		klog.Errorf("error occurs when deploying Yurthub, %v", err)
 		return err
 	}
 
-	if err := k8s.CreateEdgeNodepools(); err != nil {
+	if err := k8s.CreateEdgeNodepools(config); err != nil {
 		klog.Errorf("error occurs when creating edge nodepools, %v", err)
 		return err
 	}
 
-	if err := c.prepareyNodeServantApplier(); err != nil {
+	if err := c.prepareyNodeServantApplier(config); err != nil {
 		klog.Errorf("error occurs when preparing node servant applier, %v", err)
 		return err
 	}
 
-	if err := packages.Install(packages.NodeServantApplier); err != nil {
+	if err := packages.Install(config, packages.NodeServantApplier); err != nil {
 		return err
 	}
 	return nil
@@ -133,8 +124,8 @@ func AddWorkerLabelAndAutonomyAnnotation(cliSet kubeclientset.Interface, node *c
 	return newNode, nil
 }
 
-func LabelEdgeNodes(edgeNodes []string) error {
-	clientset, err := k8s.GetClientset()
+func LabelEdgeNodes(config *rest.Config, edgeNodes []string) error {
+	clientset, err := k8s.GetClientset(config)
 	if err != nil {
 		return err
 	}
@@ -155,7 +146,7 @@ func LabelEdgeNodes(edgeNodes []string) error {
 	return nil
 }
 
-func LabelCloudNodes(cloudNodes []string) error {
+func LabelCloudNodes(config *rest.Config, cloudNodes []string) error {
 	reducedCloudNodes := []string{}
 	// remove *-control-plane nodes from cloud nodes
 	for _, name := range cloudNodes {
@@ -165,7 +156,7 @@ func LabelCloudNodes(cloudNodes []string) error {
 		reducedCloudNodes = append(reducedCloudNodes, name)
 	}
 
-	clientset, err := k8s.GetClientset()
+	clientset, err := k8s.GetClientset(config)
 	if err != nil {
 		return err
 	}
@@ -186,7 +177,7 @@ func LabelCloudNodes(cloudNodes []string) error {
 	return nil
 }
 
-func (c *DeployOpenYurt) prepareyNodeServantApplier() error {
+func (c *DeployOpenYurt) prepareyNodeServantApplier(config *rest.Config) error {
 	joinToken, err := tokens.GetOrCreateJoinTokenString(nil)
 	if err != nil || joinToken == "" {
 		return fmt.Errorf("fail to get join token: %w", err)
@@ -207,7 +198,7 @@ func (c *DeployOpenYurt) prepareyNodeServantApplier() error {
 		convertCtx["yurthub_healthcheck_timeout"] = c.YurthubHealthCheckTimeout.String()
 	}
 
-	npExist, err := k8s.NodePoolResourceExists()
+	npExist, err := k8s.NodePoolResourceExists(config)
 	if err != nil {
 		return err
 	}
@@ -242,15 +233,21 @@ func (c *DeployOpenYurt) prepareyNodeServantApplier() error {
 // 	return false, nil
 // }
 
-func (c *DeployOpenYurt) deployYurtManager() error {
-	err := packages.Install(packages.YurtManager)
+func (c *DeployOpenYurt) deployYurtManager(config *rest.Config) error {
+	err := packages.Install(config, packages.YurtManager)
 	if err != nil {
 		return err
 	}
 
 	// waiting yurt-manager pod ready
 	return wait.PollImmediate(10*time.Second, 5*time.Minute, func() (bool, error) {
-		podList, err := c.ClientSet.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{
+		client, err := k8s.GetClientset(config)
+		if err != nil {
+			klog.Errorf("failed to get clientset, %v", err)
+			return false, nil
+		}
+
+		podList, err := client.CoreV1().Pods("kube-system").List(context.TODO(), metav1.ListOptions{
 			LabelSelector: labels.SelectorFromSet(map[string]string{"app.kubernetes.io/name": "yurt-manager"}).String(),
 		})
 		if err != nil {
