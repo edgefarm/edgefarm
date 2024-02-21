@@ -17,14 +17,14 @@ limitations under the License.
 package clusters
 
 type Cluster interface {
-	// CreateCluster creates a new cloud cluster
+	// CreateCluster creates a new cluster
 	CreateCluster() error
-	// DeleteCluster deletes a cloud cluster
+	// DeleteCluster deletes a cluster
 	DeleteCluster() error
 	// GetKubeConfig returns the kubeconfig
 	GetKubeConfig() (string, error)
-	// // GetClusterStatus returns the status of a cloud cluster
-	// GetClusterStatus() (string, error)
-	// // GetClusterConfig returns the config of a cloud cluster
-	// GetClusterConfig() (string, error)
+	// GetClusterStatus returns the status of a cluster
+	GetClusterStatus() (bool, error)
+	// CreateGreeting prints a greeting message after creating a cluster
+	CreateGreeting()
 }
