@@ -212,14 +212,19 @@ func (ki *Initializer) Run() error {
 		if err := deploy.Deploy(shared.KubeConfigRestConfig); err != nil {
 			return err
 		}
-	} else {
-		green := color.New(color.FgHiGreen)
-		yellow := color.New(color.FgHiYellow)
-		green.Printf("The local cluster has been created.\nRun ")
-		yellow.Printf("  $ local-up deploy")
-		green.Printf(" to deploy EdgeFarm components and its dependencies.\nHave a look at the arguments using '--help'.")
 	}
 	return nil
+}
+
+func ShowGreeting() {
+	if shared.Args.Deploy {
+		return
+	}
+	green := color.New(color.FgHiGreen)
+	yellow := color.New(color.FgHiYellow)
+	green.Printf("The local cluster has been created.\nRun ")
+	yellow.Printf("  $ local-up deploy")
+	green.Printf(" to deploy EdgeFarm components and its dependencies.\nHave a look at the arguments using '--help'.")
 }
 
 func (ki *Initializer) prepareKindConfigFile() ([]byte, error) {

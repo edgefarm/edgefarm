@@ -74,7 +74,7 @@ func WaitForClusterDeleted(name, namespace string, timeout time.Duration, config
 				return err
 			}
 			if c != nil {
-				return fmt.Errorf("cluster exists")
+				return fmt.Errorf("cluster still exists... ")
 			}
 			return nil
 		}); err != nil {

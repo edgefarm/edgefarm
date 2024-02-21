@@ -510,9 +510,20 @@ spec:
                             operator: Exists
                         - matchExpressions:
                           - key: "node-role.kubernetes.io/control-plane"
-                            operator: Exists
+                            operator: Exists`
 
-`
+	// 	hetznerSecret = `apiVersion: v1
+	// kind: Secret
+	// type: Opaque
+	// metadata:
+	//   name: hetzner
+	//   namespace: default
+	//   labels:
+	//     clusterctl.cluster.x-k8s.io/move: ""
+	// data:
+	//   hcloud: {{.HCLOUD_TOKEN}}
+	//   robot-user: {{.HETZNER_ROBOT_USER}}
+	//   robot-password: {{.HETZNER_ROBOT_PASSWORD}}`
 
 	hetznerSecret = `apiVersion: v1
 kind: Secret
@@ -523,21 +534,36 @@ metadata:
   labels: 
     clusterctl.cluster.x-k8s.io/move: ""
 data:
-  hcloud: {{.HCLOUD_TOKEN}}
-  robot-user: {{.HETZNER_ROBOT_USER}}
-  robot-password: {{.HETZNER_ROBOT_PASSWORD}}`
+  hcloud: {{.HCLOUD_TOKEN}}`
 
-	hetznerSSHSecret = `apiVersion: v1
-kind: Secret
-type: Opaque 
-metadata:
-  name: robot-ssh
-  namespace: default
-  labels: 
-    clusterctl.cluster.x-k8s.io/move: ""
-stringData:
-  sshkey-name: {{.HCLOUD_SSH_KEY}}
-data:
-  ssh-privatekey: {{.HETZNER_SSH_PRIVATE_KEY}}
-  ssh-publickey: {{.HETZNER_SSH_PUBLIC_KEY}}`
+// 	hetznerSSHSecret = `apiVersion: v1
+// kind: Secret
+// type: Opaque
+// metadata:
+//   name: robot-ssh
+//   namespace: default
+//   labels:
+//     clusterctl.cluster.x-k8s.io/move: ""
+// stringData:
+//   sshkey-name: {{.HCLOUD_SSH_KEY}}`
+
+//	hetznerSSHSecret = `apiVersion: v1
+//
+// kind: Secret
+// type: Opaque
+// metadata:
+//
+//	name: robot-ssh
+//	namespace: default
+//	labels:
+//	  clusterctl.cluster.x-k8s.io/move: ""
+//
+// stringData:
+//
+//	sshkey-name: {{.HCLOUD_SSH_KEY}}
+//
+// data:
+//
+//	ssh-privatekey: {{.HETZNER_SSH_PRIVATE_KEY}}
+//	ssh-publickey: {{.HETZNER_SSH_PUBLIC_KEY}}`
 )
