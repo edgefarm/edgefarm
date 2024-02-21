@@ -29,6 +29,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/packages"
 	"github.com/edgefarm/edgefarm/pkg/rsa"
 	"github.com/edgefarm/edgefarm/pkg/shared"
+	"github.com/fatih/color"
 	"k8s.io/client-go/rest"
 )
 
@@ -94,9 +95,9 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
-	if err = clusters.RenderAndApply(hetznerSSHSecret, context, shared.KubeConfigRestConfig); err != nil {
-		return err
-	}
+	// if err = clusters.RenderAndApply(hetznerSSHSecret, context, shared.KubeConfigRestConfig); err != nil {
+	// 	return err
+	// }
 
 	if err = clusters.RenderAndApply(capiTemplate, context, shared.KubeConfigRestConfig); err != nil {
 		return err
@@ -136,5 +137,29 @@ func CreateCluster(config *rest.Config) error {
 	shared.CloudKubeConfig = p
 	shared.CloudKubeConfigRestConfig = k8s.GetConfigFromKubeconfig(shared.CloudKubeConfig)
 
+	reachable, err := clusters.WaitForAPIServerReachable(shared.CloudKubeConfigRestConfig, time.Minute*10)
+	if err != nil {
+		return err
+	}
+	if !reachable {
+		return fmt.Errorf("API server not reachable")
+	}
+
+	allNodesPresent, err := clusters.WaitForAllNodes(shared.CloudKubeConfigRestConfig, time.Minute*20, shared.ClusterConfig.Spec.Hetzner.ControlPlaneMachineCount, shared.ClusterConfig.Spec.Hetzner.WorkerMachineCount)
+	if err != nil {
+		return err
+	}
+	if !allNodesPresent {
+		return fmt.Errorf("not all nodes present")
+	}
+
 	return nil
+}
+
+func ShowGreeting() {
+	green := color.New(color.FgHiGreen)
+	yellow := color.New(color.FgHiYellow)
+	green.Printf("The hetzner cluster has been created.\nRun ")
+	yellow.Printf("  $ local-up deploy --config <hetzner-config.yaml>")
+	green.Printf(" to deploy EdgeFarm components and its dependencies.\nHave a look at the arguments using '--help'.")
 }

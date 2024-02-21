@@ -26,6 +26,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/packages"
 	"github.com/edgefarm/edgefarm/pkg/shared"
+	"github.com/fatih/color"
 	"k8s.io/klog/v2"
 
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
@@ -96,4 +97,9 @@ func prepareKindConfigFile(name string) ([]byte, error) {
 	}
 	fmt.Println(kindConfigContent)
 	return []byte(kindConfigContent), nil
+}
+
+func ShowGreeting() {
+	green := color.New(color.FgHiGreen)
+	green.Printf("The cluster-api-bootstrap cluster has been created. Proceeding with the cloud cluster creation\n")
 }

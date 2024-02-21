@@ -91,9 +91,18 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 			}
 			switch {
 			case shared.ClusterType == configv1.Local.String():
-				return local.CreateCluster()
+				err := local.CreateCluster()
+				if err != nil {
+					return err
+				}
+				local.ShowGreeting()
+
 			case shared.ClusterType == configv1.Hetzner.String():
-				return hetzner.CreateCluster(shared.KubeConfigRestConfig)
+				err := hetzner.CreateCluster(shared.KubeConfigRestConfig)
+				if err != nil {
+					return err
+				}
+				hetzner.ShowGreeting()
 			}
 			return nil
 		},
