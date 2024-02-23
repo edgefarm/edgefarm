@@ -29,6 +29,7 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/packages"
 	"github.com/edgefarm/edgefarm/pkg/rsa"
 	"github.com/edgefarm/edgefarm/pkg/shared"
+	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
 	"k8s.io/client-go/rest"
 )
@@ -76,6 +77,14 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
+	state, err := state.GetState()
+	if err != nil {
+		return err
+	}
+	if state.GetNetbirdSetupKey() == "" {
+		return fmt.Errorf("netbird setup key not found")
+	}
+
 	context := map[string]string{
 		"CLUSTER_NAME":                      shared.ClusterConfig.Spec.Hetzner.Name,
 		"KUBERNETES_VERSION":                constants.KubernetesVersion,
@@ -85,25 +94,53 @@ func CreateCluster(config *rest.Config) error {
 		"HCLOUD_CONTROL_PLANE_MACHINE_TYPE": shared.ClusterConfig.Spec.Hetzner.HetznerCloudControlPlaneMachineType,
 		"HCLOUD_WORKER_MACHINE_TYPE":        shared.ClusterConfig.Spec.Hetzner.HetznerCloudWorkerMachineType,
 		"HCLOUD_SSH_KEY":                    shared.ClusterConfig.Spec.Hetzner.HetznerCloudSSHKey,
-		"HCLOUD_TOKEN":                      b64.StdEncoding.EncodeToString([]byte(shared.ClusterConfig.Spec.Hetzner.HCloudToken)),
+		"HCLOUD_TOKEN":                      shared.ClusterConfig.Spec.Hetzner.HCloudToken,
+		"NETBIRD_DOMAIN":                    b64.StdEncoding.EncodeToString([]byte("netbird.cloud")),
+		"NETBIRD_ADMIN_URL":                 b64.StdEncoding.EncodeToString([]byte("https://app.netbird.io:443")),
+		"NETBIRD_MANAGEMENT_URL":            b64.StdEncoding.EncodeToString([]byte("https://api.wiretrustee.com:443")),
+		"NETBIRD_SETUP_KEY":                 b64.StdEncoding.EncodeToString([]byte(state.GetNetbirdSetupKey())),
 		"HETZNER_ROBOT_USER":                b64.StdEncoding.EncodeToString([]byte(shared.ClusterConfig.Spec.Hetzner.HetznerRobotUser)),
 		"HETZNER_ROBOT_PASSWORD":            b64.StdEncoding.EncodeToString([]byte(shared.ClusterConfig.Spec.Hetzner.HetznerRobotPassword)),
 		"HETZNER_SSH_PUBLIC_KEY":            b64.StdEncoding.EncodeToString([]byte(pub)),
 		"HETZNER_SSH_PRIVATE_KEY":           b64.StdEncoding.EncodeToString([]byte(priv)),
 	}
-	if err := clusters.RenderAndApply(hetznerSecret, context, shared.KubeConfigRestConfig); err != nil {
+	if err := clusters.RenderAndApply("secret hetzner", hetznerSecret, context, shared.KubeConfigRestConfig); err != nil {
 		return err
 	}
 
-	// if err = clusters.RenderAndApply(hetznerSSHSecret, context, shared.KubeConfigRestConfig); err != nil {
-	// 	return err
-	// }
-
-	if err = clusters.RenderAndApply(capiTemplate, context, shared.KubeConfigRestConfig); err != nil {
+	if err := clusters.RenderAndApply("secret netbird", netbirdSecret, context, shared.KubeConfigRestConfig); err != nil {
 		return err
 	}
 
-	if err = clusters.RenderAndApply(hetznerCCMCSI, context, shared.KubeConfigRestConfig); err != nil {
+	if err = clusters.RenderAndApply("secret hetznerSSH", hetznerSSHSecret, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("flannel cloud", flannelCloud, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("flannel edge", flannelEdge, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("coredns", coreDNS, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("kube-proxy default", kubeProxyDefault, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("kube-proxy openyurt", kubeProxyOpenYurt, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("cluster", capiTemplate, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
+	if err = clusters.RenderAndApply("helm charts for ccm and csi", hetznerCCMCSI, context, shared.KubeConfigRestConfig); err != nil {
 		return err
 	}
 

@@ -25,6 +25,7 @@ import (
 	deploy "github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
@@ -32,31 +33,19 @@ import (
 func NewDeployCommand(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
-		Short: "Deploy components to the local edgefarm cluster",
+		Short: "Deploy components to the edgefarm cluster",
 		RunE: func(cmd *cobra.Command, arguments []string) error {
 			if shared.ConfigPath != "" {
 				c, err := configv1.Load(shared.ConfigPath)
 				if err != nil {
-					fmt.Printf("Error: %v\n", err)
-					os.Exit(1)
+					return err
 				}
 				err = configv1.Parse(c)
 				if err != nil {
-					fmt.Printf("Error: %v\n", err)
-					os.Exit(1)
+					return err
 				}
 			}
 
-			if err := shared.EvaluateKubeConfigPath(); err != nil {
-				fmt.Printf("Error: %v\n", err)
-				os.Exit(1)
-			}
-			klog.Info("Start to prepare kube client")
-			kubeconfig, err := clientcmd.BuildConfigFromFlags("", shared.KubeConfig)
-			if err != nil {
-				klog.Errorf("Failed to build kubeconfig: %v", err)
-				os.Exit(1)
-			}
 			if shared.Args.Only.Crossplane ||
 				shared.Args.Only.Kyverno ||
 				shared.Args.Only.Metacontroller ||
@@ -70,8 +59,25 @@ func NewDeployCommand(out io.Writer) *cobra.Command {
 				shared.Args.Only.EdgeFarmNetwork {
 				shared.Args.Skip = shared.ConvertOnlyToSkip(shared.Args.Only)
 			}
-			shared.KubeConfigRestConfig = kubeconfig
-			if err := RunDeploy(); err != nil {
+			switch shared.ClusterType {
+			case configv1.Local.String():
+				shared.KubeConfig = shared.ClusterConfig.Spec.General.KubeConfigPath
+			case configv1.Hetzner.String():
+				shared.KubeConfig = shared.ClusterConfig.Spec.Hetzner.KubeConfigPath
+			}
+
+			if err := shared.EvaluateKubeConfigPath(); err != nil {
+				fmt.Printf("Error: %v\n", err)
+				os.Exit(1)
+			}
+			klog.Info("Start to prepare kube client")
+			config, err := clientcmd.BuildConfigFromFlags("", shared.KubeConfig)
+			if err != nil {
+				klog.Errorf("Failed to build kubeconfig: %v", err)
+				os.Exit(1)
+			}
+			shared.KubeConfigRestConfig = config
+			if err := RunDeploy(configv1.ConfigType(shared.ClusterConfig.Spec.Type), config); err != nil {
 				return err
 			}
 			return nil
@@ -89,9 +95,9 @@ func init() {
 	// localDeleteCmd.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 }
 
-func RunDeploy() error {
+func RunDeploy(t configv1.ConfigType, config *rest.Config) error {
 	// todo: distinguish between local and capi clusters
-	if err := deploy.Deploy(shared.KubeConfigRestConfig); err != nil {
+	if err := deploy.Deploy(t, config); err != nil {
 		return err
 	}
 	return nil

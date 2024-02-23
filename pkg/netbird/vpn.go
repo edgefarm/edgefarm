@@ -40,19 +40,30 @@ func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error
 	return nil
 }
 
+func Preconfigure() (string, error) {
+	state, err := state.GetState()
+	if err != nil {
+		return "", err
+	}
+	state.SetNetbirdToken(args.NetbirdToken)
+	key, err := CreateSetupKey(state, args.NetbirdToken)
+	if err != nil {
+		return "", err
+	}
+	args.NetbirdSetupKey = key.Key
+	return key.Key, nil
+}
+
 func EnableVPN() error {
+	klog.Info("Preconfiguring netbird")
+	if _, err := Preconfigure(); err != nil {
+		return err
+	}
+
 	state, err := state.GetState()
 	if err != nil {
 		return err
 	}
-	state.SetNetbirdToken(args.NetbirdToken)
-	klog.Infof("Prepare edge nodes")
-	klog.Info("Start to prepare netbird")
-	key, err := CreateSetupKey(state, args.NetbirdToken)
-	if err != nil {
-		return err
-	}
-	args.NetbirdSetupKey = key.Key
 
 	if args.NetbirdToken != "" {
 		klog.Infof("Deploy cluster bootstrap VPN packages")

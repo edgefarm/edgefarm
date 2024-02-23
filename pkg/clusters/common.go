@@ -12,6 +12,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2"
 )
 
 func PrepareKubeClient(kubeconfigPath string) (*rest.Config, error) {
@@ -52,7 +53,8 @@ func WaitForKubeconfig(kubeconfig *rest.Config, cluster string, timeout time.Dur
 	return true, nil
 }
 
-func RenderAndApply(template string, context map[string]string, kubeconfig *rest.Config) error {
+func RenderAndApply(name string, template string, context map[string]string, kubeconfig *rest.Config) error {
+	klog.Infoln(fmt.Sprintf("Creating %s", name))
 	manifest, err := prepareTemplate(template, context)
 	if err != nil {
 		return err
