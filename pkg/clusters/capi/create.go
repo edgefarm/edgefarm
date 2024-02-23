@@ -33,9 +33,14 @@ import (
 )
 
 func CreateCluster() error {
-	var err error
 	if os.Getenv("LOCAL_UP_SKIP_CAPI_BOOTSTRAP") == "true" {
 		klog.Infoln("Skipping creating CAPI cluster")
+		var err error
+		shared.KubeConfigRestConfig, err = clusters.PrepareKubeClient(shared.ClusterConfig.Spec.General.KubeConfigPath)
+		if err != nil {
+			return err
+		}
+
 	} else {
 		ki, err := kindoperator.NewKindOperator(shared.ClusterConfig.Spec.General.KubeConfigPath)
 		if err != nil {
@@ -52,39 +57,39 @@ func CreateCluster() error {
 		if err != nil {
 			return err
 		}
-	}
-	shared.KubeConfigRestConfig, err = clusters.PrepareKubeClient(shared.ClusterConfig.Spec.General.KubeConfigPath)
-	if err != nil {
-		return err
-	}
-	if err := packages.Install(shared.KubeConfigRestConfig, packages.CertManager); err != nil {
-		return err
-	}
 
-	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "cert-manager", map[string]string{"app.kubernetes.io/instance": "cert-manager"}, time.Minute*5); err != nil {
-		return err
-	}
+		shared.KubeConfigRestConfig, err = clusters.PrepareKubeClient(shared.ClusterConfig.Spec.General.KubeConfigPath)
+		if err != nil {
+			return err
+		}
+		if err := packages.Install(shared.KubeConfigRestConfig, packages.CertManager); err != nil {
+			return err
+		}
 
-	if err := packages.Install(shared.KubeConfigRestConfig, packages.ClusterAPIOperator); err != nil {
-		return err
-	}
+		if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "cert-manager", map[string]string{"app.kubernetes.io/instance": "cert-manager"}, time.Minute*5); err != nil {
+			return err
+		}
 
-	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-kubeadm-bootstrap-system", map[string]string{"cluster.x-k8s.io/provider": "bootstrap-kubeadm"}, time.Minute*5); err != nil {
-		return err
-	}
-	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-kubeadm-control-plane-system", map[string]string{"cluster.x-k8s.io/provider": "control-plane-kubeadm"}, time.Minute*5); err != nil {
-		return err
-	}
-	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-operator-system", map[string]string{"cluster.x-k8s.io/provider": "capi-operator"}, time.Minute*5); err != nil {
-		return err
-	}
-	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-system", map[string]string{"cluster.x-k8s.io/provider": "cluster-api"}, time.Minute*5); err != nil {
-		return err
-	}
-	if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "caaph-system", map[string]string{"cluster.x-k8s.io/provider": "helm"}, time.Minute*5); err != nil {
-		return err
-	}
+		if err := packages.Install(shared.KubeConfigRestConfig, packages.ClusterAPIOperator); err != nil {
+			return err
+		}
 
+		if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-kubeadm-bootstrap-system", map[string]string{"cluster.x-k8s.io/provider": "bootstrap-kubeadm"}, time.Minute*5); err != nil {
+			return err
+		}
+		if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-kubeadm-control-plane-system", map[string]string{"cluster.x-k8s.io/provider": "control-plane-kubeadm"}, time.Minute*5); err != nil {
+			return err
+		}
+		if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-operator-system", map[string]string{"cluster.x-k8s.io/provider": "capi-operator"}, time.Minute*5); err != nil {
+			return err
+		}
+		if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "capi-system", map[string]string{"cluster.x-k8s.io/provider": "cluster-api"}, time.Minute*5); err != nil {
+			return err
+		}
+		if err := k8s.WaitForDeploymentOrError(shared.KubeConfigRestConfig, "caaph-system", map[string]string{"cluster.x-k8s.io/provider": "helm"}, time.Minute*5); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

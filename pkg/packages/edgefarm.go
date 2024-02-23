@@ -363,7 +363,7 @@ affinity:
 		},
 	}
 
-	YurtHub = []Packages{
+	YurtHubLocal = []Packages{
 		{
 			Helm: []*Helm{
 				{
@@ -387,6 +387,46 @@ affinity:
     port: 6443
   lookup:
     enabled: false
+image:
+  registry: ghcr.io/openyurtio/openyurt
+  repository: yurthub
+  tag: v1.4.0`,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	YurtHubCloud = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "yurt-hub",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "yurt-hub",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/yurthub",
+								Namespace:   "kube-system",
+								Version:     "1.14.0",
+								UpgradeCRDs: true,
+								Wait:        true,
+								Timeout:     time.Second * 90,
+								ValuesYaml: `kuberneteServerAddr:
+  manual:
+    enabled: false
+  lookup:
+    enabled: true
+    secretRef:
+      name: hetzner
+      namespace: kube-system
+      keys:
+        host: apiserver-host
+        port: apiserver-port
 image:
   registry: ghcr.io/openyurtio/openyurt
   repository: yurthub

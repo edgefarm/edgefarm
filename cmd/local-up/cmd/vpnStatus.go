@@ -82,8 +82,12 @@ var localVPNStatusCmd = &cobra.Command{
 			klog.Errorln("VPN status: unknown")
 			os.Exit(1)
 		}
-		if !state.IsFullyConfigured() {
+		if !state.IsFullyConfigured() && state.GetNetbirdSetupKey() == "" {
 			klog.Infoln("VPN status: disabled. Use 'edgefarm local-up vpn enable to enable VPN.")
+			os.Exit(0)
+		} else if !state.IsFullyConfigured() && state.GetNetbirdSetupKey() != "" {
+			klog.Infoln("VPN status: preconfigured")
+			klog.Infoln("Netbird setup-key: " + state.GetNetbirdSetupKey())
 			os.Exit(0)
 		}
 

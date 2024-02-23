@@ -31,6 +31,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	mycontext "github.com/edgefarm/edgefarm/pkg/context"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
@@ -57,7 +58,7 @@ type DeployOpenYurt struct {
 	EnableDummyIf             bool
 }
 
-func (c *DeployOpenYurt) Run(config *rest.Config) error {
+func (c *DeployOpenYurt) Run(t configv1.ConfigType, config *rest.Config) error {
 	edgeNodes, err := k8s.GetEdgeNodes(config)
 	if err != nil {
 		return err
@@ -93,9 +94,18 @@ func (c *DeployOpenYurt) Run(config *rest.Config) error {
 		return err
 	}
 
-	if err := packages.Install(config, packages.YurtHub); err != nil {
-		klog.Errorf("error occurs when deploying Yurthub, %v", err)
-		return err
+	switch t {
+	case configv1.Local:
+		if err := packages.Install(config, packages.YurtHubLocal); err != nil {
+			klog.Errorf("error occurs when deploying Yurthub, %v", err)
+			return err
+		}
+	case configv1.Hetzner:
+		if err := packages.Install(config, packages.YurtHubCloud); err != nil {
+			klog.Errorf("error occurs when deploying Yurthub, %v", err)
+			return err
+
+		}
 	}
 
 	if err := k8s.CreateEdgeNodepools(config); err != nil {
