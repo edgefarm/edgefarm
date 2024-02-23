@@ -12,7 +12,7 @@ require (
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-version v1.6.0
 	github.com/icza/gox v0.0.0-20230924165045-adcb03233bb5
-	github.com/mittwald/go-helm-client v0.8.2
+	github.com/mittwald/go-helm-client v0.12.8
 	github.com/openyurtio/openyurt v1.4.0
 	github.com/pytimer/k8sutil v0.0.0-20221114090626-86d6279d8e52
 	github.com/s0rg/retry v1.1.2
