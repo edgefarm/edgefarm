@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/openyurt"
 	"github.com/edgefarm/edgefarm/pkg/packages"
@@ -45,7 +46,7 @@ func AddFlagsForDeploy(flagset *pflag.FlagSet) {
 	}
 }
 
-func Deploy(config *rest.Config) error {
+func Deploy(t configv1.ConfigType, config *rest.Config) error {
 	if !shared.Args.Skip.Ingress {
 		klog.Infoln("Deploy ingress packages")
 		if err := packages.Install(config, packages.Ingress); err != nil {
@@ -104,7 +105,7 @@ func Deploy(config *rest.Config) error {
 			NodeServantImage:          fmt.Sprintf(constants.NodeServantImageFormat, constants.OpenYurtVersion),
 			EnableDummyIf:             true,
 		}
-		if err := openyurtDeployer.Run(config); err != nil {
+		if err := openyurtDeployer.Run(t, config); err != nil {
 			klog.Errorf("errors occurred when deploying openyurt components")
 			return err
 		}

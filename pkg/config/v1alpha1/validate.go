@@ -67,13 +67,15 @@ func Validate(c *api.Cluster) error {
 	if err = ValidateGeneral(&c.Spec.General); err != nil {
 		return err
 	}
-
 	switch {
 	case c.Spec.Type == Local.String():
 		if err = ValidateLocal(&c.Spec.Local); err != nil {
 			return err
 		}
 	case c.Spec.Type == Hetzner.String():
+		if err = ValidateNetbird(&c.Spec.Netbird); err != nil {
+			return err
+		}
 		if err = ValidateHetzner(&c.Spec.Hetzner); err != nil {
 			return err
 		}
@@ -86,6 +88,13 @@ var (
 	hetznerCloudRegions = []string{"fsn1", "nbg1", "hel1", "ash", "hil"}
 	hetznerMachiens     = []string{"cx11", "cpx11", "cx21", "cpx21", "cx31", "cpx31", "cx41", "cpx41", "cx51", "cpx51"}
 )
+
+func ValidateNetbird(c *api.Netbird) error {
+	if c.SetupKey == "" {
+		return fmt.Errorf("spec.netbird.setupKey is required. Maybe you should run 'local-up vpn preconfigure --netbird-token <token>'")
+	}
+	return nil
+}
 
 func ValidateHetzner(c *api.Hetzner) error {
 	if c.Name == "" {
@@ -159,6 +168,9 @@ func ValidateHetzner(c *api.Hetzner) error {
 	}
 	if c.KubeConfigPath == "" {
 		return fmt.Errorf("kubeConfigPath is required")
+	}
+	if c.HetznerCloudSSHKey == "" {
+		return fmt.Errorf("hetznerCloudSSHKey is required")
 	}
 
 	return nil

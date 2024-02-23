@@ -28,6 +28,7 @@ import (
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
 
 	"github.com/edgefarm/edgefarm/pkg/clusters"
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
@@ -209,7 +210,7 @@ func (ki *Initializer) Run() error {
 	}
 
 	if shared.Args.Deploy {
-		if err := deploy.Deploy(shared.KubeConfigRestConfig); err != nil {
+		if err := deploy.Deploy(configv1.Local, shared.KubeConfigRestConfig); err != nil {
 			return err
 		}
 	}

@@ -29,15 +29,22 @@ type TypeMeta struct {
 	APIVersion string `yaml:"apiVersion,omitempty" json:"apiVersion,omitempty"`
 }
 
+// +k8s:deepcopy-gen=true
 type Spec struct {
 	Type    string  `yaml:"type,omitempty" json:"type,omitempty"`
 	General General `yaml:"general,omitempty" json:"general,omitempty"`
 	Hetzner Hetzner `yaml:"hetzner,omitempty" json:"hetzner,omitempty"`
 	Local   Local   `yaml:"local,omitempty" json:"local,omitempty"`
+	Netbird Netbird `yaml:"netbird,omitempty" json:"netbird,omitempty"`
 }
 
+// +k8s:deepcopy-gen=true
+type Netbird struct {
+	SetupKey string `yaml:"setupKey,omitempty" json:"setupKey,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
 type General struct {
-	// +k8s:deepcopy-gen=true
 	KubeConfigPath string `yaml:"kubeConfigPath,omitempty" json:"kubeConfigPath,omitempty"`
 }
 

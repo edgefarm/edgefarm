@@ -51,3 +51,7 @@ func SetDefaultsHetzner(obj *Hetzner) {
 	obj.SSHPrivateKeyPath = "~/.edgefarm-local-up/hetzner-ssh-key"
 	obj.SSHPublicKeyPath = "~/.edgefarm-local-up/hetzner-ssh-key.pub"
 }
+
+func SetDefaultNetbird(obj *Netbird) {
+	obj.SetupKey = "<your netbird.io setup key>"
+}
