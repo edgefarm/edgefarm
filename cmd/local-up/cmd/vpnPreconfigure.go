@@ -26,6 +26,10 @@ import (
 	"k8s.io/klog/v2"
 )
 
+var (
+	unconfigureVPN bool
+)
+
 func NewVPNPreconfigureCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "preconfigure",
@@ -37,14 +41,22 @@ This enables you to join physical edge nodes to the cloud based edgefarm cluster
 				klog.Errorln("Error: netbird.io private access token must be specified")
 				os.Exit(1)
 			}
-
-			key, err := netbird.Preconfigure()
-			if err != nil {
-				return err
+			if unconfigureVPN {
+				err := netbird.UnPreconfigure()
+				if err != nil {
+					return err
+				}
+				klog.Infoln("VPN unconfiguration completed successfully")
+				return nil
+			} else {
+				key, err := netbird.Preconfigure()
+				if err != nil {
+					return err
+				}
+				klog.Infoln("VPN preconfiguration completed successfully")
+				klog.Infof("Netbird.io setup-key: %s\n", key)
+				return nil
 			}
-			klog.Infoln("VPN preconfiguration completed successfully")
-			klog.Infof("Netbird.io setup-key: %s\n", key)
-			return nil
 		},
 		Args: cobra.NoArgs,
 	}
@@ -58,4 +70,5 @@ func init() {
 
 func vpnPreconfigureFlags(flagset *pflag.FlagSet) {
 	flagset.StringVar(&args.NetbirdToken, "netbird-token", "", "Specify the netbird.io private access token. This is required to connect physical edge nodes.")
+	flagset.BoolVar(&unconfigureVPN, "delete", false, "Deletes pre-configured VPN from netbird.io.")
 }

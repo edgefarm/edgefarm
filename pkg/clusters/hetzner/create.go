@@ -88,11 +88,11 @@ func CreateCluster(config *rest.Config) error {
 	context := map[string]string{
 		"CLUSTER_NAME":                      shared.ClusterConfig.Spec.Hetzner.Name,
 		"KUBERNETES_VERSION":                constants.KubernetesVersion,
-		"WORKER_MACHINE_COUNT":              fmt.Sprintf("%d", shared.ClusterConfig.Spec.Hetzner.WorkerMachineCount),
+		"WORKER_MACHINE_COUNT":              fmt.Sprintf("%d", shared.ClusterConfig.Spec.Hetzner.Workers.Count),
 		"HCLOUD_REGION":                     shared.ClusterConfig.Spec.Hetzner.HetznerCloudRegion,
-		"CONTROL_PLANE_MACHINE_COUNT":       fmt.Sprintf("%d", shared.ClusterConfig.Spec.Hetzner.ControlPlaneMachineCount),
-		"HCLOUD_CONTROL_PLANE_MACHINE_TYPE": shared.ClusterConfig.Spec.Hetzner.HetznerCloudControlPlaneMachineType,
-		"HCLOUD_WORKER_MACHINE_TYPE":        shared.ClusterConfig.Spec.Hetzner.HetznerCloudWorkerMachineType,
+		"CONTROL_PLANE_MACHINE_COUNT":       fmt.Sprintf("%d", shared.ClusterConfig.Spec.Hetzner.ControlPlane.Count),
+		"HCLOUD_CONTROL_PLANE_MACHINE_TYPE": shared.ClusterConfig.Spec.Hetzner.ControlPlane.MachineType,
+		"HCLOUD_WORKER_MACHINE_TYPE":        shared.ClusterConfig.Spec.Hetzner.Workers.MachineType,
 		"HCLOUD_SSH_KEY":                    shared.ClusterConfig.Spec.Hetzner.HetznerCloudSSHKey,
 		"HCLOUD_TOKEN":                      shared.ClusterConfig.Spec.Hetzner.HCloudToken,
 		"NETBIRD_DOMAIN":                    b64.StdEncoding.EncodeToString([]byte("netbird.cloud")),
@@ -182,7 +182,7 @@ func CreateCluster(config *rest.Config) error {
 		return fmt.Errorf("API server not reachable")
 	}
 
-	allNodesPresent, err := clusters.WaitForAllNodes(shared.CloudKubeConfigRestConfig, time.Minute*20, shared.ClusterConfig.Spec.Hetzner.ControlPlaneMachineCount, shared.ClusterConfig.Spec.Hetzner.WorkerMachineCount)
+	allNodesPresent, err := clusters.WaitForAllNodes(shared.CloudKubeConfigRestConfig, time.Minute*20, shared.ClusterConfig.Spec.Hetzner.ControlPlane.Count, shared.ClusterConfig.Spec.Hetzner.Workers.Count)
 	if err != nil {
 		return err
 	}

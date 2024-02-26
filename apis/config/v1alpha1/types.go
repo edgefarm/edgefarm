@@ -58,21 +58,22 @@ type Local struct {
 	VirtualEdgeNodes int    `yaml:"virtualEdgeNodes,omitempty" json:"virtualEdgeNodes,omitempty"`
 }
 
+type HetznerMachines struct {
+	// The number of worker machines
+	Count int `yaml:"count,omitempty" json:"count,omitempty"`
+	// The type of the worker machine
+	MachineType string `yaml:"machineType,omitempty" json:"machineType,omitempty"`
+}
+
 // +k8s:deepcopy-gen=true
 type Hetzner struct {
 	// The name of the cluster
 	Name string `yaml:"name,omitempty" json:"name,omitempty"`
-	// The number of control plane machines
-	ControlPlaneMachineCount int `yaml:"controlPlaneMachineCount,omitempty" json:"controlPlaneMachineCount,omitempty"`
-	// The number of worker machines
-	WorkerMachineCount int `yaml:"workerMachineCount,omitempty" json:"workerMachineCount,omitempty"`
-	// The region where the cluster should be created
-	HetznerCloudRegion string `yaml:"hetznerCloudRegion,omitempty" json:"hetznerCloudRegion,omitempty"`
-	// The type of the control plane machine
-	HetznerCloudControlPlaneMachineType string `yaml:"hetznerCloudControlPlaneMachineType,omitempty" json:"hetznerCloudControlPlaneMachineType,omitempty"`
-	// The type of the worker machine
-	HetznerCloudWorkerMachineType string `yaml:"hetznerCloudWorkerMachineType,omitempty" json:"hetznerCloudWorkerMachineType,omitempty"`
-	// The SSH key that should be used to access the machines
+
+	ControlPlane       HetznerMachines `yaml:"controlPlane,omitempty" json:"controlPlane,omitempty"`
+	Workers            HetznerMachines `yaml:"workers,omitempty" json:"worker,omitempty"`
+	HetznerCloudRegion string          `yaml:"region,omitempty" json:"hetznerCloudRegion,omitempty"`
+
 	HetznerCloudSSHKey string `yaml:"hetznerCloudSSHKey,omitempty" json:"hetznerCloudSSHKey,omitempty"`
 	//  The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions
 	HCloudToken string `yaml:"hcloudToken,omitempty" json:"hcloudToken,omitempty"`

@@ -91,7 +91,7 @@ spec:
       joinConfiguration:
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: "node.edgefarm.io/type=cloud,ingress-ready=true,node-role.kubernetes.io/worker="
+            node-labels: "node.edgefarm.io/type=cloud,ingress-ready=true,node-role.edgefarm.io/worker="
             anonymous-auth: "false"
             authentication-token-webhook: "true"
             authorization-mode: Webhook
@@ -662,11 +662,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: "node-role.kubernetes.io/worker"
-                operator: Exists
-            - matchExpressions:
-              - key: "node-role.kubernetes.io/control-plane"
-                operator: Exists`
+              - key: "node.edgefarm.io/type"
+                operator: In
+                values:
+                  - "cloud"`
 
 	hetznerSecret = `apiVersion: v1
 kind: Secret
@@ -740,12 +739,12 @@ spec:
           - -c
         args:
           - mkdir -p /opt/cni/bin && cp /cni/* /opt/cni/bin && chmod +x /opt/cni/bin/*
-    args: ["--ip-masq", "--kube-subnet-mgr", "--iface=wt0"]
-    tolerations:
-    - key: edgefarm.io
-      effect: NoSchedule
-    - effect: NoSchedule
-      operator: Exists
+      args: ["--ip-masq", "--kube-subnet-mgr", "--iface=wt0"]
+      tolerations:
+      - key: edgefarm.io
+        effect: NoSchedule
+      - effect: NoSchedule
+        operator: Exists
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

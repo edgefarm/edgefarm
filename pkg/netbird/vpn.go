@@ -54,6 +54,14 @@ func Preconfigure() (string, error) {
 	return key.Key, nil
 }
 
+func UnPreconfigure() error {
+	state, err := state.GetState()
+	if err != nil {
+		return err
+	}
+	return Cleanup(state, args.NetbirdToken, false, false, false, true)
+}
+
 func EnableVPN() error {
 	klog.Info("Preconfiguring netbird")
 	if _, err := Preconfigure(); err != nil {

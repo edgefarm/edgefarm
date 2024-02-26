@@ -22,13 +22,15 @@ import (
 	"io"
 	"os"
 
-	"github.com/edgefarm/edgefarm/pkg/constants"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/shared"
-	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
 
@@ -45,7 +47,7 @@ func validateDeleteNode(config *rest.Config) error {
 		return err
 	}
 	if !exists {
-		return errors.New("node does not exist")
+		return nil
 	}
 	err = k8s.ValidatePhysicalNodeName(nodeNameDeleteNode)
 	if err != nil {
@@ -60,10 +62,36 @@ func NewNodeDeleteCommand(config *rest.Config, out io.Writer) *cobra.Command {
 		Short: "Deletes a edge node from the cluster.",
 		Long:  "Deletes a edge node from the cluster. It also gives instructions on how to unprovision the the device.",
 		RunE: func(cmd *cobra.Command, arguments []string) error {
-			if err := args.EvaluateKubeConfigPath(); err != nil {
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					return err
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					return err
+				}
+			}
+
+			switch shared.ClusterType {
+			case configv1.Local.String():
+				shared.KubeConfig = shared.ClusterConfig.Spec.General.KubeConfigPath
+			case configv1.Hetzner.String():
+				shared.KubeConfig = shared.ClusterConfig.Spec.Hetzner.KubeConfigPath
+			}
+
+			if err := shared.EvaluateKubeConfigPath(); err != nil {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)
 			}
+			klog.Info("Start to prepare kube client")
+			config, err := clientcmd.BuildConfigFromFlags("", shared.KubeConfig)
+			if err != nil {
+				klog.Errorf("Failed to build kubeconfig: %v", err)
+				os.Exit(1)
+			}
+
+			shared.KubeConfigRestConfig = config
 			if err := validateDeleteNode(config); err != nil {
 				return err
 			}
@@ -76,6 +104,7 @@ func NewNodeDeleteCommand(config *rest.Config, out io.Writer) *cobra.Command {
 		Args: cobra.NoArgs,
 	}
 	cmd.SetOut(out)
+	shared.AddSharedFlags(cmd.Flags())
 	return cmd
 }
 
@@ -83,7 +112,6 @@ func init() {
 	nodeDeleteCommand := NewNodeDeleteCommand(shared.KubeConfigRestConfig, os.Stdout)
 	nodeCmd.AddCommand(nodeDeleteCommand)
 	nodeDeleteCommand.Flags().StringVarP(&nodeNameDeleteNode, "name", "n", "", "The name of the node to delete. Must be one of the self-provisioned nodes.")
-	nodeDeleteCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 
 }
 
@@ -105,18 +133,26 @@ func instructionsDeleteNode() {
 }
 
 func Run() error {
-	klog.Infof("Delete node %s", nodeNameDeleteNode)
-	err := k8s.DeleteNode(shared.KubeConfigRestConfig, nodeNameDeleteNode)
-	if err != nil {
-		return err
-	}
-
 	klog.Infof("Delete nodepool for node %s", nodeNameDeleteNode)
-	err = k8s.DeleteNodepool(shared.KubeConfigRestConfig, nodeNameDeleteNode)
+	err := k8s.DeleteNodepool(shared.KubeConfigRestConfig, nodeNameDeleteNode)
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			klog.Infof("Nodepool %s not found", nodeNameDeleteNode)
+			goto proceed
+		}
 		return err
 	}
-
+proceed:
+	klog.Infof("Delete node %s", nodeNameDeleteNode)
+	err = k8s.DeleteNode(shared.KubeConfigRestConfig, nodeNameDeleteNode)
+	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			klog.Infof("Node %s not found", nodeNameDeleteNode)
+			goto proceed2
+		}
+		return err
+	}
+proceed2:
 	instructionsDeleteNode()
 
 	return nil
