@@ -27,7 +27,7 @@ require (
 	k8s.io/cluster-bootstrap v0.22.3
 	k8s.io/klog/v2 v2.100.1
 	sigs.k8s.io/kind v0.12.0
-	sigs.k8s.io/yaml v1.3.0
+	sigs.k8s.io/yaml v1.4.0
 	tideland.dev/go/wait v0.2.0
 )
 
