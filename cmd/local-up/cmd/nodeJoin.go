@@ -23,18 +23,19 @@ import (
 	"os"
 	"time"
 
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/k8s/tokens"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
 	"github.com/edgefarm/edgefarm/pkg/shared"
-	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
 	"github.com/hako/durafmt"
 	tmplutil "github.com/openyurtio/openyurt/pkg/util/templates"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
 
@@ -73,15 +74,41 @@ func NewNodeJoinCommand(config *rest.Config, out io.Writer) *cobra.Command {
 		Short: "Join a new node to the cluster.",
 		Long:  "Join a new node to the cluster by creating a new kubernetes node and giving instructions on how to join it to the cluster.",
 		RunE: func(cmd *cobra.Command, arguments []string) error {
-			if err := args.EvaluateKubeConfigPath(); err != nil {
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					return err
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					return err
+				}
+			}
+
+			switch shared.ClusterType {
+			case configv1.Local.String():
+				shared.KubeConfig = shared.ClusterConfig.Spec.General.KubeConfigPath
+			case configv1.Hetzner.String():
+				shared.KubeConfig = shared.ClusterConfig.Spec.Hetzner.KubeConfigPath
+			}
+
+			if err := shared.EvaluateKubeConfigPath(); err != nil {
 				fmt.Printf("Error: %v\n", err)
 				os.Exit(1)
 			}
+			klog.Info("Start to prepare kube client")
+			config, err := clientcmd.BuildConfigFromFlags("", shared.KubeConfig)
+			if err != nil {
+				klog.Errorf("Failed to build kubeconfig: %v", err)
+				os.Exit(1)
+			}
+
+			shared.KubeConfigRestConfig = config
 			if err := validateJoinNode(config); err != nil {
 				return err
 			}
 
-			if err := RunJoinNode(); err != nil {
+			if err := RunJoinNode(configv1.ConfigType(shared.ClusterConfig.Spec.Type)); err != nil {
 				return err
 			}
 			return nil
@@ -89,6 +116,7 @@ func NewNodeJoinCommand(config *rest.Config, out io.Writer) *cobra.Command {
 		Args: cobra.NoArgs,
 	}
 	cmd.SetOut(out)
+	shared.AddSharedFlags(cmd.Flags())
 	return cmd
 }
 
@@ -96,49 +124,69 @@ func init() {
 	nodeJoinCommand := NewNodeJoinCommand(shared.KubeConfigRestConfig, os.Stdout)
 	nodeCmd.AddCommand(nodeJoinCommand)
 	nodeJoinCommand.Flags().StringVarP(&nodeNameJoinNode, "name", "n", "", "A unique name of the node to join. Must not be the same as an existing node.")
-	nodeJoinCommand.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
 	nodeJoinCommand.PersistentFlags().StringVar(&TTL, "ttl", defaultTTL, "Define the TTL of the bootstrap token.")
 }
 
-func instructionsJoinNode(token string, ttl string) error {
+func instructionsJoinNode(t configv1.ConfigType, token string, ttl string) error {
 	state, err := state.GetState()
 	if err != nil {
 		return err
 	}
-	routingPeer, err := netbird.RoutingPeerIP(state.GetNetbirdToken())
-	if err != nil {
-		return err
-	}
-
 	green := color.New(color.FgHiGreen)
 	greenBold := color.New(color.FgHiGreen, color.Bold)
 	yellow := color.New(color.FgHiYellow)
+	switch t {
+	case configv1.Local:
+		routingPeer, err := netbird.RoutingPeerIP(state.GetNetbirdToken())
+		if err != nil {
+			return err
+		}
+		green.Printf("Here is some information you need to join a edge node to this cluster.\n\n")
+		greenBold.Println("VPN:")
+		green.Println("If you haven't already linked the node to the netbird.io VPN, you must establish the connection to the VPN beforehand.")
+		green.Println("")
+		green.Printf("Use can use this setup-key ")
+		yellow.Printf("%s", state.GetNetbirdSetupKey())
+		green.Printf(" to connect to netbird.io VPN.\n\n")
+		greenBold.Println("Kubernetes:")
+		green.Printf("Ensure that the ")
+		yellow.Printf("/etc/hosts")
+		green.Printf(" file on your physical edge node contains the following entry:\n")
+		yellow.Printf("%s edgefarm-control-plane\n", routingPeer)
+		green.Println("")
+		green.Printf("Use this token ")
+		yellow.Printf("%s", token)
+		green.Printf(" to join the cluster. You have ")
+		yellow.Printf("%s", ttl)
+		green.Println(" to join the cluster before this token expires.")
+		yellow.Println("")
+		green.Println("If you experience any problems, please consult the documentation at ")
+		green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
+	default:
+		green.Printf("Here is some information you need to join a edge node to this cluster.\n\n")
+		greenBold.Println("VPN:")
+		green.Println("If you haven't already linked the node to the netbird.io VPN, you must establish the connection to the VPN beforehand.")
+		green.Println("")
+		green.Printf("Use can use this setup-key ")
+		yellow.Printf("%s", state.GetNetbirdSetupKey())
+		green.Printf(" to connect to netbird.io VPN.\n\n")
+		greenBold.Println("Kubernetes:")
+		green.Printf("Use this token ")
+		yellow.Printf("%s", token)
+		green.Printf(" to join the cluster reachable here: ")
+		yellow.Printf("%s", shared.KubeConfigRestConfig.Host)
+		green.Printf(".\nYou have ")
+		yellow.Printf("%s", ttl)
+		green.Println(" to join the cluster before this token expires.")
+		yellow.Println("")
+		green.Println("If you experience any problems, please consult the documentation at ")
+		green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
+	}
 
-	green.Printf("Here is some information you need to join a physical edge node to this cluster.\n\n")
-	greenBold.Println("VPN:")
-	green.Println("Unless you already connected the physical node to netbird.io VPN, you need to connect it to the VPN first.")
-	green.Println("")
-	green.Printf("Use can use this setup-key ")
-	yellow.Printf("%s", state.GetNetbirdSetupKey())
-	green.Printf(" to connect to netbird.io VPN.\n\n")
-	greenBold.Println("Kubernetes:")
-	green.Printf("Ensure that the ")
-	yellow.Printf("/etc/hosts")
-	green.Printf(" file on your physical edge node contains the following entry:\n")
-	yellow.Printf("%s edgefarm-control-plane\n", routingPeer)
-	green.Println("")
-	green.Printf("Use this token ")
-	yellow.Printf("%s", token)
-	green.Printf(" to join the cluster. You have ")
-	yellow.Printf("%s", ttl)
-	green.Println(" to join the cluster before this token expires.")
-	yellow.Println("")
-	green.Println("If you experience any problems, please consult the documentation at ")
-	green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
 	return nil
 }
 
-func RunJoinNode() error {
+func RunJoinNode(t configv1.ConfigType) error {
 	klog.Infof("Adding empty node resource for %s", nodeNameJoinNode)
 
 	klog.Infof("Adding nodepool for node %s", nodeNameJoinNode)
@@ -169,7 +217,7 @@ func RunJoinNode() error {
 	}
 
 	duraTTL := durafmt.Parse(ttlDuration)
-	instructionsJoinNode(token, duraTTL.String())
+	instructionsJoinNode(t, token, duraTTL.String())
 
 	return nil
 }

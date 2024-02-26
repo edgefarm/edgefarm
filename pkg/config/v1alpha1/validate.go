@@ -100,11 +100,11 @@ func ValidateHetzner(c *api.Hetzner) error {
 	if c.Name == "" {
 		return fmt.Errorf("name is required")
 	}
-	if c.ControlPlaneMachineCount == 0 {
-		return fmt.Errorf("controlPlaneMachineCount is required")
+	if c.ControlPlane.Count == 0 {
+		return fmt.Errorf("controlPlane.count is required")
 	}
-	if c.WorkerMachineCount == 0 {
-		return fmt.Errorf("workerMachineCount is required")
+	if c.Workers.Count == 0 {
+		return fmt.Errorf("workers.count is required")
 	}
 	if c.HetznerCloudRegion == "" {
 		return fmt.Errorf("hetznerCloudRegion is required")
@@ -122,36 +122,36 @@ func ValidateHetzner(c *api.Hetzner) error {
 		return fmt.Errorf("invalid hetznerCloudRegion: %s", c.HetznerCloudRegion)
 	}
 
-	if c.HetznerCloudControlPlaneMachineType == "" {
-		return fmt.Errorf("hetznerCloudControlPlaneMachineType is required")
+	if c.ControlPlane.MachineType == "" {
+		return fmt.Errorf("controlPlane.machineType is required")
 	}
 
 	// check if machine type is valid
 	machineTypeFound := false
 	for _, m := range hetznerMachiens {
-		if c.HetznerCloudControlPlaneMachineType == m {
+		if c.ControlPlane.MachineType == m {
 			machineTypeFound = true
 			break
 		}
 	}
 	if !machineTypeFound {
-		return fmt.Errorf("invalid hetznerCloudControlPlaneMachineType: %s", c.HetznerCloudControlPlaneMachineType)
+		return fmt.Errorf("invalid hetznerCloudControlPlaneMachineType: %s", c.ControlPlane.MachineType)
 	}
 
-	if c.HetznerCloudWorkerMachineType == "" {
+	if c.Workers.MachineType == "" {
 		return fmt.Errorf("hetznerCloudWorkerMachineType is required")
 	}
 
 	// check if machine type is valid
 	machineTypeFound = false
 	for _, m := range hetznerMachiens {
-		if c.HetznerCloudWorkerMachineType == m {
+		if c.Workers.MachineType == m {
 			machineTypeFound = true
 			break
 		}
 	}
 	if !machineTypeFound {
-		return fmt.Errorf("invalid hetznerCloudWorkerMachineType: %s", c.HetznerCloudWorkerMachineType)
+		return fmt.Errorf("invalid hetznerCloudWorkerMachineType: %s", c.Workers.MachineType)
 	}
 
 	if c.HetznerCloudSSHKey == "" {
