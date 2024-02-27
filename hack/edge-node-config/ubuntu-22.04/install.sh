@@ -187,15 +187,20 @@ if [[ $NODE_TYPE == *"kubeadm"* ]]; then
     if [ "$INSTALL_KUBEADM" == "true" ] || [ "$INSTALL_KUBELET" == "true" ]; then
         echo -e "${yellowBold}You need to install components with the correct version $VERSION\n"
         echo -e "${yellow}curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes.gpg"
-        echo -e 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/kubernetes.gpg] http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list'
+        echo -e "echo \"deb [arch=$ARCH signed-by=/etc/apt/keyrings/kubernetes.gpg] http://apt.kubernetes.io/ kubernetes-xenial main\" | sudo tee -a /etc/apt/sources.list"
         echo -e "${yellow}apt update"
+        if [ "$INSTALL_KUBEADM" == "true" ] &&  [ "$INSTALL_KUBELET" == "true" ]; then
+            echo -e "${yellow}apt-get install -y kubeadm=${VERSION}-00 kubelet=${VERSION}-00 kubectl=${VERSION}-00 --reinstall --allow-downgrades${nc}"
+            exit 1
+        fi
         if [ "$INSTALL_KUBEADM" == "true" ]; then
-            echo -e "${yellow}apt-get install -y kubeadm=${VERSION}-00 --reinstall${nc}"
+            echo -e "${yellow}apt-get install -y kubeadm=${VERSION}-00 --reinstall --allow-downgrades${nc}"
+            exit 1
         fi
         if [ "$INSTALL_KUBELET" == "true" ]; then
-            echo -e "${yellow}apt-get install -y kubelet=${VERSION}-00 --reinstall${nc}"
+            echo -e "${yellow}apt-get install -y kubelet=${VERSION}-00 --reinstall$ --allow-downgrades{nc}"
+            exit 1
         fi
-        exit 1
     fi
 fi
 
