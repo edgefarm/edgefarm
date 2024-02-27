@@ -11,6 +11,10 @@ else
     kubeadm reset -f
   fi
 fi
+rm -fr /etc/kubernetes/
+rm -fr ~/.kube/
+rm -fr /var/lib/etcd
+rm -rf /var/lib/cni/
 rm -rf /etc/cni/net.d
 ip link set cni0 down
 ip link delete cni0
@@ -18,4 +22,13 @@ ip link set flannel.1 down
 ip link delete flannel.1
 ip link set yurthub-dummy0 down
 ip link delete yurthub-dummy0
+systemctl disable kubelet
+systemctl stop kubelet
+systemctl daemon-reload
+
+docker rm -f `docker ps -a | grep "k8s_" | awk '{print $1}'`
 systemctl restart docker
+iptables -F 
+iptables -t nat -F
+iptables -t mangle -F
+iptables -X
