@@ -692,11 +692,14 @@ affinity:
 								ChartName:   "crossplane-stable/crossplane",
 								Namespace:   "crossplane-system",
 								UpgradeCRDs: true,
-								Version:     "1.12.2",
+								Version:     "1.12.3",
 								Wait:        true,
 								Timeout:     time.Second * 300,
-								ValuesYaml: `args:
+								ValuesYaml: `customAnnotations:
+  "container.apparmor.security.beta.kubernetes.io/crossplane-xfn": "unconfined"
+args:
   - --enable-composition-functions
+  - --enable-environment-configs
   - --debug
 resourcesCrossplane:
   limits:
@@ -827,7 +830,7 @@ xfn:
 								ChartName:   "oci://ghcr.io/edgefarm/edgefarm.network/edgefarm-network",
 								Namespace:   "edgefarm-network",
 								UpgradeCRDs: true,
-								Version:     "1.0.0-beta.38",
+								Version:     "1.0.0-beta.39",
 								Wait:        true,
 								Timeout:     time.Second * 600,
 							},
@@ -853,7 +856,7 @@ xfn:
 								ChartName:   "oci://ghcr.io/edgefarm/edgefarm.applications/edgefarm-applications",
 								Namespace:   "edgefarm-applications",
 								UpgradeCRDs: true,
-								Version:     "1.0.0-beta.27",
+								Version:     "1.0.0-beta.29",
 								Timeout:     time.Second * 300,
 							},
 						},
