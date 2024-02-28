@@ -122,20 +122,16 @@ spec:
       - sha256sum --check cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz.sha256sum
       - tar --no-overwrite-dir -C / -xzf cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz
       - rm -f cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz.sha256sum
-      - wget https://github.com/containers/crun/releases/download/$CRUN/crun-$CRUN-linux-$ARCH
-        -O /usr/local/sbin/crun && chmod +x /usr/local/sbin/crun
+      - wget https://github.com/containers/crun/releases/download/$CRUN/crun-$CRUN-linux-$ARCH -O /usr/local/sbin/crun && chmod +x /usr/local/sbin/crun
       - rm -f /etc/cni/net.d/10-containerd-net.conflist
       - chmod -R 644 /etc/cni && chown -R root:root /etc/cni
-      - systemctl daemon-reload && systemctl enable containerd && systemctl start
-        containerd
-      - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key
-        add -
-      - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a
-        /etc/apt/sources.list.d/kubernetes.list
+      - systemctl daemon-reload && systemctl enable containerd && systemctl start containerd
+      - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
       - apt-get update
       - apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubeadm=$KUBERNETES_VERSION-00
-        kubectl=$KUBERNETES_VERSION-00  bash-completion && apt-mark hold kubelet kubectl
-        kubeadm && systemctl enable kubelet
+      - kubectl=$KUBERNETES_VERSION-00 bash-completion && apt-mark hold kubelet kubectl
+      - kubeadm && systemctl enable kubelet
       - kubeadm config images pull --kubernetes-version $KUBERNETES_VERSION
       - echo 'source <(kubectl completion bash)' >>~/.bashrc
       - echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >>~/.bashrc
@@ -506,18 +502,16 @@ spec:
     - sha256sum --check cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz.sha256sum
     - tar --no-overwrite-dir -C / -xzf cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz
     - rm -f cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz cri-containerd-cni-$CONTAINERD-linux-$ARCH.tar.gz.sha256sum
-    - wget https://github.com/containers/crun/releases/download/$CRUN/crun-$CRUN-linux-$ARCH
-      -O /usr/local/sbin/crun && chmod +x /usr/local/sbin/crun
+    - wget https://github.com/containers/crun/releases/download/$CRUN/crun-$CRUN-linux-$ARCH -O /usr/local/sbin/crun && chmod +x /usr/local/sbin/crun
     - rm -f /etc/cni/net.d/10-containerd-net.conflist
     - chmod -R 644 /etc/cni && chown -R root:root /etc/cni
     - systemctl daemon-reload && systemctl enable containerd && systemctl start containerd
-    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key
-      add -
+    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
     - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
     - apt-get update
     - apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubeadm=$KUBERNETES_VERSION-00
-      kubectl=$KUBERNETES_VERSION-00  bash-completion && apt-mark hold kubelet kubectl
-      kubeadm && systemctl enable kubelet
+    - kubectl=$KUBERNETES_VERSION-00  bash-completion && apt-mark hold kubelet kubectl
+    - kubeadm && systemctl enable kubelet
     - kubeadm config images pull --kubernetes-version $KUBERNETES_VERSION
     - echo 'source <(kubectl completion bash)' >>~/.bashrc
     - echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >>~/.bashrc
