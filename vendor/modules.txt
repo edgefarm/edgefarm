@@ -45,7 +45,9 @@ github.com/asaskevich/govalidator
 github.com/atotto/clipboard
 # github.com/aymanbagabas/go-osc52 v1.2.1
 ## explicit; go 1.16
-github.com/aymanbagabas/go-osc52
+# github.com/aymanbagabas/go-osc52/v2 v2.0.1
+## explicit; go 1.16
+github.com/aymanbagabas/go-osc52/v2
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
@@ -61,16 +63,19 @@ github.com/chai2010/gettext-go/gettext
 github.com/chai2010/gettext-go/gettext/mo
 github.com/chai2010/gettext-go/gettext/plural
 github.com/chai2010/gettext-go/gettext/po
-# github.com/charmbracelet/bubbles v0.14.0
-## explicit; go 1.13
+# github.com/charmbracelet/bubbles v0.16.1
+## explicit; go 1.17
+github.com/charmbracelet/bubbles/cursor
+github.com/charmbracelet/bubbles/key
+github.com/charmbracelet/bubbles/runeutil
 github.com/charmbracelet/bubbles/textinput
-# github.com/charmbracelet/bubbletea v0.23.1
-## explicit; go 1.16
+# github.com/charmbracelet/bubbletea v0.24.2
+## explicit; go 1.17
 github.com/charmbracelet/bubbletea
-# github.com/charmbracelet/lipgloss v0.6.0
-## explicit; go 1.15
+# github.com/charmbracelet/lipgloss v0.7.1
+## explicit; go 1.17
 github.com/charmbracelet/lipgloss
-# github.com/containerd/console v1.0.3
+# github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81
 ## explicit; go 1.13
 github.com/containerd/console
 # github.com/containerd/containerd v1.5.4
@@ -162,7 +167,7 @@ github.com/docker/go-units
 # github.com/edgefarm/netbird-go v1.3.4
 ## explicit; go 1.21
 github.com/edgefarm/netbird-go
-# github.com/erikgeiser/promptkit v0.8.0
+# github.com/erikgeiser/promptkit v0.9.0
 ## explicit; go 1.18
 github.com/erikgeiser/promptkit
 github.com/erikgeiser/promptkit/confirmation
@@ -328,7 +333,7 @@ github.com/mailru/easyjson/jwriter
 # github.com/mattn/go-colorable v0.0.9
 ## explicit
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.17
+# github.com/mattn/go-isatty v0.0.19
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/mattn/go-localereader v0.0.1
@@ -377,7 +382,7 @@ github.com/monochromegane/go-gitignore
 # github.com/morikuni/aec v1.0.0
 ## explicit
 github.com/morikuni/aec
-# github.com/muesli/ansi v0.0.0-20221106050444-61f0cd9a192a
+# github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6
 ## explicit; go 1.17
 github.com/muesli/ansi
 github.com/muesli/ansi/compressor
@@ -390,8 +395,8 @@ github.com/muesli/reflow/ansi
 github.com/muesli/reflow/truncate
 github.com/muesli/reflow/wordwrap
 github.com/muesli/reflow/wrap
-# github.com/muesli/termenv v0.13.0
-## explicit; go 1.13
+# github.com/muesli/termenv v0.15.2
+## explicit; go 1.17
 github.com/muesli/termenv
 # github.com/opencontainers/go-digest v1.0.0
 ## explicit; go 1.13
@@ -410,8 +415,6 @@ github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstrapt
 github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/util/apiclient
 github.com/openyurtio/openyurt/pkg/util/strings
 github.com/openyurtio/openyurt/pkg/util/templates
-github.com/openyurtio/openyurt/test/e2e/cmd/init/constants
-github.com/openyurtio/openyurt/test/e2e/cmd/init/lock
 # github.com/pelletier/go-toml v1.9.4
 ## explicit; go 1.12
 github.com/pelletier/go-toml
@@ -446,7 +449,7 @@ github.com/prometheus/procfs/internal/util
 ## explicit; go 1.17
 github.com/pytimer/k8sutil/apply
 github.com/pytimer/k8sutil/util
-# github.com/rivo/uniseg v0.4.3
+# github.com/rivo/uniseg v0.4.4
 ## explicit; go 1.18
 github.com/rivo/uniseg
 # github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc

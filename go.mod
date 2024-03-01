@@ -7,7 +7,7 @@ require (
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/docker v20.10.25+incompatible
 	github.com/edgefarm/netbird-go v1.3.4
-	github.com/erikgeiser/promptkit v0.8.0
+	github.com/erikgeiser/promptkit v0.9.0
 	github.com/fatih/color v1.7.0
 	github.com/google/go-github/v30 v30.1.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
@@ -36,6 +36,7 @@ require (
 )
 
 require (
+	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/tools v0.14.1-0.20231114185516-c9d3e7de13fd // indirect
 	k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c // indirect
@@ -59,10 +60,10 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20160711120539-c6fed771bfd5 // indirect
-	github.com/charmbracelet/bubbles v0.14.0 // indirect
-	github.com/charmbracelet/bubbletea v0.23.1 // indirect
-	github.com/charmbracelet/lipgloss v0.6.0 // indirect
-	github.com/containerd/console v1.0.3 // indirect
+	github.com/charmbracelet/bubbles v0.16.1 // indirect
+	github.com/charmbracelet/bubbletea v0.24.2 // indirect
+	github.com/charmbracelet/lipgloss v0.7.1 // indirect
+	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/containerd/containerd v1.5.4 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -109,7 +110,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -124,10 +125,10 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/muesli/ansi v0.0.0-20221106050444-61f0cd9a192a // indirect
+	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
-	github.com/muesli/termenv v0.13.0 // indirect
+	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
@@ -138,7 +139,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/rivo/uniseg v0.4.3 // indirect
+	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc // indirect
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
