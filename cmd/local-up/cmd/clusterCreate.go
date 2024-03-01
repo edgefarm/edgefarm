@@ -32,7 +32,6 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/clusters/hetzner"
 	"github.com/edgefarm/edgefarm/pkg/clusters/local"
 	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
-	deploy "github.com/edgefarm/edgefarm/pkg/deploy"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	stringsx "github.com/icza/gox/stringsx"
@@ -116,7 +115,6 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 	cmd.SetOut(out)
 	shared.AddSharedFlags(cmd.Flags())
 	addFlagsForCreate(cmd.Flags())
-	deploy.AddFlagsForDeploy(cmd.Flags())
 	return cmd
 }
 
@@ -178,11 +176,12 @@ func addFlagsForCreate(flagset *pflag.FlagSet) {
 	flagset.IntVar(&shared.Ports.HostNatsPort, "host-nats-port", shared.Ports.HostNatsPort, "Specify the port of nats to be mapped to.")
 	flagset.IntVar(&shared.Ports.HostHttpPort, "host-http-port", shared.Ports.HostHttpPort, "Specify the port of http server to be mapped to.")
 	flagset.IntVar(&shared.Ports.HostHttpsPort, "host-https-port", shared.Ports.HostHttpsPort, "Specify the port of https server to be mapped to.")
-	flagset.BoolVar(&shared.Args.Deploy, "deploy", false, "Deploy the cluster after creation.")
-	flagset.BoolVar(&shared.Args.Skip.CoreDNS, "skip-coredns", false, "Skip installing CoreDNS. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-	flagset.BoolVar(&shared.Args.Skip.KubeProxy, "skip-kube-proxy", false, "Skip installing kube-proxy. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-	flagset.BoolVar(&shared.Args.Skip.Flannel, "skip-flannel", false, "Skip installing flannel. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-	flagset.BoolVar(&shared.Args.Only.CoreDNS, "only-coredns", false, "Only install CoreDNS. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-	flagset.BoolVar(&shared.Args.Only.Flannel, "only-flannel", false, "Only install flannel. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
-	flagset.BoolVar(&shared.Args.Only.KubeProxy, "only-kube-proxy", false, "Only install kube-proxy. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+	if os.Getenv("LOCAL_UP_EXPERIMENTAL") == "true" {
+		flagset.BoolVar(&shared.Args.Skip.CoreDNS, "skip-coredns", false, "Skip installing CoreDNS. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&shared.Args.Skip.KubeProxy, "skip-kube-proxy", false, "Skip installing kube-proxy. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&shared.Args.Skip.Flannel, "skip-flannel", false, "Skip installing flannel. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&shared.Args.Only.CoreDNS, "only-coredns", false, "Only install CoreDNS. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&shared.Args.Only.Flannel, "only-flannel", false, "Only install flannel. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+		flagset.BoolVar(&shared.Args.Only.KubeProxy, "only-kube-proxy", false, "Only install kube-proxy. WARNING: HERE BE DRAGONS. Make sure your kube context is correct! Use at your own risk.")
+	}
 }
