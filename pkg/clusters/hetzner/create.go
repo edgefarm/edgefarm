@@ -27,7 +27,6 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/constants"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/packages"
-	"github.com/edgefarm/edgefarm/pkg/rsa"
 	"github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	"github.com/fatih/color"
@@ -62,21 +61,6 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
-	privPath, err := shared.Expand(shared.ClusterConfig.Spec.Hetzner.SSHPrivateKeyPath)
-	if err != nil {
-		return err
-	}
-
-	pubPath, err := shared.Expand(shared.ClusterConfig.Spec.Hetzner.SSHPublicKeyPath)
-	if err != nil {
-		return err
-	}
-
-	priv, pub, err := rsa.NewRSA(privPath, pubPath)
-	if err != nil {
-		return err
-	}
-
 	state, err := state.GetState()
 	if err != nil {
 		return err
@@ -99,10 +83,6 @@ func CreateCluster(config *rest.Config) error {
 		"NETBIRD_ADMIN_URL":                 b64.StdEncoding.EncodeToString([]byte("https://app.netbird.io:443")),
 		"NETBIRD_MANAGEMENT_URL":            b64.StdEncoding.EncodeToString([]byte("https://api.wiretrustee.com:443")),
 		"NETBIRD_SETUP_KEY":                 b64.StdEncoding.EncodeToString([]byte(state.GetNetbirdSetupKey())),
-		"HETZNER_ROBOT_USER":                b64.StdEncoding.EncodeToString([]byte(shared.ClusterConfig.Spec.Hetzner.HetznerRobotUser)),
-		"HETZNER_ROBOT_PASSWORD":            b64.StdEncoding.EncodeToString([]byte(shared.ClusterConfig.Spec.Hetzner.HetznerRobotPassword)),
-		"HETZNER_SSH_PUBLIC_KEY":            b64.StdEncoding.EncodeToString([]byte(pub)),
-		"HETZNER_SSH_PRIVATE_KEY":           b64.StdEncoding.EncodeToString([]byte(priv)),
 	}
 	if err := clusters.RenderAndApply("secret hetzner", hetznerSecret, context, shared.KubeConfigRestConfig); err != nil {
 		return err

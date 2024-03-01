@@ -160,17 +160,8 @@ func ValidateHetzner(c *api.Hetzner) error {
 	if c.HCloudToken == "" {
 		return fmt.Errorf("hcloudToken is required")
 	}
-	if c.HetznerRobotUser == "" {
-		return fmt.Errorf("robotUser is required")
-	}
-	if c.HetznerRobotPassword == "" {
-		return fmt.Errorf("robotPassword is required")
-	}
 	if c.KubeConfigPath == "" {
 		return fmt.Errorf("kubeConfigPath is required")
-	}
-	if c.HetznerCloudSSHKey == "" {
-		return fmt.Errorf("hetznerCloudSSHKey is required")
 	}
 
 	return nil

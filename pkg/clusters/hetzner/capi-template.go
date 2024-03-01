@@ -670,10 +670,7 @@ metadata:
   labels:
     clusterctl.cluster.x-k8s.io/move: ""
 stringData:
-  hcloud: {{.HCLOUD_TOKEN}}
-data:
-  robot-user: {{.HETZNER_ROBOT_USER}}
-  robot-password: {{.HETZNER_ROBOT_PASSWORD}}`
+  hcloud: {{.HCLOUD_TOKEN}}`
 
 	netbirdSecret = `apiVersion: v1
 kind: Secret
@@ -698,10 +695,7 @@ metadata:
     clusterctl.cluster.x-k8s.io/move: ""
 type: Opaque
 stringData:
-  sshkey-name: {{.HCLOUD_SSH_KEY}}
-data:
-  ssh-privatekey: {{.HETZNER_SSH_PRIVATE_KEY}}
-  ssh-publickey: {{.HETZNER_SSH_PUBLIC_KEY}}`
+  sshkey-name: {{.HCLOUD_SSH_KEY}}`
 
 	flannelCloud = `apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy

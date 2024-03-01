@@ -39,8 +39,6 @@ func SetDefaultsLocal(obj *Local) {
 func SetDefaultsHetzner(obj *Hetzner) {
 	obj.Name = "edgefarm"
 	obj.HCloudToken = "<your hcloud token>"
-	obj.HetznerRobotUser = "<your robot user>"
-	obj.HetznerRobotPassword = "<your robot password>"
 	obj.KubeConfigPath = "~/.edgefarm-local-up/hetzner"
 	obj.ControlPlane = HetznerMachines{
 		Count:       3,
@@ -52,8 +50,6 @@ func SetDefaultsHetzner(obj *Hetzner) {
 	}
 	obj.HetznerCloudRegion = "nbg1"
 	obj.HetznerCloudSSHKey = "<your ssh key name>"
-	obj.SSHPrivateKeyPath = "~/.edgefarm-local-up/hetzner-ssh-key"
-	obj.SSHPublicKeyPath = "~/.edgefarm-local-up/hetzner-ssh-key.pub"
 }
 
 func SetDefaultNetbird(obj *Netbird) {

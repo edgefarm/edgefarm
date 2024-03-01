@@ -58,6 +58,7 @@ type Local struct {
 	VirtualEdgeNodes int    `yaml:"virtualEdgeNodes,omitempty" json:"virtualEdgeNodes,omitempty"`
 }
 
+// +k8s:deepcopy-gen=true
 type HetznerMachines struct {
 	// The number of worker machines
 	Count int `yaml:"count,omitempty" json:"count,omitempty"`
@@ -77,12 +78,6 @@ type Hetzner struct {
 	HetznerCloudSSHKey string `yaml:"hetznerCloudSSHKey,omitempty" json:"hetznerCloudSSHKey,omitempty"`
 	//  The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions
 	HCloudToken string `yaml:"hcloudToken,omitempty" json:"hcloudToken,omitempty"`
-	// The Robot user and password are created here https://robot.hetzner.com/preferences/index -> 'Webservice and app settings'
-	HetznerRobotUser     string `yaml:"robotUser,omitempty" json:"robotUser,omitempty"`
-	HetznerRobotPassword string `yaml:"robotPassword,omitempty" json:"robotPassword,omitempty"`
 	// The KubeConfigPath is the path where the kubeconfig file should be stored
 	KubeConfigPath string `yaml:"kubeConfigPath,omitempty" json:"kubeConfigPath,omitempty"`
-
-	SSHPrivateKeyPath string `yaml:"sshPrivateKeyPath,omitempty" json:"sshPrivateKeyPath,omitempty"`
-	SSHPublicKeyPath  string `yaml:"sshPublicKeyPath,omitempty" json:"sshPublicKeyPath,omitempty"`
 }
