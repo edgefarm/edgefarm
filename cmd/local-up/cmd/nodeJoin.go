@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
@@ -174,8 +175,9 @@ func instructionsJoinNode(t configv1.ConfigType, token string, ttl string) error
 		green.Printf("Use this token ")
 		yellow.Printf("%s", token)
 		green.Printf(" to join the cluster reachable here: ")
-		yellow.Printf("%s", shared.KubeConfigRestConfig.Host)
-		green.Printf(".\nYou have ")
+		address, _ := strings.CutPrefix(shared.KubeConfigRestConfig.Host, "https://")
+		yellow.Printf("%s", address)
+		green.Printf("\nYou have ")
 		yellow.Printf("%s", ttl)
 		green.Println(" to join the cluster before this token expires.")
 		yellow.Println("")

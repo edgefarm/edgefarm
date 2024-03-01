@@ -108,6 +108,7 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 				}
 				hetzner.ShowGreeting()
 			}
+
 			return nil
 		},
 		Args: cobra.NoArgs,
