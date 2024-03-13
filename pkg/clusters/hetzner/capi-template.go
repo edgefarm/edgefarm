@@ -126,8 +126,7 @@ spec:
       - rm -f /etc/cni/net.d/10-containerd-net.conflist
       - chmod -R 644 /etc/cni && chown -R root:root /etc/cni
       - systemctl daemon-reload && systemctl enable containerd && systemctl start containerd
-      - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-      - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+      - echo "deb https://mirror.reenigne.net/apt.kubernetes.io kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
       - apt-get update
       - apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubeadm=$KUBERNETES_VERSION-00
       - kubectl=$KUBERNETES_VERSION-00 bash-completion && apt-mark hold kubelet kubectl
@@ -506,8 +505,7 @@ spec:
     - rm -f /etc/cni/net.d/10-containerd-net.conflist
     - chmod -R 644 /etc/cni && chown -R root:root /etc/cni
     - systemctl daemon-reload && systemctl enable containerd && systemctl start containerd
-    - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-    - echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+    - echo "deb https://mirror.reenigne.net/apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
     - apt-get update
     - apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubeadm=$KUBERNETES_VERSION-00
     - kubectl=$KUBERNETES_VERSION-00  bash-completion && apt-mark hold kubelet kubectl
