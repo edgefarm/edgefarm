@@ -126,10 +126,13 @@ spec:
       - rm -f /etc/cni/net.d/10-containerd-net.conflist
       - chmod -R 644 /etc/cni && chown -R root:root /etc/cni
       - systemctl daemon-reload && systemctl enable containerd && systemctl start containerd
-      - echo "deb https://mirror.reenigne.net/apt.kubernetes.io kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-      - apt-get update
-      - apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubeadm=$KUBERNETES_VERSION-00
-      - kubectl=$KUBERNETES_VERSION-00 bash-completion && apt-mark hold kubelet kubectl
+      - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubeadm_1.22.17-00_amd64_7b7456beaf364ecf5c14f4d995bc49985cd23273ebf7610717961e2575057209.deb -o /tmp/kubeadm_1.22.17-00.deb
+      - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubectl_1.22.17-00_amd64_b3bcd8e4a64fded2873e873301ef68c6c3787dbc5e68f079a2f9c7c283180709.deb -o /tmp/kubectl_1.22.17-00.deb
+      - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubelet_1.22.17-00_amd64_3488568197f82b8b8c267058ea7165968560a67daa5cea981ac6bcff43fe0966.deb -o /tmp/kubelet_1.22.17-00.deb
+      - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubernetes-cni_1.2.0-00_amd64_0c2be3775ea591dee9ce45121341dd16b3c752763c6898adc35ce12927c977c1.deb -o /tmp/kubernetes-cni_1.2.0-00.deb
+      - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/cri-tools_1.26.0-00_amd64_5ba786e8853986c7f9f51fe850086083e5cf3c3d34f3fc09aaadd63fa0b578df.deb -o /tmp/cri-tools_1.26.0-00.deb
+      - apt install -y --fix-broken /tmp/kubeadm_1.22.17-00.deb /tmp/kubectl_1.22.17-00.deb /tmp/kubelet_1.22.17-00.deb /tmp/kubernetes-cni_1.2.0-00.deb /tmp/cri-tools_1.26.0-00.deb
+      - kubectl=$KUBERNETES_VERSION-00 bash-completion && apt-mark hold kubelet kubectl kubeadm
       - kubeadm && systemctl enable kubelet
       - kubeadm config images pull --kubernetes-version $KUBERNETES_VERSION
       - echo 'source <(kubectl completion bash)' >>~/.bashrc
@@ -505,10 +508,13 @@ spec:
     - rm -f /etc/cni/net.d/10-containerd-net.conflist
     - chmod -R 644 /etc/cni && chown -R root:root /etc/cni
     - systemctl daemon-reload && systemctl enable containerd && systemctl start containerd
-    - echo "deb https://mirror.reenigne.net/apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-    - apt-get update
-    - apt-get install -y kubelet=$KUBERNETES_VERSION-00 kubeadm=$KUBERNETES_VERSION-00
-    - kubectl=$KUBERNETES_VERSION-00  bash-completion && apt-mark hold kubelet kubectl
+    - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubeadm_1.22.17-00_amd64_7b7456beaf364ecf5c14f4d995bc49985cd23273ebf7610717961e2575057209.deb -o /tmp/kubeadm_1.22.17-00.deb
+    - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubectl_1.22.17-00_amd64_b3bcd8e4a64fded2873e873301ef68c6c3787dbc5e68f079a2f9c7c283180709.deb -o /tmp/kubectl_1.22.17-00.deb
+    - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubelet_1.22.17-00_amd64_3488568197f82b8b8c267058ea7165968560a67daa5cea981ac6bcff43fe0966.deb -o /tmp/kubelet_1.22.17-00.deb
+    - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/kubernetes-cni_1.2.0-00_amd64_0c2be3775ea591dee9ce45121341dd16b3c752763c6898adc35ce12927c977c1.deb -o /tmp/kubernetes-cni_1.2.0-00.deb
+    - curl -L https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb/cri-tools_1.26.0-00_amd64_5ba786e8853986c7f9f51fe850086083e5cf3c3d34f3fc09aaadd63fa0b578df.deb -o /tmp/cri-tools_1.26.0-00.deb
+    - apt install -y --fix-broken /tmp/kubeadm_1.22.17-00.deb /tmp/kubectl_1.22.17-00.deb /tmp/kubelet_1.22.17-00.deb /tmp/kubernetes-cni_1.2.0-00.deb /tmp/cri-tools_1.26.0-00.deb
+    - kubectl=$KUBERNETES_VERSION-00 bash-completion && apt-mark hold kubelet kubectl kubeadm
     - kubeadm && systemctl enable kubelet
     - kubeadm config images pull --kubernetes-version $KUBERNETES_VERSION
     - echo 'source <(kubectl completion bash)' >>~/.bashrc
