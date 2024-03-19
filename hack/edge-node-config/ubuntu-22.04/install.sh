@@ -6,6 +6,13 @@ yellow='\033[0;33m'
 yellowBold='\033[1;33m'
 nc='\033[0m'
 
+DEB_PACKAGES_RELEASE_URL=https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb
+KUBEADM_DEB_PKG=kubeadm_1.22.17-00_amd64_7b7456beaf364ecf5c14f4d995bc49985cd23273ebf7610717961e2575057209.deb
+KUBECTL_DEB_PKG=kubectl_1.22.17-00_amd64_b3bcd8e4a64fded2873e873301ef68c6c3787dbc5e68f079a2f9c7c283180709.deb
+KUBELET_DEB_PKG=kubelet_1.22.17-00_amd64_3488568197f82b8b8c267058ea7165968560a67daa5cea981ac6bcff43fe0966.deb
+KUBERNETS_CNI_DEB_PKG=kubernetes-cni_1.2.0-00_amd64_0c2be3775ea591dee9ce45121341dd16b3c752763c6898adc35ce12927c977c1.deb
+CRI_TOOLS_DEB_PKG=cri-tools_1.26.0-00_amd64_5ba786e8853986c7f9f51fe850086083e5cf3c3d34f3fc09aaadd63fa0b578df.deb
+
 if [ "$EUID" -ne 0 ]; then
   echo "Please run this script as root."
   exit 1
@@ -48,7 +55,7 @@ PRECHECKS_ONLY=${PRECHECKS_ONLY:-false}
 NODE_IP=${NODE_IP:-}
 NODE_TYPE=${NODE_TYPE:-"kubeadm"}
 CONVERT=${CONVERT:-false}
-NO_DOWNLOAD=${NO_DOWNLOAD:-false}
+NO_INSTALL=${NO_INSTALL:-false}
 VERSION=${VERSION:-"1.22.17"}
 
 options=$(getopt -o "" -l "prechecks-only,join,node-ip:,address:,name:,token:,arch:,node-type:,convert,no-download,version:,help" -- "$@")
@@ -72,7 +79,7 @@ Help() {
  echo "--prechecks-only    Run prechecks only. (optional)"
  echo "--node-type         Set the type of the node. Allowed values are 'kubeadm' or 'yurtadm'. Default is 'kubeadm'. (optional)"
  echo "--convert           Sets the label 'node.edgefarm.io/to-be-converted' to true. Only used for kubeadm type. Default is false. (optional)"
- echo "--no-download       Disables download of the components (kubeadm, kubelet, kubectl, cni plugins). Default is false (optional)"
+ echo "--no-install        Disables installation of the components (kubeadm, kubelet, kubectl, cni plugins). Default is false (optional)"
  echo "--version           Set the kubernetes version. Used to download the components. Default is 1.22.17 (optional)"
  echo "--help              Display this help message."
  echo
@@ -87,7 +94,7 @@ while [ $# -gt 0 ]; do
   --node-ip) NODE_IP="$2"; shift;;
   --node-type) NODE_TYPE="$2"; shift;;
   --convert) CONVERT="true";;
-  --no-download) NO_DOWNLOAD="true";;
+  --no-install) NO_INSTALL="true";;
   --help) Help; exit;;
   --join) JOIN="true";;
   --version) VERSION="$2"; shift;;
@@ -132,6 +139,8 @@ case "$ARCH" in
  *) echo -e "${red}Invalid architecture. Allowed values are arm64, amd64 and arm.${nc}"; exit 1 ;;
 esac
 
+TMP=$(mktemp -d)
+
 ###### PRECHECKS
 PRECHECK_ERRORS=0
 echo "Running prechecks..."
@@ -153,7 +162,12 @@ else
    PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
 fi
 
-if [[ $NODE_TYPE == *"kubeadm"* ]]; then
+if ! $NO_INSTALL; then
+  if [[ $NODE_TYPE == *"yurtadm"* ]]; then
+    echo -e "${yellowBold}Downloading openyurt components${NC}"
+    wget -q --show-progress https://github.com/openyurtio/openyurt/releases/download/v1.4.0/yurtadm-v1.4.0-linux-${ARCH}.tar.gz -P ${TMP}
+    tar xfz ${TMP}/yurtadm-v1.4.0-linux-${ARCH}.tar.gz  -C ${TMP} && mv ${TMP}/linux-${ARCH}/yurtadm /usr/local/bin/yurtadm && chmod +x /usr/local/bin/yurtadm
+  else
     INSTALL_KUBEADM=false
     kubeadm version > /dev/null 2>&1
     if [ $? -ne 0 ]; then
@@ -185,22 +199,17 @@ if [[ $NODE_TYPE == *"kubeadm"* ]]; then
     fi
 
     if [ "$INSTALL_KUBEADM" == "true" ] || [ "$INSTALL_KUBELET" == "true" ]; then
-        echo -e "${yellowBold}You need to install components with the correct version $VERSION\n"
-        echo -e "${yellow}echo \"deb https://mirror.reenigne.net/apt.kubernetes.io kubernetes-xenial main\" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list"
-        echo -e "${yellow}apt update"
-        if [ "$INSTALL_KUBEADM" == "true" ] &&  [ "$INSTALL_KUBELET" == "true" ]; then
-            echo -e "${yellow}apt-get install -y kubeadm=${VERSION}-00 kubelet=${VERSION}-00 kubectl=${VERSION}-00 --reinstall --allow-downgrades${nc}"
-            exit 1
-        fi
-        if [ "$INSTALL_KUBEADM" == "true" ]; then
-            echo -e "${yellow}apt-get install -y kubeadm=${VERSION}-00 --reinstall --allow-downgrades${nc}"
-            exit 1
-        fi
-        if [ "$INSTALL_KUBELET" == "true" ]; then
-            echo -e "${yellow}apt-get install -y kubelet=${VERSION}-00 --reinstall$ --allow-downgrades{nc}"
-            exit 1
-        fi
+        echo -e "${yellowBold}Installing k8s packages for version $VERSION${NC}"
+        wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${KUBEADM_DEB_PKG} -P ${TMP}
+        wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${KUBECTL_DEB_PKG} -P ${TMP}
+        wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${KUBELET_DEB_PKG} -P ${TMP}
+        wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${KUBERNETS_CNI_DEB_PKG} -P ${TMP}
+        wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${CRI_TOOLS_DEB_PKG} -P ${TMP}
+        apt install -y --fix-broken ${TMP}/${KUBEADM_DEB_PKG} ${TMP}/${KUBECTL_DEB_PKG} ${TMP}/${KUBELET_DEB_PKG} ${TMP}/${KUBERNETS_CNI_DEB_PKG} ${TMP}/${CRI_TOOLS_DEB_PKG} --reinstall --allow-downgrades
+        apt-mark hold kubelet kubectl kubeadm
+        rm ${TMP}/${KUBEADM_DEB_PKG} ${TMP}/${KUBECTL_DEB_PKG} ${TMP}/${KUBELET_DEB_PKG} ${TMP}/${KUBERNETS_CNI_DEB_PKG} ${TMP}/${CRI_TOOLS_DEB_PKG}
     fi
+  fi
 fi
 
 if [ $PRECHECK_ERRORS -gt 0 ]; then
@@ -215,21 +224,12 @@ if $PRECHECKS_ONLY == "true" ; then
     exit 0
 fi
 
-TMP=$(mktemp -d)
-
 mkdir -p /usr/local/bin
 mkdir -p /opt/cni/bin
 mkdir -p /etc/edgefarm/
 mkdir -p /etc/systemd/system
 mkdir -p /etc/udev/rules.d
 
-if ! $NO_DOWNLOAD; then
-  if [[ $NODE_TYPE == *"yurtadm"* ]]; then
-    echo "Downloading components..."
-    wget -q --show-progress https://github.com/openyurtio/openyurt/releases/download/v1.4.0/yurtadm-v1.4.0-linux-${ARCH}.tar.gz -P ${TMP}
-    tar xfz ${TMP}/yurtadm-v1.4.0-linux-${ARCH}.tar.gz  -C ${TMP} && mv ${TMP}/linux-${ARCH}/yurtadm /usr/local/bin/yurtadm && chmod +x /usr/local/bin/yurtadm
-  fi
-fi
 
 
 LABELSAPPEND=""
