@@ -180,7 +180,7 @@ func instructionsJoinNode(t configv1.ConfigType, token string, ttl string) error
 		green.Printf("\nYou have ")
 		yellow.Printf("%s", ttl)
 		green.Println(" to join the cluster before this token expires.")
-		yellow.Println("")
+		yellow.Println(" ")
 		green.Println("If you experience any problems, please consult the documentation at ")
 		green.Println("https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md")
 	}
