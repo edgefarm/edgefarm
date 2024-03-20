@@ -815,7 +815,7 @@ spec:
   clusterSelector:
     matchLabels:
     cloudprovider.clusters.infrastructure.edgefarm.io/type: hetzner
-  version: 1.16.0
+  version: 1.23.1
   releaseName: kube-proxy-openyurt
   namespace: kube-system
   chartName: kube-proxy
@@ -860,7 +860,7 @@ spec:
   clusterSelector:
     matchLabels:
     cloudprovider.clusters.infrastructure.edgefarm.io/type: hetzner
-  version: 1.16.0
+  version: 1.23.1
   releaseName: kube-proxy-default
   namespace: kube-system
   chartName: kube-proxy

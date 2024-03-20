@@ -39,7 +39,9 @@ func NewVPNPreconfigureCommand() *cobra.Command {
 		Use:   "preconfigure",
 		Short: "Preconfigures VPN capabilities using netbird.io for a cloud based edgefarm cluster",
 		Long: `Preconfigures VPN capabilities using netbird.io for a cloud based edgefarm cluster.
-This enables you to join physical edge nodes to the cloud based edgefarm cluster.`,
+This enables you to join physical edge nodes to the cloud based edgefarm cluster.
+
+You can skip the --config option if you want`,
 		RunE: func(cmd *cobra.Command, arguments []string) error {
 			var config *apiv1.Cluster
 			if shared.ConfigPath != "" {
@@ -64,6 +66,10 @@ This enables you to join physical edge nodes to the cloud based edgefarm cluster
 				config = &c
 			}
 
+			if config.Spec.Type == configv1.Local.String() {
+				return fmt.Errorf("this command is not supported for clusters of type 'local'. Use the --config option to point to your valid cloud cluster configuration file")
+			}
+
 			if args.NetbirdToken == "" {
 				klog.Errorln("Error: netbird.io private access token must be specified")
 				os.Exit(1)
@@ -76,12 +82,17 @@ This enables you to join physical edge nodes to the cloud based edgefarm cluster
 				klog.Infoln("VPN unconfiguration completed successfully")
 				return nil
 			} else {
-				key, err := netbird.Preconfigure(config.Spec.Local.Name)
+				key, err := netbird.Preconfigure(config.Metadata.Name)
 				if err != nil {
 					return err
 				}
 				klog.Infoln("VPN preconfiguration completed successfully")
 				klog.Infof("Netbird.io setup-key: %s\n", key)
+				config.Spec.Netbird.SetupKey = key
+				err = config.Export(args.ConfigPath)
+				if err != nil {
+					return err
+				}
 				return nil
 			}
 		},

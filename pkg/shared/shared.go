@@ -212,3 +212,19 @@ func AddSharedFlags(flagset *pflag.FlagSet) {
 	flagset.StringVar(&ConfigPath, "config", ConfigPath, "Path to the edgefarm config file.")
 
 }
+
+func Stat(path string) (os.FileInfo, error) {
+	expand, err := Expand(path)
+	if err != nil {
+		return nil, err
+	}
+	return os.Stat(expand)
+}
+
+func Remove(path string) error {
+	expand, err := Expand(path)
+	if err != nil {
+		return err
+	}
+	return os.Remove(expand)
+}

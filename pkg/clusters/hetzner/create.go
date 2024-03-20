@@ -34,6 +34,13 @@ import (
 )
 
 func CreateCluster(config *rest.Config) error {
+	state, err := state.GetState(shared.StatePath)
+	if err != nil {
+		return err
+	}
+	if state.GetNetbirdSetupKey() == "" {
+		return fmt.Errorf("netbird setup key not found. Run 'local-up vpn preconfigure' to setup netbird.io")
+	}
 	if err := capi.CreateCluster(); err != nil {
 		return err
 	}
@@ -46,7 +53,7 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
-	_, err := k8s.WaitForCrdEstablished(config, "hcloudmachinetemplates.infrastructure.cluster.x-k8s.io", time.Second*30)
+	_, err = k8s.WaitForCrdEstablished(config, "hcloudmachinetemplates.infrastructure.cluster.x-k8s.io", time.Second*30)
 	if err != nil {
 		return err
 	}
@@ -61,16 +68,8 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
-	state, err := state.GetState(shared.StatePath)
-	if err != nil {
-		return err
-	}
-	if state.GetNetbirdSetupKey() == "" {
-		return fmt.Errorf("netbird setup key not found")
-	}
-
 	context := map[string]string{
-		"CLUSTER_NAME":                      shared.ClusterConfig.Spec.Hetzner.Name,
+		"CLUSTER_NAME":                      shared.ClusterConfig.Metadata.Name,
 		"KUBERNETES_VERSION":                constants.KubernetesVersion,
 		"WORKER_MACHINE_COUNT":              fmt.Sprintf("%d", shared.ClusterConfig.Spec.Hetzner.Workers.Count),
 		"HCLOUD_REGION":                     shared.ClusterConfig.Spec.Hetzner.HetznerCloudRegion,
@@ -125,14 +124,14 @@ func CreateCluster(config *rest.Config) error {
 	}
 
 	// wait for kubeconfig in secret <cluster-name>-kubeconfig
-	exists, err := clusters.WaitForKubeconfig(config, fmt.Sprintf("%s-kubeconfig", shared.ClusterConfig.Spec.Hetzner.Name), time.Minute*5)
+	exists, err := clusters.WaitForKubeconfig(config, fmt.Sprintf("%s-kubeconfig", shared.ClusterConfig.Metadata.Name), time.Minute*5)
 	if err != nil {
 		return err
 	}
 	if !exists {
 		return fmt.Errorf("kubeconfig not found")
 	}
-	s, err := k8s.GetSecret(config, fmt.Sprintf("%s-kubeconfig", shared.ClusterConfig.Spec.Hetzner.Name), "default")
+	s, err := k8s.GetSecret(config, fmt.Sprintf("%s-kubeconfig", shared.ClusterConfig.Metadata.Name), "default")
 	if err != nil {
 		return err
 	}

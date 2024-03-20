@@ -24,28 +24,31 @@ import (
 	"github.com/edgefarm/edgefarm/pkg/clusters/capi"
 	"github.com/edgefarm/edgefarm/pkg/k8s"
 	"github.com/edgefarm/edgefarm/pkg/shared"
+	"github.com/edgefarm/edgefarm/pkg/state"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func DeleteCluster() error {
-	var err error
-	shared.KubeConfigRestConfig, err = clusters.PrepareKubeClient(shared.ClusterConfig.Spec.General.KubeConfigPath)
-	if err != nil {
-		return err
-	}
-	if err = k8s.DeleteCluster(shared.CloudClusterName, "default", shared.KubeConfigRestConfig); err != nil {
-		if errors.IsNotFound(err) {
-			goto proceed
-		}
-		return err
-	}
-	{
-		deleted, err := k8s.WaitForClusterDeleted(shared.CloudClusterName, "default", time.Minute*5, shared.KubeConfigRestConfig)
+	_, err := shared.Stat(shared.ClusterConfig.Spec.General.KubeConfigPath)
+	if err == nil {
+		shared.KubeConfigRestConfig, err = clusters.PrepareKubeClient(shared.ClusterConfig.Spec.General.KubeConfigPath)
 		if err != nil {
 			return err
 		}
-		if !deleted {
-			return fmt.Errorf("cluster %s not deleted", shared.CloudClusterName)
+		if err = k8s.DeleteCluster(shared.CloudClusterName, "default", shared.KubeConfigRestConfig); err != nil {
+			if errors.IsNotFound(err) {
+				goto proceed
+			}
+			return err
+		}
+		{
+			deleted, err := k8s.WaitForClusterDeleted(shared.CloudClusterName, "default", time.Minute*5, shared.KubeConfigRestConfig)
+			if err != nil {
+				return err
+			}
+			if !deleted {
+				return fmt.Errorf("cluster %s not deleted", shared.CloudClusterName)
+			}
 		}
 	}
 proceed:
@@ -54,5 +57,19 @@ proceed:
 		return err
 	}
 
-	return nil
+	err = shared.Remove(shared.ClusterConfig.Spec.Hetzner.KubeConfigPath)
+	if err != nil {
+		return err
+	}
+
+	err = shared.Remove(shared.ClusterConfig.Spec.General.KubeConfigPath)
+	if err != nil {
+		return err
+	}
+
+	state, err := state.GetState(shared.StatePath)
+	if err != nil {
+		return err
+	}
+	return state.Delete()
 }

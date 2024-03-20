@@ -32,15 +32,15 @@ func Parse(c *api.Cluster) error {
 	shared.ClusterConfig = c
 	shared.ClusterType = c.Spec.Type
 	if c.Spec.Type == Local.String() {
-		shared.ClusterName = c.Spec.Local.Name
+		shared.ClusterName = c.Metadata.Name
 		shared.Ports.HostApiServerPort = c.Spec.Local.ApiServerPort
 		shared.Ports.HostNatsPort = c.Spec.Local.NatsPort
 		shared.Ports.HostHttpPort = c.Spec.Local.HttpPort
 		shared.Ports.HostHttpsPort = c.Spec.Local.HttpsPort
 		shared.EdgeNodesNum = c.Spec.Local.VirtualEdgeNodes
 	} else if c.Spec.Type == Hetzner.String() {
-		shared.ClusterName = fmt.Sprintf("%s-bootstrap", c.Spec.Hetzner.Name)
-		shared.CloudClusterName = c.Spec.Hetzner.Name
+		shared.ClusterName = fmt.Sprintf("%s-bootstrap", c.Metadata.Name)
+		shared.CloudClusterName = c.Metadata.Name
 	}
 	shared.KubeConfig = c.Spec.General.KubeConfigPath
 	shared.StatePath = c.Spec.General.StatePath
