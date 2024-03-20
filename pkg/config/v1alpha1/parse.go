@@ -43,5 +43,6 @@ func Parse(c *api.Cluster) error {
 		shared.CloudClusterName = c.Spec.Hetzner.Name
 	}
 	shared.KubeConfig = c.Spec.General.KubeConfigPath
+	shared.StatePath = c.Spec.General.StatePath
 	return nil
 }

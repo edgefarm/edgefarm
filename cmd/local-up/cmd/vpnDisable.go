@@ -17,48 +17,85 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/edgefarm/edgefarm/pkg/constants"
+	apiv1 "github.com/edgefarm/edgefarm/apis/config/v1alpha1"
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
 )
 
-var localVPNDisableCmd = &cobra.Command{
-	Use:   "disable",
-	Short: "Disables netbird.io VPN capabilities for the local edgefarm cluster",
-	Long: `Disables netbird.io VPN capabilities for the local edgefarm cluster.
+func NewLocalVPNDisableCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "disable",
+		Short: "Disables netbird.io VPN capabilities for the local edgefarm cluster",
+		Long: `Disables netbird.io VPN capabilities for the local edgefarm cluster.
 You won't be able to run physical edge nodes using the local edgefarm cluster.`,
-	RunE: func(cmd *cobra.Command, arguments []string) error {
-		if err := args.EvaluateKubeConfigPath(); err != nil {
-			klog.Errorf("Error: %v\n", err)
-			os.Exit(1)
-		}
-		klog.Info("Start to prepare kube client")
-		kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
-		if err != nil {
-			klog.Errorf("Failed to build kubeconfig: %v", err)
-			os.Exit(1)
-		}
-		args.KubeConfigRestConfig = kubeconfig
+		RunE: func(cmd *cobra.Command, arguments []string) error {
+			var config *apiv1.Cluster
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				config = c
+			} else {
+				c := configv1.NewConfig(configv1.Local)
+				err := configv1.Parse(&c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				config = &c
+			}
+			if config.Spec.Type != configv1.Local.String() {
+				return fmt.Errorf("only clusters of type 'local' is supported for this command")
+			}
 
-		if args.NetbirdToken == "" {
-			klog.Infof("netbird.io private access not set. Using cached token.\n")
-		}
+			if err := args.EvaluateKubeConfigPath(); err != nil {
+				klog.Errorf("Error: %v\n", err)
+				os.Exit(1)
+			}
+			klog.Info("Start to prepare kube client")
+			kubeconfig, err := clientcmd.BuildConfigFromFlags("", args.KubeConfig)
+			if err != nil {
+				klog.Errorf("Failed to build kubeconfig: %v", err)
+				os.Exit(1)
+			}
+			args.KubeConfigRestConfig = kubeconfig
 
-		if err := netbird.DisableVPN(true, true, true, true, true); err != nil {
-			return err
-		}
-		return nil
-	},
-	Args: cobra.NoArgs,
+			if args.NetbirdToken == "" {
+				klog.Infof("netbird.io private access not set. Using cached token.\n")
+			}
+
+			if err := netbird.DisableVPN(true, true, true, true, true); err != nil {
+				return err
+			}
+			return nil
+		},
+		Args: cobra.NoArgs,
+	}
+	shared.AddSharedFlags(cmd.Flags())
+	addVPNDisableArgs(cmd.Flags())
+	return cmd
 }
 
 func init() {
-	localVPNCmd.AddCommand(localVPNDisableCmd)
-	localVPNDisableCmd.PersistentFlags().StringVar(&args.KubeConfig, "kube-config", constants.DefaultKubeConfigPath, "Path where the kubeconfig file of new cluster will be stored. The default is ${HOME}/.kube/config.")
-	localVPNDisableCmd.Flags().StringVar(&args.NetbirdToken, "netbird-token", "", "Specify the netbird.io private access token. This is required to connect physical edge nodes.")
+	localVPNCmd.AddCommand(NewLocalVPNDisableCmd())
+}
+
+func addVPNDisableArgs(flagset *pflag.FlagSet) {
+	flagset.StringVar(&args.NetbirdToken, "netbird-token", "", "Specify the netbird.io private access token. This is required to connect physical edge nodes.")
 }

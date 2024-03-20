@@ -61,7 +61,7 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func CreateCluster(config *rest.Config) error {
 		"CONTROL_PLANE_MACHINE_COUNT":       fmt.Sprintf("%d", shared.ClusterConfig.Spec.Hetzner.ControlPlane.Count),
 		"HCLOUD_CONTROL_PLANE_MACHINE_TYPE": shared.ClusterConfig.Spec.Hetzner.ControlPlane.MachineType,
 		"HCLOUD_WORKER_MACHINE_TYPE":        shared.ClusterConfig.Spec.Hetzner.Workers.MachineType,
-		"HCLOUD_SSH_KEY":                    shared.ClusterConfig.Spec.Hetzner.HetznerCloudSSHKey,
+		"HCLOUD_SSH_KEY":                    shared.ClusterConfig.Spec.Hetzner.HetznerCloudSSHKeyName,
 		"HCLOUD_TOKEN":                      shared.ClusterConfig.Spec.Hetzner.HCloudToken,
 		"NETBIRD_DOMAIN":                    b64.StdEncoding.EncodeToString([]byte("netbird.cloud")),
 		"NETBIRD_ADMIN_URL":                 b64.StdEncoding.EncodeToString([]byte("https://app.netbird.io:443")),

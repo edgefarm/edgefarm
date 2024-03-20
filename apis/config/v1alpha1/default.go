@@ -25,6 +25,7 @@ func SetDefaultsCluster(obj *Cluster) {
 
 func SetDefaultsGeneral(obj *General) {
 	obj.KubeConfigPath = "~/.edgefarm-local-up/kubeconfig"
+	obj.StatePath = "~/.edgefarm-local-up/local.json"
 }
 
 func SetDefaultsLocal(obj *Local) {
@@ -49,7 +50,7 @@ func SetDefaultsHetzner(obj *Hetzner) {
 		MachineType: "cx31",
 	}
 	obj.HetznerCloudRegion = "nbg1"
-	obj.HetznerCloudSSHKey = "<your ssh key name>"
+	obj.HetznerCloudSSHKeyName = "<your ssh key name>"
 }
 
 func SetDefaultNetbird(obj *Netbird) {

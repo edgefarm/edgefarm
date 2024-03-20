@@ -173,7 +173,7 @@ func (ki *Initializer) Run() error {
 	}
 
 	klog.Info("Start to create cluster with kind")
-	if err := ki.operator.KindCreateClusterWithConfig(config); err != nil {
+	if err := ki.operator.KindCreateClusterWithConfig(true, config); err != nil {
 		return err
 	}
 

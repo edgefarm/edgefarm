@@ -44,6 +44,12 @@ func NewDeployCommand(out io.Writer) *cobra.Command {
 				if err != nil {
 					return err
 				}
+			} else {
+				c := configv1.NewConfig(configv1.Local)
+				err := configv1.Parse(&c)
+				if err != nil {
+					return err
+				}
 			}
 
 			if shared.Args.Only.Crossplane ||

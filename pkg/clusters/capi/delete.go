@@ -33,7 +33,7 @@ func DeleteCluster() error {
 			klog.Errorf("Error %v", err)
 			os.Exit(1)
 		}
-		return ki.KindDeleteCluster(shared.ClusterName)
+		return ki.KindDeleteCluster(false, shared.ClusterName)
 	}
 	return nil
 }

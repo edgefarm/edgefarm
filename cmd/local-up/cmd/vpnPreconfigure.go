@@ -17,9 +17,13 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	apiv1 "github.com/edgefarm/edgefarm/apis/config/v1alpha1"
+	configv1 "github.com/edgefarm/edgefarm/pkg/config/v1alpha1"
 	"github.com/edgefarm/edgefarm/pkg/netbird"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	args "github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -37,6 +41,29 @@ func NewVPNPreconfigureCommand() *cobra.Command {
 		Long: `Preconfigures VPN capabilities using netbird.io for a cloud based edgefarm cluster.
 This enables you to join physical edge nodes to the cloud based edgefarm cluster.`,
 		RunE: func(cmd *cobra.Command, arguments []string) error {
+			var config *apiv1.Cluster
+			if shared.ConfigPath != "" {
+				c, err := configv1.Load(shared.ConfigPath)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				err = configv1.Parse(c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				config = c
+			} else {
+				c := configv1.NewConfig(configv1.Local)
+				err := configv1.Parse(&c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+				config = &c
+			}
+
 			if args.NetbirdToken == "" {
 				klog.Errorln("Error: netbird.io private access token must be specified")
 				os.Exit(1)
@@ -49,7 +76,7 @@ This enables you to join physical edge nodes to the cloud based edgefarm cluster
 				klog.Infoln("VPN unconfiguration completed successfully")
 				return nil
 			} else {
-				key, err := netbird.Preconfigure()
+				key, err := netbird.Preconfigure(config.Spec.Local.Name)
 				if err != nil {
 					return err
 				}
@@ -61,6 +88,7 @@ This enables you to join physical edge nodes to the cloud based edgefarm cluster
 		Args: cobra.NoArgs,
 	}
 	vpnPreconfigureFlags(cmd.Flags())
+	shared.AddSharedFlags(cmd.Flags())
 	return cmd
 }
 

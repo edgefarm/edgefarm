@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/edgefarm/edgefarm/pkg/shared"
 	"github.com/edgefarm/edgefarm/pkg/state"
 	netbird "github.com/edgefarm/netbird-go"
 	wait "k8s.io/apimachinery/pkg/util/wait"
@@ -14,11 +15,10 @@ import (
 )
 
 const (
-	identifier     = "edgefarm-local"
 	routerPeerName = "edgefarm-control-plane"
 )
 
-func CreateSetupKey(state *state.CurrentState, token string) (*netbird.SetupKey, error) {
+func CreateSetupKey(identifier string, state *state.CurrentState, token string) (*netbird.SetupKey, error) {
 	client := netbird.NewClient(token)
 	groups, err := client.ListGroups()
 	if err != nil {
@@ -85,7 +85,7 @@ func CreateSetupKey(state *state.CurrentState, token string) (*netbird.SetupKey,
 	return &setupKey, nil
 }
 
-func AddRoute(state *state.CurrentState, token string) error {
+func AddRoute(identifier string, state *state.CurrentState, token string) error {
 	client := netbird.NewClient(token)
 	group, err := client.GetGroup(state.GetNetbirdGroupID())
 	if err != nil {
@@ -170,6 +170,9 @@ func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, peerDe
 				klog.Infof("netbird.io: deleting group %s", g.ID)
 				client.DeleteGroup(g.ID)
 				state.SetNetbirdGroupID("")
+				if err := state.Export(); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -183,6 +186,9 @@ func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, peerDe
 				klog.Infof("netbird.io: deleting route %s", r.ID)
 				client.DeleteRoute(r.ID)
 				state.SetNetbirdRouteID("")
+				if err := state.Export(); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -195,6 +201,9 @@ func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, peerDe
 			if strings.HasPrefix(p.Hostname, "edgefarm-") {
 				klog.Infof("netbird.io: deleting peer %s", p.Hostname)
 				client.DeletePeer(p.ID)
+				if err := state.Export(); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -208,6 +217,9 @@ func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, peerDe
 				klog.Infof("netbird.io: deleting setup-key %s", k.ID)
 				client.DeleteSetupKey(k.ID)
 				state.SetNetbirdSetupKeyID("")
+				if err := state.Export(); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -234,7 +246,7 @@ func GetGroupPeers(token string) ([]netbird.Peer, error) {
 	if err != nil {
 		return nil, err
 	}
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return nil, err
 	}

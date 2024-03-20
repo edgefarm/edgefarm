@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-)
 
-const (
-	stateDirectory = ".edgefarm-local-up"
-	stateFile      = "state.json"
+	"github.com/edgefarm/edgefarm/pkg/shared"
 )
 
 type CurrentState struct {
@@ -26,37 +23,28 @@ type NetbirdState struct {
 	NetbirdRouteID    string `json:"netbird_route_id"`
 }
 
-var currentState *CurrentState
-
-type CurrentStateOption func(*CurrentState)
-
-func WithStoragePath(path string) CurrentStateOption {
-	return func(s *CurrentState) {
-		s.filePath = path
+func GetState(path string) (*CurrentState, error) {
+	if path == "" {
+		return nil, fmt.Errorf("path not set")
 	}
-}
 
-func GetState(opts ...CurrentStateOption) (*CurrentState, error) {
-	homeDir, err := os.UserHomeDir()
+	realPath, err := shared.Expand(path)
 	if err != nil {
 		return nil, err
 	}
 	tmp := &CurrentState{
-		filePath: fmt.Sprintf("%s/%s", homeDir, stateDirectory),
-	}
-	for _, opt := range opts {
-		opt(tmp)
+		filePath: realPath,
 	}
 
-	currentState, err = importFromFile(tmp.filePath)
+	currentState, err := importFromFile(tmp.filePath)
 	if err != nil {
 		currentState = tmp
 	}
+	currentState.filePath = realPath
 
-	currentState.filePath = tmp.filePath
-
-	if _, err := os.Stat(filepath.Base(currentState.filePath)); os.IsNotExist(err) {
-		err := os.MkdirAll(fmt.Sprintf("%s/%s", homeDir, stateDirectory), 0755)
+	dir := filepath.Dir(currentState.filePath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, 0755)
 		if err != nil {
 			return nil, err
 		}
@@ -123,7 +111,7 @@ func (s *CurrentState) Export() error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(fmt.Sprintf("%s/%s", s.filePath, stateFile), j, 0644)
+	err = os.WriteFile(s.filePath, j, 0644)
 	if err != nil {
 		return err
 	}
@@ -131,7 +119,7 @@ func (s *CurrentState) Export() error {
 }
 
 func importFromFile(path string) (*CurrentState, error) {
-	content, err := os.ReadFile(fmt.Sprintf("%s/%s", path, stateFile))
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -146,4 +134,8 @@ func importFromFile(path string) (*CurrentState, error) {
 func (s *CurrentState) Clear() {
 	s.Netbird = NetbirdState{}
 	s.Export()
+}
+
+func (s *CurrentState) Delete() error {
+	return os.Remove(s.filePath)
 }
