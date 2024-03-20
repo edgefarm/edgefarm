@@ -21,6 +21,7 @@ import (
 
 	"github.com/edgefarm/edgefarm/pkg/kindoperator"
 	"github.com/edgefarm/edgefarm/pkg/shared"
+	"github.com/edgefarm/edgefarm/pkg/state"
 	"k8s.io/klog/v2"
 )
 
@@ -30,5 +31,12 @@ func DeleteCluster() error {
 		klog.Errorf("Error %v", err)
 		os.Exit(1)
 	}
-	return ki.KindDeleteCluster(shared.ClusterName)
+	if err := ki.KindDeleteCluster(true, shared.ClusterName); err != nil {
+		return err
+	}
+	state, err := state.GetState(shared.StatePath)
+	if err != nil {
+		return err
+	}
+	return state.Delete()
 }

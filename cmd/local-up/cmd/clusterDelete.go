@@ -62,6 +62,13 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 					fmt.Printf("Error: %v\n", err)
 					os.Exit(1)
 				}
+			} else {
+				c := configv1.NewConfig(configv1.Local)
+				err := configv1.Parse(&c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
 			}
 
 			klog.Infoln("Deleting local edgefarm cluster")
@@ -106,7 +113,7 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 				}
 			}
 			if doit {
-				state, err := state.GetState()
+				state, err := state.GetState(shared.StatePath)
 				if err != nil {
 					fmt.Printf("Error: %v\n", err)
 				}

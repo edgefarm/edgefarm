@@ -11,7 +11,7 @@ import (
 )
 
 func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error {
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
 	}
@@ -40,13 +40,13 @@ func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error
 	return nil
 }
 
-func Preconfigure() (string, error) {
-	state, err := state.GetState()
+func Preconfigure(identifier string) (string, error) {
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return "", err
 	}
 	state.SetNetbirdToken(args.NetbirdToken)
-	key, err := CreateSetupKey(state, args.NetbirdToken)
+	key, err := CreateSetupKey(identifier, state, args.NetbirdToken)
 	if err != nil {
 		return "", err
 	}
@@ -55,20 +55,20 @@ func Preconfigure() (string, error) {
 }
 
 func UnPreconfigure() error {
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
 	}
 	return Cleanup(state, args.NetbirdToken, false, false, false, true)
 }
 
-func EnableVPN() error {
+func EnableVPN(identifier string) error {
 	klog.Info("Preconfiguring netbird")
-	if _, err := Preconfigure(); err != nil {
+	if _, err := Preconfigure(identifier); err != nil {
 		return err
 	}
 
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func EnableVPN() error {
 	}
 
 	klog.Infof("Configuring netbird")
-	err = AddRoute(state, args.NetbirdToken)
+	err = AddRoute(identifier, state, args.NetbirdToken)
 	if err != nil {
 		return err
 	}

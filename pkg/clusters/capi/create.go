@@ -53,7 +53,7 @@ func CreateCluster() error {
 			return err
 		}
 
-		err = ki.KindCreateClusterWithConfig(config)
+		err = ki.KindCreateClusterWithConfig(false, config)
 		if err != nil {
 			return err
 		}

@@ -70,9 +70,16 @@ func NewCreateCommand(out io.Writer) *cobra.Command {
 				if err != nil {
 					return err
 				}
+			} else {
+				c := configv1.NewConfig(configv1.ConfigType(shared.ClusterType))
+				err := configv1.Parse(&c)
+				if err != nil {
+					return err
+				}
+
 			}
 
-			_, err := state.GetState()
+			_, err := state.GetState(shared.StatePath)
 			if err != nil {
 				return err
 			}

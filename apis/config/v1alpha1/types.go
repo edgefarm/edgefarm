@@ -46,6 +46,7 @@ type Netbird struct {
 // +k8s:deepcopy-gen=true
 type General struct {
 	KubeConfigPath string `yaml:"kubeConfigPath,omitempty" json:"kubeConfigPath,omitempty"`
+	StatePath      string `yaml:"statePath,omitempty" json:"statePath,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -69,14 +70,14 @@ type HetznerMachines struct {
 // +k8s:deepcopy-gen=true
 type Hetzner struct {
 	// The name of the cluster
-	Name string `yaml:"name,omitempty" json:"name,omitempty"`
-
-	ControlPlane       HetznerMachines `yaml:"controlPlane,omitempty" json:"controlPlane,omitempty"`
-	Workers            HetznerMachines `yaml:"workers,omitempty" json:"worker,omitempty"`
-	HetznerCloudRegion string          `yaml:"region,omitempty" json:"hetznerCloudRegion,omitempty"`
-
-	HetznerCloudSSHKey string `yaml:"hetznerCloudSSHKey,omitempty" json:"hetznerCloudSSHKey,omitempty"`
-	//  The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions
+	Name         string          `yaml:"name,omitempty" json:"name,omitempty"`
+	ControlPlane HetznerMachines `yaml:"controlPlane,omitempty" json:"controlPlane,omitempty"`
+	Workers      HetznerMachines `yaml:"workers,omitempty" json:"worker,omitempty"`
+	// HetznerCloudRegion is the region where the cluster should be created
+	HetznerCloudRegion string `yaml:"region,omitempty" json:"hetznerCloudRegion,omitempty"`
+	// HetznerCloudSSHKeyName is the name of the Hetzner Cloud SSH key in your Hetzner Cloud project
+	HetznerCloudSSHKeyName string `yaml:"hetznerCloudSSHKeyName,omitempty" json:"hetznerCloudSSHKeyName,omitempty"`
+	// The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions
 	HCloudToken string `yaml:"hcloudToken,omitempty" json:"hcloudToken,omitempty"`
 	// The KubeConfigPath is the path where the kubeconfig file should be stored
 	KubeConfigPath string `yaml:"kubeConfigPath,omitempty" json:"kubeConfigPath,omitempty"`

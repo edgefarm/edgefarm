@@ -27,6 +27,9 @@ func ValidateGeneral(c *api.General) error {
 	if c.KubeConfigPath == "" {
 		return fmt.Errorf("kubeConfigPath is required")
 	}
+	if c.StatePath == "" {
+		return fmt.Errorf("statePath is required")
+	}
 	return nil
 }
 
@@ -154,7 +157,7 @@ func ValidateHetzner(c *api.Hetzner) error {
 		return fmt.Errorf("invalid hetznerCloudWorkerMachineType: %s", c.Workers.MachineType)
 	}
 
-	if c.HetznerCloudSSHKey == "" {
+	if c.HetznerCloudSSHKeyName == "" {
 		return fmt.Errorf("hetznerCloudSSHKey is required")
 	}
 	if c.HCloudToken == "" {

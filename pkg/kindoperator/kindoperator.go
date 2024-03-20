@@ -52,22 +52,24 @@ func NewKindOperator(kubeconfigPath string) (*KindOperator, error) {
 	}, nil
 }
 
-func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
-	exists, err := networkExists(KindNetworkName)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		err := createNetwork(KindNetworkName, KindNetworkSubnet)
+func (k *KindOperator) KindCreateClusterWithConfig(network bool, config []byte) error {
+	provider := cluster.NewProvider(cluster.ProviderWithLogger(k.logger))
+	if network {
+		exists, err := networkExists(KindNetworkName)
 		if err != nil {
 			return err
 		}
-	}
+		if !exists {
+			err := createNetwork(KindNetworkName, KindNetworkSubnet)
+			if err != nil {
+				return err
+			}
+		}
 
-	provider := cluster.NewProvider(cluster.ProviderWithLogger(k.logger))
-	err = os.Setenv("KIND_EXPERIMENTAL_DOCKER_NETWORK", KindNetworkName)
-	if err != nil {
-		return err
+		err = os.Setenv("KIND_EXPERIMENTAL_DOCKER_NETWORK", KindNetworkName)
+		if err != nil {
+			return err
+		}
 	}
 	options := []cluster.CreateOption{
 		cluster.CreateWithRawConfig(config),
@@ -78,7 +80,7 @@ func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 		cluster.CreateWithDisplaySalutation(false),
 	}
 
-	err = provider.Create(shared.ClusterName, options...)
+	err := provider.Create(shared.ClusterName, options...)
 	if err != nil {
 		return err
 	}
@@ -86,20 +88,22 @@ func (k *KindOperator) KindCreateClusterWithConfig(config []byte) error {
 	return nil
 }
 
-func (k *KindOperator) KindDeleteCluster(name string) error {
+func (k *KindOperator) KindDeleteCluster(network bool, name string) error {
 	provider := cluster.NewProvider()
 	err := provider.Delete(shared.ClusterName, k.kubeconfigPath)
 	if err != nil {
 		return err
 	}
-	exists, err := networkExists(KindNetworkName)
-	if err != nil {
-		return err
-	}
-	if exists {
-		err = deleteNetwork(KindNetworkName)
+	if network {
+		exists, err := networkExists(KindNetworkName)
 		if err != nil {
 			return err
+		}
+		if exists {
+			err = deleteNetwork(KindNetworkName)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

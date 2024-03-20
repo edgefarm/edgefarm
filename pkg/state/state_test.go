@@ -16,7 +16,7 @@ func TestState(t *testing.T) {
 		log.Fatal(err)
 	}
 	fmt.Println(dir)
-	state, err := GetState(WithStoragePath(dir))
+	state, err := GetState(dir + "/state.json")
 	assert.Nil(err)
 	assert.NotNil(state)
 
@@ -25,25 +25,7 @@ func TestState(t *testing.T) {
 	state.SetNetbirdSetupKey("bar")
 	assert.Equal("bar", state.Netbird.NetbirdSetupKey)
 
-	loadedState, err := GetState(WithStoragePath(dir))
-	assert.Nil(err)
-	assert.NotNil(loadedState)
-	assert.Equal("foo", loadedState.Netbird.NetbirdSetupKeyID)
-	assert.Equal("bar", loadedState.Netbird.NetbirdSetupKey)
-}
-
-func TestStateDefaultLocation(t *testing.T) {
-	assert := assert.New(t)
-	state, err := GetState()
-	assert.Nil(err)
-	assert.NotNil(state)
-
-	state.SetNetbirdSetupKeyID("foo")
-	assert.Equal("foo", state.Netbird.NetbirdSetupKeyID)
-	state.SetNetbirdSetupKey("bar")
-	assert.Equal("bar", state.Netbird.NetbirdSetupKey)
-
-	loadedState, err := GetState()
+	loadedState, err := GetState(dir + "/state.json")
 	assert.Nil(err)
 	assert.NotNil(loadedState)
 	assert.Equal("foo", loadedState.Netbird.NetbirdSetupKeyID)

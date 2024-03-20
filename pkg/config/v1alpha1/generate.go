@@ -16,7 +16,8 @@ func NewConfig(t ConfigType) api.Cluster {
 		c.Spec.Type = Hetzner.String()
 		api.SetDefaultsHetzner(&c.Spec.Hetzner)
 		api.SetDefaultNetbird(&c.Spec.Netbird)
+		c.Spec.General.KubeConfigPath = "~/.edgefarm-local-up/edgefarm-bootstrap"
+		c.Spec.General.StatePath = "~/.edgefarm-local-up/edgefarm.json"
 	}
-
 	return c
 }

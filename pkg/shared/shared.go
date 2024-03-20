@@ -57,6 +57,7 @@ var (
 	CloudClusterName          = "edgefarm"
 	ClusterType               string
 	ClusterConfig             *v1alpha1.Cluster
+	StatePath                 string = "~/.edgefarm-local-up/state.json"
 )
 
 type SkipFlags struct {

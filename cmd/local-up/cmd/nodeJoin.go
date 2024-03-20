@@ -47,7 +47,7 @@ var (
 )
 
 func validateJoinNode(config *rest.Config) error {
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func init() {
 }
 
 func instructionsJoinNode(t configv1.ConfigType, token string, ttl string) error {
-	state, err := state.GetState()
+	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
 	}
