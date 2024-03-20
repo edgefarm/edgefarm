@@ -93,13 +93,18 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 					klog.Errorf("Failed to expand cloud kubeconfig: %v", err)
 					os.Exit(1)
 				}
+				// _, err = os.Stat(e)
+				// if err != nil {
+				// 	// jump to proceed. This means that during cluster creation the cloud cluster wasn't created properly. Deleting the bootstrap cluster shall be possible.
+				// 	goto proceed
+				// }
 				args.CloudKubeConfigRestConfig, err = clientcmd.BuildConfigFromFlags("", e)
 				if err != nil {
 					klog.Errorf("Failed to build cloud kubeconfig: %v", err)
 					os.Exit(1)
 				}
 			}
-
+			// proceed:
 			doit := false
 			if override {
 				doit = true
@@ -119,7 +124,14 @@ func NewClusterDeleteCommand(out io.Writer) *cobra.Command {
 				}
 				if state.IsFullyConfigured() && cleanupNetbird {
 					klog.Infoln("netbird.io: cleanup")
-					err := netbird.DisableVPN(false, true, true, true, true)
+					err := netbird.DisableVPN(false, true, true, true)
+					if err != nil {
+						klog.Errorf("Error %v", err)
+						os.Exit(1)
+					}
+				} else if cleanupNetbird {
+					klog.Infoln("netbird.io: cleanup")
+					err := netbird.DisableVPN(false, true, false, true)
 					if err != nil {
 						klog.Errorf("Error %v", err)
 						os.Exit(1)

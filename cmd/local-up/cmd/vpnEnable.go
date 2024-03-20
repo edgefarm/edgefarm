@@ -81,7 +81,7 @@ This enables you to join physical edge nodes to the local edgefarm cluster.`,
 				os.Exit(1)
 			}
 
-			if err := netbird.EnableVPN(config.Spec.Local.Name); err != nil {
+			if err := netbird.EnableVPN(config.Metadata.Name); err != nil {
 				return err
 			}
 			return nil

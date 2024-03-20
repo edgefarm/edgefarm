@@ -80,7 +80,7 @@ You won't be able to run physical edge nodes using the local edgefarm cluster.`,
 				klog.Infof("netbird.io private access not set. Using cached token.\n")
 			}
 
-			if err := netbird.DisableVPN(true, true, true, true, true); err != nil {
+			if err := netbird.DisableVPN(true, true, true, true); err != nil {
 				return err
 			}
 			return nil

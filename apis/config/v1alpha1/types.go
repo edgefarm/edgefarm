@@ -20,7 +20,14 @@ package v1alpha1
 // +k8s:deepcopy-gen=true
 type Cluster struct {
 	TypeMeta `yaml:",inline" json:",inline"`
-	Spec     Spec `yaml:"spec,omitempty" json:"spec,omitempty"`
+	Metadata Metadata `yaml:"metadata,omitempty" json:"metadata,omitempty"`
+	Spec     Spec     `yaml:"spec,omitempty" json:"spec,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
+type Metadata struct {
+	// The name of the Cluster
+	Name string `yaml:"name,omitempty" json:"name,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -51,12 +58,11 @@ type General struct {
 
 // +k8s:deepcopy-gen=true
 type Local struct {
-	Name             string `yaml:"name,omitempty" json:"name,omitempty"`
-	ApiServerPort    int    `yaml:"apiServerPort,omitempty" json:"apiServerPort,omitempty"`
-	NatsPort         int    `yaml:"natsPort,omitempty" json:"natsPort,omitempty"`
-	HttpPort         int    `yaml:"httpPort,omitempty" json:"httpPort,omitempty"`
-	HttpsPort        int    `yaml:"httpsPort,omitempty" json:"httpsPort,omitempty"`
-	VirtualEdgeNodes int    `yaml:"virtualEdgeNodes,omitempty" json:"virtualEdgeNodes,omitempty"`
+	ApiServerPort    int `yaml:"apiServerPort,omitempty" json:"apiServerPort,omitempty"`
+	NatsPort         int `yaml:"natsPort,omitempty" json:"natsPort,omitempty"`
+	HttpPort         int `yaml:"httpPort,omitempty" json:"httpPort,omitempty"`
+	HttpsPort        int `yaml:"httpsPort,omitempty" json:"httpsPort,omitempty"`
+	VirtualEdgeNodes int `yaml:"virtualEdgeNodes,omitempty" json:"virtualEdgeNodes,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
@@ -69,12 +75,10 @@ type HetznerMachines struct {
 
 // +k8s:deepcopy-gen=true
 type Hetzner struct {
-	// The name of the cluster
-	Name         string          `yaml:"name,omitempty" json:"name,omitempty"`
 	ControlPlane HetznerMachines `yaml:"controlPlane,omitempty" json:"controlPlane,omitempty"`
-	Workers      HetznerMachines `yaml:"workers,omitempty" json:"worker,omitempty"`
+	Workers      HetznerMachines `yaml:"workers,omitempty" json:"workers,omitempty"`
 	// HetznerCloudRegion is the region where the cluster should be created
-	HetznerCloudRegion string `yaml:"region,omitempty" json:"hetznerCloudRegion,omitempty"`
+	HetznerCloudRegion string `yaml:"hetznerCloudRegion,omitempty" json:"hetznerCloudRegion,omitempty"`
 	// HetznerCloudSSHKeyName is the name of the Hetzner Cloud SSH key in your Hetzner Cloud project
 	HetznerCloudSSHKeyName string `yaml:"hetznerCloudSSHKeyName,omitempty" json:"hetznerCloudSSHKeyName,omitempty"`
 	// The HCloudToken is created within a Hetzner Cloud project and needs read/write permissions

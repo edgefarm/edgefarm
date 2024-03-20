@@ -158,7 +158,7 @@ func WaitForRoutingPeer(token string) error {
 	return nil
 }
 
-func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, peerDel, setypKeysDel bool) error {
+func Cleanup(state *state.CurrentState, token string, groupDel, routeDel, setypKeysDel bool) error {
 	client := netbird.NewClient(token)
 	if groupDel {
 		groups, err := client.ListGroups()

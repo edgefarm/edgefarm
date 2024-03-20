@@ -10,7 +10,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error {
+func DisableVPN(uninstall, groupDel, routeDel, setypKeysDel bool) error {
 	state, err := state.GetState(shared.StatePath)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func DisableVPN(uninstall, groupDel, routeDel, peerDel, setypKeysDel bool) error
 	}
 
 	klog.Infof("netbird.io: Cleanup")
-	err = Cleanup(state, args.NetbirdToken, groupDel, routeDel, peerDel, setypKeysDel)
+	err = Cleanup(state, args.NetbirdToken, groupDel, routeDel, setypKeysDel)
 	if err != nil {
 		return err
 	}
@@ -51,6 +51,11 @@ func Preconfigure(identifier string) (string, error) {
 		return "", err
 	}
 	args.NetbirdSetupKey = key.Key
+	err = state.Export()
+	if err != nil {
+		return "", err
+	}
+
 	return key.Key, nil
 }
 
@@ -59,7 +64,7 @@ func UnPreconfigure() error {
 	if err != nil {
 		return err
 	}
-	return Cleanup(state, args.NetbirdToken, false, false, false, true)
+	return Cleanup(state, args.NetbirdToken, false, false, true)
 }
 
 func EnableVPN(identifier string) error {

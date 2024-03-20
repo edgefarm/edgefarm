@@ -55,17 +55,21 @@ type Manifest struct {
 }
 
 type Packages struct {
-	Helm     []*Helm
-	Manifest []*Manifest
+	Helm      []*Helm
+	Manifest  []*Manifest
+	HelmRetry *retry.Config
 }
 
-func InstallHelmSpec(client helmclient.Client, spec *helmclient.ChartSpec) error {
+func InstallHelmSpec(retryConfig *retry.Config, client helmclient.Client, spec *helmclient.ChartSpec) error {
 	// Install helm chart with repeat mechanism if failed to install
-	try := retry.New(
-		retry.Count(3),
-		retry.Sleep(time.Second*2),
-		retry.Verbose(true),
-	)
+	try := retryConfig
+	if try == nil {
+		try = retry.New(
+			retry.Count(3),
+			retry.Sleep(time.Second*2),
+			retry.Verbose(true),
+		)
+	}
 	if err := try.Single(fmt.Sprintf("InstallOrUpgradeChart for chart %s", spec.ChartName),
 		func() error {
 			release, err := client.InstallOrUpgradeChart(context.Background(), spec)
@@ -174,7 +178,7 @@ func downloadFromURI(url string) (string, error) {
 	return string(body), nil
 }
 
-func (h *Helm) Install(kubeconfig *rest.Config) error {
+func (h *Helm) Install(retry *retry.Config, kubeconfig *rest.Config) error {
 	if h.Spec.Condition != nil {
 		if !h.Spec.Condition() {
 			klog.Info("condition not met, skipping helm chart installation for: ")
@@ -216,17 +220,33 @@ func (h *Helm) Install(kubeconfig *rest.Config) error {
 				return err
 			}
 		}
-		if err := InstallHelmSpec(client, spec); err != nil {
+		if err := InstallHelmSpec(retry, client, spec); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (p *Packages) Install(kubeconfig *rest.Config) error {
+type InstallOption func(*Packages)
+
+func WithHelmRetry(sleep time.Duration, count int) InstallOption {
+	return func(s *Packages) {
+		s.HelmRetry = retry.New(
+			retry.Count(count),
+			retry.Sleep(sleep),
+			retry.Verbose(true),
+		)
+	}
+}
+
+func (p *Packages) Install(kubeconfig *rest.Config, opts ...InstallOption) error {
+	for _, opts := range opts {
+		opts(p)
+	}
+
 	if p.Helm != nil {
 		for _, helm := range p.Helm {
-			if err := helm.Install(kubeconfig); err != nil {
+			if err := helm.Install(p.HelmRetry, kubeconfig); err != nil {
 				return err
 			}
 		}

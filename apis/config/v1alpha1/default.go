@@ -21,6 +21,7 @@ func SetDefaultsCluster(obj *Cluster) {
 	obj.Kind = "Cluster"
 	obj.APIVersion = "config.edgefarm.io/v1alpha1"
 	obj.Spec.Type = "local"
+	obj.Metadata.Name = "edgefarm"
 }
 
 func SetDefaultsGeneral(obj *General) {
@@ -29,7 +30,6 @@ func SetDefaultsGeneral(obj *General) {
 }
 
 func SetDefaultsLocal(obj *Local) {
-	obj.Name = "edgefarm"
 	obj.ApiServerPort = 6443
 	obj.NatsPort = 4222
 	obj.HttpPort = 80
@@ -38,7 +38,6 @@ func SetDefaultsLocal(obj *Local) {
 }
 
 func SetDefaultsHetzner(obj *Hetzner) {
-	obj.Name = "edgefarm"
 	obj.HCloudToken = "<your hcloud token>"
 	obj.KubeConfigPath = "~/.edgefarm-local-up/hetzner"
 	obj.ControlPlane = HetznerMachines{

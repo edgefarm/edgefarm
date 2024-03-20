@@ -63,6 +63,10 @@ func Validate(c *api.Cluster) error {
 		return fmt.Errorf("invalid kind: %s", c.Kind)
 	}
 
+	if c.Metadata.Name == "" {
+		return fmt.Errorf("name is required")
+	}
+
 	err := ValidateType(c.Spec.Type)
 	if err != nil {
 		return err
@@ -100,9 +104,6 @@ func ValidateNetbird(c *api.Netbird) error {
 }
 
 func ValidateHetzner(c *api.Hetzner) error {
-	if c.Name == "" {
-		return fmt.Errorf("name is required")
-	}
 	if c.ControlPlane.Count == 0 {
 		return fmt.Errorf("controlPlane.count is required")
 	}
