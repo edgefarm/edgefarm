@@ -1,0 +1,15 @@
+kind: Cluster
+apiVersion: config.edgefarm.io/v1alpha1
+metadata:
+  name: edgefarm
+spec:
+  type: local
+  general:
+    kubeConfigPath: ~/.edgefarm-local-up/kubeconfig
+    statePath: ~/.edgefarm-local-up/local.json
+  local:
+    apiServerPort: 6443
+    natsPort: 4222
+    httpPort: 80
+    httpsPort: 443
+    virtualEdgeNodes: 2

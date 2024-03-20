@@ -1,0 +1,22 @@
+kind: Cluster
+apiVersion: config.edgefarm.io/v1alpha1
+metadata:
+  name: cheesecake
+spec:
+  type: hetzner
+  general:
+    kubeConfigPath: ~/.edgefarm-local-up/cheesecake-bootstrap
+    statePath: ~/.edgefarm-local-up/cheesecake.json
+  hetzner:
+    controlPlane:
+      count: 3
+      machineType: cx21
+    workers:
+      count: 2
+      machineType: cx31
+    hetznerCloudRegion: nbg1
+    hetznerCloudSSHKeyName: <your ssh key name>
+    hcloudToken: <your hcloud token>
+    kubeConfigPath: ~/.edgefarm-local-up/cheesecake
+  netbird:
+    setupKey: <your netbird setup key>
