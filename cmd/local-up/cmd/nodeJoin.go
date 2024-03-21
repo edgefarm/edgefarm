@@ -78,11 +78,20 @@ func NewNodeJoinCommand(config *rest.Config, out io.Writer) *cobra.Command {
 			if shared.ConfigPath != "" {
 				c, err := configv1.Load(shared.ConfigPath)
 				if err != nil {
-					return err
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
 				}
 				err = configv1.Parse(c)
 				if err != nil {
-					return err
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+			} else {
+				c := configv1.NewConfig(configv1.Local)
+				err := configv1.Parse(&c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
 				}
 			}
 
@@ -103,7 +112,6 @@ func NewNodeJoinCommand(config *rest.Config, out io.Writer) *cobra.Command {
 				klog.Errorf("Failed to build kubeconfig: %v", err)
 				os.Exit(1)
 			}
-
 			shared.KubeConfigRestConfig = config
 			if err := validateJoinNode(config); err != nil {
 				return err

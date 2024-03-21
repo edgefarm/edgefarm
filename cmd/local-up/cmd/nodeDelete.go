@@ -65,11 +65,20 @@ func NewNodeDeleteCommand(config *rest.Config, out io.Writer) *cobra.Command {
 			if shared.ConfigPath != "" {
 				c, err := configv1.Load(shared.ConfigPath)
 				if err != nil {
-					return err
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
 				}
 				err = configv1.Parse(c)
 				if err != nil {
-					return err
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
+				}
+			} else {
+				c := configv1.NewConfig(configv1.Local)
+				err := configv1.Parse(&c)
+				if err != nil {
+					fmt.Printf("Error: %v\n", err)
+					os.Exit(1)
 				}
 			}
 
@@ -119,9 +128,8 @@ func instructionsDeleteNode() {
 	green := color.New(color.FgHiGreen)
 	yellow := color.New(color.FgHiYellow)
 
-	green.Printf("To unprovision a physical edge node follow the instructions.\n")
-	green.Printf("If joined using yurtadm run on the edge node:\n")
-	yellow.Println("yurtadm reset -f")
+	green.Println("To unprovision the edge node run the unprovision script for your edge device.")
+	yellow.Println("kubeadm reset -f")
 	yellow.Println("rm -rf /etc/cni/net.d")
 	yellow.Println("ip link set cni0 down")
 	yellow.Println("ip link delete cni0")
