@@ -6,13 +6,6 @@ yellow='\033[0;33m'
 yellowBold='\033[1;33m'
 nc='\033[0m'
 
-DEB_PACKAGES_RELEASE_URL=https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb
-KUBEADM_DEB_PKG=kubeadm_1.22.17-00_amd64_7b7456beaf364ecf5c14f4d995bc49985cd23273ebf7610717961e2575057209.deb
-KUBECTL_DEB_PKG=kubectl_1.22.17-00_amd64_b3bcd8e4a64fded2873e873301ef68c6c3787dbc5e68f079a2f9c7c283180709.deb
-KUBELET_DEB_PKG=kubelet_1.22.17-00_amd64_3488568197f82b8b8c267058ea7165968560a67daa5cea981ac6bcff43fe0966.deb
-KUBERNETS_CNI_DEB_PKG=kubernetes-cni_1.2.0-00_amd64_0c2be3775ea591dee9ce45121341dd16b3c752763c6898adc35ce12927c977c1.deb
-CRI_TOOLS_DEB_PKG=cri-tools_1.26.0-00_amd64_5ba786e8853986c7f9f51fe850086083e5cf3c3d34f3fc09aaadd63fa0b578df.deb
-
 if [ "$EUID" -ne 0 ]; then
   echo "Please run this script as root."
   exit 1
@@ -139,6 +132,22 @@ case "$ARCH" in
  *) echo -e "${red}Invalid architecture. Allowed values are arm64, amd64 and arm.${nc}"; exit 1 ;;
 esac
 
+DEB_PACKAGES_RELEASE_URL=https://github.com/edgefarm/edgefarm/releases/download/k8s-1.22.17-deb
+
+if [ "$ARCH" == "amd64" ]; then
+  KUBEADM_DEB_PKG=kubeadm_1.22.17-00_amd64_7b7456beaf364ecf5c14f4d995bc49985cd23273ebf7610717961e2575057209.deb
+  KUBECTL_DEB_PKG=kubectl_1.22.17-00_amd64_b3bcd8e4a64fded2873e873301ef68c6c3787dbc5e68f079a2f9c7c283180709.deb
+  KUBELET_DEB_PKG=kubelet_1.22.17-00_amd64_3488568197f82b8b8c267058ea7165968560a67daa5cea981ac6bcff43fe0966.deb
+  KUBERNETS_CNI_DEB_PKG=kubernetes-cni_1.2.0-00_amd64_0c2be3775ea591dee9ce45121341dd16b3c752763c6898adc35ce12927c977c1.deb
+  CRI_TOOLS_DEB_PKG=cri-tools_1.26.0-00_amd64_5ba786e8853986c7f9f51fe850086083e5cf3c3d34f3fc09aaadd63fa0b578df.deb
+elif [ "$ARCH" == "arm64" ]; then
+  KUBEADM_DEB_PKG=kubeadm_1.22.17-00_arm64_cb878184f74b0cd9e863a229c9c6d303e54dd395f6ad9ff105e89ba20921c285.deb
+  KUBECTL_DEB_PKG=kubectl_1.22.17-00_arm64_dfe30af4f995b3690ccf7b71d82b6580db230877cd9cc61e8726627988ec959c.deb
+  KUBELET_DEB_PKG=kubelet_1.22.17-00_arm64_e6b3b6af8b14fe03949fa63a9bb9feaa9e8587c952f52c52807a3fe6a05ad333.deb
+  KUBERNETS_CNI_DEB_PKG=kubernetes-cni_1.2.0-00_arm64_5d61b8d04701612640667c1da13b616529ded1fed0b7405382d8d08eaa5b5af7.deb
+  CRI_TOOLS_DEB_PKG=cri-tools_1.26.0-00_arm64_be3fa6bdc17ab229b45222887c442ae1a601b3b2bc3e011c9e7235767e7269c4.deb
+fi
+
 TMP=$(mktemp -d)
 
 ###### PRECHECKS
@@ -173,7 +182,6 @@ if ! $NO_INSTALL; then
     if [ $? -ne 0 ]; then
         echo -e "  ${red}kubeadm missing${nc}"
         INSTALL_KUBEADM=true
-        PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
     else
         KUBEADM_VERSION=$(kubeadm version | awk -F "GitVersion:\"v" '{print $2}' | awk -F "\"" '{print $1}')
         if [ "$KUBEADM_VERSION" != "$VERSION" ]; then
@@ -188,7 +196,6 @@ if ! $NO_INSTALL; then
     if [ $? -ne 0 ]; then
         echo -e "  ${red}kubelet missing${nc}"
         INSTALL_KUBELET=true
-        PRECHECK_ERRORS=$((PRECHECK_ERRORS+1))
     else
         KUBELET_VERSION=$(kubelet --version | awk -F "Kubernetes v" '{print $2}')
         if [ "$KUBELET_VERSION" != "$VERSION" ]; then
@@ -205,8 +212,8 @@ if ! $NO_INSTALL; then
         wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${KUBELET_DEB_PKG} -P ${TMP}
         wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${KUBERNETS_CNI_DEB_PKG} -P ${TMP}
         wget -q --show-progress ${DEB_PACKAGES_RELEASE_URL}/${CRI_TOOLS_DEB_PKG} -P ${TMP}
-        apt install -y --fix-broken ${TMP}/${KUBEADM_DEB_PKG} ${TMP}/${KUBECTL_DEB_PKG} ${TMP}/${KUBELET_DEB_PKG} ${TMP}/${KUBERNETS_CNI_DEB_PKG} ${TMP}/${CRI_TOOLS_DEB_PKG} --reinstall --allow-downgrades
-        apt-mark hold kubelet kubectl kubeadm
+        dpkg -i ${TMP}/${KUBEADM_DEB_PKG} ${TMP}/${KUBECTL_DEB_PKG} ${TMP}/${KUBELET_DEB_PKG} ${TMP}/${KUBERNETS_CNI_DEB_PKG} ${TMP}/${CRI_TOOLS_DEB_PKG}
+        apt install -y --fix-broken
         rm ${TMP}/${KUBEADM_DEB_PKG} ${TMP}/${KUBECTL_DEB_PKG} ${TMP}/${KUBELET_DEB_PKG} ${TMP}/${KUBERNETS_CNI_DEB_PKG} ${TMP}/${CRI_TOOLS_DEB_PKG}
     fi
   fi

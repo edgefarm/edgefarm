@@ -22,7 +22,7 @@ ip link set flannel.1 down
 ip link delete flannel.1
 ip link set yurthub-dummy0 down
 ip link delete yurthub-dummy0
-apt purge kubectl kubeadm kubelet kubernetes-cni cri-tools -y
+dpkg -r kubectl kubeadm kubelet kubernetes-cni cri-tools
 systemctl daemon-reload
 
 docker rm -f `docker ps -a | grep "k8s_" | awk '{print $1}'`
