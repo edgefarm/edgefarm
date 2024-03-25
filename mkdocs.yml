@@ -23,6 +23,7 @@ theme:
     - content.code.copy
     - content.code.annotate
     - content.tooltips
+    - content.tabs.link
   custom_dir: docs/overrides
 
 extra_css:
@@ -46,7 +47,7 @@ plugins:
   - glightbox
 
 repo_url: https://github.com/edgefarm/edgefarm
-copyright: Copyright &copy; 2023 Ci4Rail GmbH
+copyright: Copyright &copy; 2024 Ci4Rail GmbH
 
 # Extensions
 markdown_extensions:
@@ -115,7 +116,8 @@ nav:
           - Overview: knowledge-base/tutorials/index.md
           - Cluster:
               - Create a local test cluster: knowledge-base/tutorials/cluster/create-local-cluster.md
-              - Join a Ubuntu 22.04 edge node to the local test cluster: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md
+              - Create a Hetzner Cloud cluster: knowledge-base/tutorials/cluster/create-hetzner-cluster.md
+              - Joining an Ubuntu 22.04 edge node: knowledge-base/tutorials/cluster/join-ubuntu-22-04-edge-node.md
           - Learn EdgeFarm Basics:
               - Deploy an App: knowledge-base/tutorials/edgefarm-basics/deploy-an-app.md
               # - Deploy an Network: knowledge-base/tutorials/edgefarm-basics/deploy-a-network.md
