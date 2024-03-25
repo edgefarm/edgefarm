@@ -135,7 +135,7 @@ func Deploy(t configv1.ConfigType, config *rest.Config) error {
 
 	green := color.New(color.FgHiGreen)
 	yellow := color.New(color.FgHiYellow)
-	green.Printf("The local EdgeFarm cluster is ready to use! Have fun exploring EdgeFarm.\n")
+	green.Printf("The EdgeFarm cluster is ready to use! Have fun exploring EdgeFarm.\n")
 	green.Println("To access the cluster use 'kubectl', e.g.")
 	yellow.Println("  $ kubectl get nodes")
 
