@@ -1,9 +1,28 @@
-# Join a physical edge node running vanilla Ubuntu 22.04 to the local EdgeFarm cluster
+# Join a physical edge node running vanilla Ubuntu 22.04 to an EdgeFarm cluster
+
+First, select the type of EdgeFarm cluster you have:
+
+=== "Local EdgeFarm cluster"
+
+    You need a running and VPN enabled EdgeFarm cluster. See [Create a local EdgeFarm cluster for testing](create-local-cluster.md) for instructions.
+
+
+=== "Cloud Cluster (e.g. Hetzner)"
+     
+    You need a running and Cloud driven EdgeFarm cluster, e.g. running on Hetzner Cloud. See [Create a EdgeFarm cluster that runs on Hetzner Cloud](create-hetzner-cluster.md) for instructions.
+
+!!! note  "Raspberry Pi 4 notes"
+
+    For the Raspberry Pi you need to install the package `linux-modules-extra-raspi` and enable some boot options to make it work with Kubernetes.
+
+    ```bash
+    apt update
+    apt install linux-modules-extra-raspi
+    sed -i '$s/$/ cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory/' /boot/firmware/cmdline.txt
+    ```
 
 ## Prerequisites
-
-You need a running and VPN enabled EdgeFarm cluster. See [Create a local EdgeFarm cluster for testing](create-local-cluster.md) for instructions.
-
+    
 This How-To shows how to add a Raspberry Pi 4 with a vanilla Ubuntu 22.04 as an Edge Node. 
 If you have a different hardware or OS your mileage may vary but the general steps should be adaptable.
 
@@ -23,29 +42,59 @@ By default, the nodename is the hostname of the edge node. If you didn't define 
 
 See this example to pre-register a node with the name `eagle`:
 
-```bash
-$ local-up node join --name eagle
-Here is some information you need to join a physical edge node to this cluster.
 
-VPN:
-Unless you already connected the physical node to netbird.io VPN, you need to connect it to the VPN first.
+=== "Local EdgeFarm cluster"
 
-Use can use this setup-key 78A12F38-7E48-4068-97D5-8172E3017C58  to connect to netbird.io VPN. # (1)!f
+    ```bash
+    $ local-up node join --name eagle
+    Here is some information you need to join a edge node to this cluster.
+    
+    VPN:
+    If you haven't already linked the node to the netbird.io VPN, you must establish the connection to the VPN beforehand.
+    
+    Use can use this setup-key 375EE66D-E647-4B75-A9FC-########### to connect to netbird.io VPN. 
+    # (1)!
+    
+    Kubernetes:
+    Ensure that the /etc/hosts file on your physical edge node contains the following entry:
+    123.123.123.123 edgefarm-control-plane 
+    # (2)!
+    
+    Use this token 123456.0wm9r81m6dlozk30 to join the cluster. You have 1 day to join the cluster before this token expires. 
+    # (3)!
+    
+    If you experience any problems, please consult the documentation at 
+    https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md
+    ```
 
-Kubernetes:
-Ensure that the /etc/hosts file on your physical edge node contains the following entry:
-100.127.213.101 edgefarm-control-plane # (2)!
+    1.  Keep the netbird setup-key for connecting the edge node to the VPN.
+    2.  Add this entry in /etc/hosts. '100.127.213.101' is the VPN IP address of the control-plane node of your local cluster.
+    3.  Keep this token for later to join the node.
+   
+=== "Cloud Cluster (e.g. Hetzner)"
 
-Use this token ny32as.wrzxg9fzn3r5tjsj to join the cluster. You have 1 day to join the cluster before this token expires. # (3)!
+    ```bash
+    $ local-up node join --name eagle --config ~/hetzner-config.yaml 
+    Here is some information you need to join a edge node to this cluster.
 
-If you experience any problems, please consult the documentation at 
-https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md
+    VPN:
+    If you haven't already linked the node to the netbird.io VPN, you must establish the connection to the VPN beforehand.
 
-```
+    Use can use this setup-key B0BB22F7-4890-41D7-908A-########### to connect to netbird.io VPN. 
+    # (1)!
 
-1.  Keep the netbird setup-key for connecting the node to the VPN.
-2.  Add this entry in /etc/hosts. '100.127.213.101' is the VPN IP address of the control-plane node of your local cluster.
-3.  Keep this token for later to join the node. Every node gets its own token.
+    Kubernetes:
+    Use this token 123456.5emtbddc32xjlplg to join the cluster reachable here: 123.123.123.123:443 
+    # (2)!
+    You have 1 day to join the cluster before this token expires.
+    
+    If you experience any problems, please consult the documentation at 
+    https://edgefarm.github.io/edgefarm/ or file an issue at https://github.com/edgefarm/edgefarm/issues/new?template=question.md
+    ```
+
+    1.  Keep the netbird setup-key for connecting the edge node to the VPN.
+    2.  Keep this token and cluster ip:port for later to join the node.
+   
 
 ## Edge Node preparations
 
@@ -95,38 +144,39 @@ $ ip addr show dev wt0
 
 1.  The IP address is 100.127.123.145
 
-## /etc/hosts entry
+## Join the Edge Node 
 
-Modify the `/etc/hosts` file on your edge node the way the `local-up node join`'s output told you. 
+=== "Local EdgeFarm cluster"
 
-```bash
-<IP ADDRESS> edgefarm-control-plane # (1)!
-```
-
-1.  In the example above, the IP address is `100.127.213.101`. So your entry must be `100.127.213.101 edgefarm-control-plane`.
-
-## Join the Edge Node to the EdgeFarm cluster
-
-Run the `install.sh` script as root to join the Edge Node to the EdgeFarm cluster.
-The bootstrap-token to enter is the one you got from the `local-up` command above (`ny32as.wrzxg9fzn3r5tjsj`). 
-
-```console
-./install.sh --address edgefarm-control-plane:6443 --token <bootstrap-token> --node-ip $(cat /usr/local/etc/wt0.ip) --join
-```
-
-??? "Raspberry Pi 4 notes"
-
-    For the Raspberry Pi you need to install the package `linux-modules-extra-raspi` and enable some boot options to make it work with Kubernetes.
+    Modify the `/etc/hosts` file on your edge node the way the `local-up node join`'s output told you. 
 
     ```bash
-    apt update
-    apt install linux-modules-extra-raspi
-    sed -i '$s/$/ cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory/' /boot/firmware/cmdline.txt
+    <IP ADDRESS> edgefarm-control-plane # (1)!
+    ```
+
+    1.  In the example above, the IP address is `100.127.213.101`. So your entry must be `100.127.213.101 edgefarm-control-plane`.
+
+    Join the Edge Node to the EdgeFarm cluster by running the `install.sh` script as root.
+    Use the bootstrap token from the `local-up node join` output.
+
+    ```console
+    ./install.sh --address edgefarm-control-plane:6443 --token <bootstrap-token> --node-ip $(cat /usr/local/etc/wt0.ip) --join --convert --node-type kubeadm
+    ```
+
+=== "Cloud Cluster (e.g. Hetzner)"
+
+    Join the Edge Node to the EdgeFarm cluster by running the `install.sh` script as root.
+    Use the token and ip:port from the `local-up node join` output.
+
+    ```console
+    ./install.sh --address <ip:port> --token <bootstrap-token> --node-ip $(cat /usr/local/etc/wt0.ip) --join --convert --node-type kubeadm 
     ```
 
 ## Verify the Edge Node
 
 Verify that the Edge Node is ready to use. Let's say the hostname of the node is `eagle`.
+
+Ensure that the envirnment variable `KUBECONFIG` is set to the kubeconfig file of the EdgeFarm cluster.
 
 ```bash
 $ KUBECONFIG=~/.edgefarm-local-up/kubeconfig kubectl get nodes | grep eagle
