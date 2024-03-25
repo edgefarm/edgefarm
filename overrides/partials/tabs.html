@@ -1,0 +1,25 @@
+{% import "partials/tabs-item.html" as item with context %}
+
+<!-- Navigation tabs -->
+<nav class="md-tabs" aria-label="{{ lang.t('tabs') }}" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+
+        <!-- Adds tab on right side of header -->
+        {% if "hard_copy.md" %}
+        <ul class="md-tabs__list" style="float: right;">
+            <li class="md-tabs__item">
+                <a href="mailto:info@ci4rail.com?subject=Give%20me%20a%20EdgeFarm%20demo!&body=Hi!%0D%0A%0D%0Ai%20found%20EdgeFarm%20and%20i%20would%20like%20you%20to%20give%20me%20a%20live%20demo!%0D%0AHere%20is%20some%20information%20about%20myself.%0D%0A%0D%0AName%3A%0D%0ACompany%20name%3A%0D%0AJob%20title%3A%0D%0ACompany%20Headcount%3A%20%0D%0A%0D%0AThanks!%0D%0A"
+                    style="display: inline-block; font-size: 16px; margin-top: 7px; padding: 8px 20px; background-color: #ff6116; color: #ffffff; text-decoration: none; border-radius: 5px;">Request
+                    a demo </a>
+            </li>
+        </ul>
+        {% endif %}
+
+        <!-- Original tabbed sections -->
+        <ul class="md-tabs__list">
+            {% for nav_item in nav %}
+            {{ item.render(nav_item) }}
+            {% endfor %}
+        </ul>
+    </div>
+</nav>

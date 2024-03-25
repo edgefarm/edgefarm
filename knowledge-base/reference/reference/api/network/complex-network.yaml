@@ -1,0 +1,138 @@
+apiVersion: streams.network.edgefarm.io/v1alpha1
+kind: Network
+metadata:
+  name: mynetwork
+  namespace: mynamespace
+spec:
+  parameters:
+    users:
+      - name: "app1"
+        limits:
+          payload: -1
+          data: -1
+          subscriptions: -1
+        permissions:
+          pub:
+            allow:
+              - "topic1.>"
+              - "a.b.*.c.>"
+            deny: []
+          sub:
+            allow: []
+            deny: []
+
+      - name: "app2"
+        limits:
+          payload: -1
+          data: -1
+          subscriptions: -1
+        permissions:
+          pub:
+            allow:
+              - "topic3"
+            deny: []
+          sub:
+            allow:
+              - "topic1.>"
+              - "a.b.*.c.>"
+            deny: []
+
+      - name: "external-access"
+        limits:
+          payload: -1
+          data: -1
+          subscriptions: -1
+        permissions:
+          sub:
+            allow:
+              - "topic3"
+            deny: []
+          pub:
+            allow: []
+            deny: []
+        writeToSecret:
+          name: external-access-creds
+
+    subNetworks:
+      - name: small
+        limits:
+          fileStorage: 300M
+          inMemoryStorage: 10M
+        nodepoolSelector:
+          matchLabels:
+            app1/network: small
+      - name: big
+        limits:
+          fileStorage: 300M
+          inMemoryStorage: 10M
+        nodepoolSelector:
+          matchLabels:
+            app1/network: big
+
+    streams:
+      - name: app-stream-small
+        type: Standard
+        subNetworkRef: small
+        config:
+          subjects:
+            - topic1.>
+            - a.b.*.c.>
+          retention: Limits
+          discard: Old
+          maxConsumers: -1
+          maxMsgs: -1
+          storage: File
+          maxBytes: 100000000 # 100MB
+
+      - name: app-stream-big
+        type: Standard
+        subNetworkRef: big
+        config:
+          subjects:
+            - topic1.>
+            - a.b.*.c.>
+          retention: Limits
+          discard: Old
+          maxConsumers: -1
+          maxMsgs: -1
+          storage: File
+          maxBytes: 100000000 # 10GB
+
+      - name: results-stream-small
+        type: Standard
+        subNetworkRef: small
+        config:
+          subjects:
+            - topic3
+          retention: Limits
+          discard: Old
+          maxConsumers: -1
+          maxMsgs: -1
+          storage: File
+          maxBytes: 200000000 # 200MB
+
+      - name: results-stream-big
+        type: Standard
+        subNetworkRef: big
+        config:
+          subjects:
+            - topic3
+          retention: Limits
+          discard: Old
+          maxConsumers: -1
+          maxMsgs: -1
+          storage: File
+          maxBytes: 200000000 # 200MB
+
+      - name: aggregate-stream
+        type: Aggregate
+        references:
+          - results-stream-small
+          - results-stream-big
+        config:
+          retention: Limits
+          discard: Old
+          maxConsumers: -1
+          maxMsgs: -1
+          storage: File
+          maxBytes: 200000000 # 20GB

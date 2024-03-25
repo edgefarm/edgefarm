@@ -1,0 +1,2776 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../overview/">
+      
+      
+        <link rel="next" href="../network-trait-spec/">
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.15">
+    
+    
+      
+        <title>Application Spec - EdgeFarm - seamless edge computing</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.7e359304.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+   <link href="../../../../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"/><style>
+    html.glightbox-open { overflow: initial; height: 100%; }
+    .gslide-title { margin-top: 0px; user-select: text; }
+    .gslide-desc { color: #666; user-select: text; }
+    .gslide-image img { background: white; }
+    .gscrollbar-fixer { padding-right: 15px; }
+    .gdesc-inner { font-size: 0.75rem; }
+    body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color);}
+    body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color);}
+    body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color);}</style> <script src="../../../../../../assets/javascripts/glightbox.min.js"></script></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../../.." title="EdgeFarm - seamless edge computing" class="md-header__button md-logo" aria-label="EdgeFarm - seamless edge computing" data-md-component="logo">
+      
+  <img src="../../../../../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            EdgeFarm - seamless edge computing
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Application Spec
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3 3.19.09m3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95 2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5c-.84 0-1.65.15-2.39.42L12 2M3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29L3.34 7m.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14L3.36 17M20.65 7l-1.77 3.79a7.023 7.023 0 0 0-2.38-4.15l4.15.36m-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29L20.64 17M12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44L12 22Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/edgefarm/edgefarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+
+<!-- Navigation tabs -->
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+
+        <!-- Adds tab on right side of header -->
+        
+        <ul class="md-tabs__list" style="float: right;">
+            <li class="md-tabs__item">
+                <a href="mailto:info@ci4rail.com?subject=Give%20me%20a%20EdgeFarm%20demo!&body=Hi!%0D%0A%0D%0Ai%20found%20EdgeFarm%20and%20i%20would%20like%20you%20to%20give%20me%20a%20live%20demo!%0D%0AHere%20is%20some%20information%20about%20myself.%0D%0A%0D%0AName%3A%0D%0ACompany%20name%3A%0D%0AJob%20title%3A%0D%0ACompany%20Headcount%3A%20%0D%0A%0D%0AThanks!%0D%0A"
+                    style="display: inline-block; font-size: 16px; margin-top: 7px; padding: 8px 20px; background-color: #ff6116; color: #ffffff; text-decoration: none; border-radius: 5px;">Request
+                    a demo </a>
+            </li>
+        </ul>
+        
+
+        <!-- Original tabbed sections -->
+        <ul class="md-tabs__list">
+            
+            
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../../.." class="md-tabs__link">
+          
+  
+  Welcome
+
+        </a>
+      </li>
+    
+  
+
+            
+            
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../../../" class="md-tabs__link">
+          
+  
+  Knowledge Base
+
+        </a>
+      </li>
+    
+  
+
+            
+            
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../../pricing/" class="md-tabs__link">
+        
+  
+    
+  
+  Pricing
+
+      </a>
+    </li>
+  
+
+            
+        </ul>
+    </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="EdgeFarm - seamless edge computing" class="md-nav__button md-logo" aria-label="EdgeFarm - seamless edge computing" data-md-component="logo">
+      
+  <img src="../../../../../../assets/logo.png" alt="logo">
+
+    </a>
+    EdgeFarm - seamless edge computing
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/edgefarm/edgefarm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Welcome
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Welcome
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../usecases/usecases/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Use Cases
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Knowledge Base
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Knowledge Base
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../gettingstarted/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../gettingstarted/example-application/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Example Application
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../gettingstarted/portal/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Portal
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3_2" id="__nav_2_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    System
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/overview/system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    System Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/overview/components/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Components
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/designdecissions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Design Decissions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3_4" id="__nav_2_3_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/edgefarm.core/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    edgefarm.core
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/edgefarm.applications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    edgefarm.applications
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/edgefarm.network/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    edgefarm.network
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../concepts/edgefarm.monitor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    edgefarm.monitor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../tutorials/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4_2" id="__nav_2_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Cluster
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Cluster
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../tutorials/cluster/create-local-cluster/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Create a local test cluster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../tutorials/cluster/create-hetzner-cluster/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Create a Hetzner Cloud cluster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../tutorials/cluster/join-ubuntu-22-04-edge-node/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Joining an Ubuntu 22.04 edge node
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4_3" id="__nav_2_4_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Learn EdgeFarm Basics
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Learn EdgeFarm Basics
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../tutorials/edgefarm-basics/deploy-an-app/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Deploy an App
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../glossary/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Glossary
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_5_3" id="__nav_2_5_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    EdgeFarm API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_5_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            EdgeFarm API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_5_3_2" id="__nav_2_5_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    edgefarm.applications
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_5_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_5_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            edgefarm.applications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Application Spec
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Application Spec
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexproperties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiessecuritycontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.securityContext
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiessecuritycontextcapabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.securityContext.capabilities
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesnodepoolselector" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.nodepoolSelector
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesnodepoolselectorindexmatchexpressionsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.nodepoolSelector[index].matchExpressions[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiestolerationsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.tolerations[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesportsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.ports[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefrom" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index].valueFrom
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index].valueFrom.configMapKeyRef
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index].valueFrom.secretKeyRef
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesrequests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.requests
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesrequestslimits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.requests.limits
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiestraitsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.traits[index]
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network-trait-spec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Network Trait Spec
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../storage-trait-spec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Storage Trait Spec
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5_3_3" id="__nav_2_5_3_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    edgefarm.network
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_2_5_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            edgefarm.network
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../network/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../network/spec/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Spec
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../network/examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../well-known/well-known/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Well-Known Labels, Annotations and Taints
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../pricing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pricing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexproperties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiessecuritycontext" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.securityContext
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiessecuritycontextcapabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.securityContext.capabilities
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesnodepoolselector" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.nodepoolSelector
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesnodepoolselectorindexmatchexpressionsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.nodepoolSelector[index].matchExpressions[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiestolerationsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.tolerations[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesportsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.ports[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index]
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefrom" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index].valueFrom
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index].valueFrom.configMapKeyRef
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.envs[index].valueFrom.secretKeyRef
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesrequests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.requests
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiesrequestslimits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.requests.limits
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applicationspeccomponentsindexpropertiestraitsindex" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application.spec.components[index].properties.traits[index]
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h1>
+<h2 id="application">Application<a class="headerlink" href="#application" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#application">↩ Parent</a></sup></sup></p>
+<p>An <code>Application</code> is a definition of a set of containers that can run on a Kubernetes Node. This resource is created by clients and scheduled onto hosts.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>apiVersion</strong></td>
+<td>core.oam.dev/v1beta1</td>
+<td>Version of the API</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>kind</strong></td>
+<td>Application</td>
+<td>Type of the resource</td>
+<td>true</td>
+</tr>
+<tr>
+<td><a href="#objectmeta"><strong>metadata</strong></a></td>
+<td>object</td>
+<td>Standard object's metadata</td>
+<td>true</td>
+</tr>
+<tr>
+<td><a href="#applicationspec"><strong>spec</strong></a></td>
+<td>object</td>
+<td>Specification of the desired behavior of the application</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspec">Application.spec<a class="headerlink" href="#applicationspec" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#application">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#applicationspeccomponentsindex"><strong>components</strong></a></td>
+<td>[]object</td>
+<td>List of components belonging to the application. Having multiple components in one application means that there are multiple containers managed by the same application. All components are deployed together and share the same lifecycle.</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindex">Application.spec.components[index]<a class="headerlink" href="#applicationspeccomponentsindex" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspec">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>The name of the component. This name must be unique between all components in an application.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>string</td>
+<td>The type of the component. This is used to allows the the templating engine behind <code>edgefarm.applications</code> to generate the correct manifest. Currently the supported component is: <em>edgefarm-applications</em></td>
+<td>true</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexproperties"><strong>properties</strong></a></td>
+<td>object</td>
+<td>Properties of the component. This is used to configure the component. The properties are specific to the component type.</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexproperties">Application.spec.components[index].properties<a class="headerlink" href="#applicationspeccomponentsindexproperties" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindex">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>The name of the container.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesnodepoolselector"><strong>nodePoolSelector</strong></a></td>
+<td>object</td>
+<td>Label selector for nodepools. Every Edge Node has a corresponding nodepool. The nodepool is used to select the Edge Nodes that shall run the component. The nodePoolSelector specifies the nodepools that shall run the component. A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>image</strong></td>
+<td>string</td>
+<td>OCI container image name.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>imagePullPolicy</strong></td>
+<td>string</td>
+<td>Image pull policy. One of <code>IfNotPresent</code>, <code>Never</code>, <code>Always</code>. Defaults to <code>IfNotPresent</code></td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>imagePullSecrets</strong></td>
+<td>[]string</td>
+<td>Specify image pull secrets.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>command</strong></td>
+<td>[]string</td>
+<td>Entrypoint array. Not executed within a shell. The container image's ENTRYPOINT is used if this is not provided.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>args</strong></td>
+<td>[]string</td>
+<td>Arguments to the entrypoint. The container image's CMD is used if this is not provided.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesenvsindex"><strong>envs</strong></a></td>
+<td>[]object</td>
+<td>List of environment variables to set in the container.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiestolerationsindex"><strong>tolerations</strong></a></td>
+<td>[]object</td>
+<td>The pod this Toleration is attached to tolerates any taint that matches the triple <code>&lt;key,value,effect&gt;</code> using the matching operator.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesportsindex"><strong>ports</strong></a></td>
+<td>[]object</td>
+<td>List of ports to expose from the container.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>cpu</strong></td>
+<td>string</td>
+<td>Default values for CPU resources for Requests or Limits is unset.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>memory</strong></td>
+<td>string</td>
+<td>Default values for Requests and Limits on Memory resources for a container.</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesrequests"><strong>requests</strong></a></td>
+<td>object</td>
+<td>Resources requested by the container.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertieslimits"><strong>limits</strong></a></td>
+<td>object</td>
+<td>Resources allowed for the container.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiessecuritycontext"><strong>securityContext</strong></a></td>
+<td>object</td>
+<td>The security context to apply.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiestraitsindex"><strong>traits</strong></a></td>
+<td>[]object</td>
+<td>Traits of the component. Traits of the component. This is used to configure the component. The traits are specific to the component type.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiessecuritycontext">Application.spec.components[index].properties.securityContext<a class="headerlink" href="#applicationspeccomponentsindexpropertiessecuritycontext" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>allowPrivilegedEscalation</strong></td>
+<td>bool</td>
+<td>AllowPrivilegedEscalation determines if a pod can request to allow privilege escalation. If unspecified, defaults to true.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiessecuritycontextcapabilities"><strong>capabilities</strong></a></td>
+<td>object</td>
+<td>The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>privileged</strong></td>
+<td>bool</td>
+<td>Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>readOnlyRootFilesystem</strong></td>
+<td>bool</td>
+<td>Whether this container has a read-only root filesystem. Default is false.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>runAsGroup</strong></td>
+<td>int64</td>
+<td>The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in SecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence for that container.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>runAsNonRoot</strong></td>
+<td>bool</td>
+<td>Indicates that the container must run as a non-root user. If true, the Kubelet will validate the image at runtime to ensure that it does not run as UID 0 (root) and fail to start the container if it does. If unset or false, no such validation will be performed. May also be set in SecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>runAsUser</strong></td>
+<td>int64</td>
+<td>The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in SecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence for that container.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiessecuritycontextcapabilities">Application.spec.components[index].properties.securityContext.capabilities<a class="headerlink" href="#applicationspeccomponentsindexpropertiessecuritycontextcapabilities" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexpropertiessecuritycontext">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>add</strong></td>
+<td>[]string</td>
+<td>Added capabilities.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>drop</strong></td>
+<td>[]string</td>
+<td>Removed capabilities.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesnodepoolselector">Application.spec.components[index].properties.nodepoolSelector<a class="headerlink" href="#applicationspeccomponentsindexpropertiesnodepoolselector" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>matchLabels</strong></td>
+<td>map[string]string</td>
+<td>matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesnodepoolselectorindexmatchexpressionsindex">matchExpressions</a></td>
+<td>[]MatchExpression</td>
+<td>matchExpressions is a list of label selector requirements. The requirements are ANDed.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesnodepoolselectorindexmatchexpressionsindex">Application.spec.components[index].properties.nodepoolSelector[index].matchExpressions[index]<a class="headerlink" href="#applicationspeccomponentsindexpropertiesnodepoolselectorindexmatchexpressionsindex" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexpropertiesnodepoolselector">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>key</strong></td>
+<td>string</td>
+<td>The label key that the selector applies to.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>operator</strong></td>
+<td>string</td>
+<td>Represents a key's relationship to a set of values. Valid operators are <code>In</code>, <code>NotIn</code>, <code>Exists</code>, <code>DoesNotExist</code>. <code>In</code> and <code>NotIn</code> operators can be used with non-empty values. <code>Exists</code> and <code>DoesNotExist</code> operators can be used with empty values.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>values</strong></td>
+<td>[]string</td>
+<td>An array of string values.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiestolerationsindex">Application.spec.components[index].properties.tolerations[index]<a class="headerlink" href="#applicationspeccomponentsindexpropertiestolerationsindex" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>key</strong></td>
+<td>string</td>
+<td>The taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>operator</strong></td>
+<td>string</td>
+<td>Operator represents a key's relationship to the value. Valid operators are <code>Exists</code> and <code>Equal</code>. Defaults to <code>Equal</code>. <code>Exists</code> is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>value</strong></td>
+<td>string</td>
+<td>Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>effect</strong></td>
+<td>string</td>
+<td>Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are <code>NoSchedule</code>, <code>PreferNoSchedule</code> and <code>NoExecute</code>.</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>tolerationSeconds</strong></td>
+<td>int64</td>
+<td>TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesportsindex">Application.spec.components[index].properties.ports[index]<a class="headerlink" href="#applicationspeccomponentsindexpropertiesportsindex" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>The name of the port mapping.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>containerPort</strong></td>
+<td>int32</td>
+<td>Number of port to expose on the pod's IP address. This must be a valid port number, 0 &lt; x &lt; 65536.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>hostPort</strong></td>
+<td>int32</td>
+<td>Number of port to expose on the host. If specified, this must be a valid port number, 0 &lt; x &lt; 65536.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>protocol</strong></td>
+<td>string</td>
+<td>Protocol for port. Must be UDP or TCP. Defaults to "TCP".</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesenvsindex">Application.spec.components[index].properties.envs[index]<a class="headerlink" href="#applicationspeccomponentsindexpropertiesenvsindex" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>Name of the environment variable.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>value</strong></td>
+<td>string</td>
+<td>The value of the environment variable.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefrom"><strong>valueFrom</strong></a></td>
+<td>object</td>
+<td>Source for the environment variable's value. Cannot be used if value is not empty.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesenvsindexvaluefrom">Application.spec.components[index].properties.envs[index].valueFrom<a class="headerlink" href="#applicationspeccomponentsindexpropertiesenvsindexvaluefrom" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref"><strong>configMapKeyRef</strong></a></td>
+<td>ConfigMapKeySelector</td>
+<td>Selects a key of a ConfigMap.</td>
+<td>false</td>
+</tr>
+<tr>
+<td><a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref"><strong>secretKeyRef</strong></a></td>
+<td>SecretKeySelector</td>
+<td>Selects a key of a Secret.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref">Application.spec.components[index].properties.envs[index].valueFrom.configMapKeyRef<a class="headerlink" href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromconfigmapkeyref" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefrom">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>The name of the config map in the pod's namespace to select from.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>key</strong></td>
+<td>string</td>
+<td>The key of the config map to select from. Must be a valid secret key</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref">Application.spec.components[index].properties.envs[index].valueFrom.secretKeyRef<a class="headerlink" href="#applicationspeccomponentsindexpropertiesenvsindexvaluefromsecretkeyref" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexpropertiesenvsindexvaluefrom">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>The name of the secret in the pod's namespace to select from.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>key</strong></td>
+<td>string</td>
+<td>The key of the secret to select from. Must be a valid secret key.</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesrequests">Application.spec.components[index].properties.requests<a class="headerlink" href="#applicationspeccomponentsindexpropertiesrequests" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>memory</strong></td>
+<td>string</td>
+<td>Memory resource requests. Defaults to "256Mi".</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>cpu</strong></td>
+<td>string</td>
+<td>CPU resource requests. Defaults to "250m".</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiesrequestslimits">Application.spec.components[index].properties.requests.limits<a class="headerlink" href="#applicationspeccomponentsindexpropertiesrequestslimits" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>memory</strong></td>
+<td>string</td>
+<td>Memory resource limits. Defaults to "256Mi".</td>
+<td>false</td>
+</tr>
+<tr>
+<td><strong>cpu</strong></td>
+<td>string</td>
+<td>CPU resource limits. Defaults to "250m".</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="applicationspeccomponentsindexpropertiestraitsindex">Application.spec.components[index].properties.traits[index]<a class="headerlink" href="#applicationspeccomponentsindexpropertiestraitsindex" title="Permanent link">&para;</a></h2>
+<p><sup><sup><a href="#applicationspeccomponentsindexproperties">↩ Parent</a></sup></sup></p>
+<p>Currently supported traits are</p>
+<ul>
+<li><a href="../network-trait-spec">edgefarm-network</a></li>
+<li><a href="../storage-trait-spec">edgefarm-storage</a></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>name</strong></td>
+<td>string</td>
+<td>The name of the trait.</td>
+<td>true</td>
+</tr>
+<tr>
+<td><strong>properties</strong></td>
+<td>map[string]interface{}</td>
+<td>Properties of the trait. Used to configure the trait. Properties are specific to the trait type.</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 25, 2024</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3h-2Z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">March 25, 2024</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Ci4Rail GmbH
+    </div>
+  
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://edgefarmworkspace.slack.com" target="_blank" rel="noopener" title="Slack" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M94.12 315.1c0 25.9-21.16 47.06-47.06 47.06S0 341 0 315.1c0-25.9 21.16-47.06 47.06-47.06h47.06v47.06zm23.72 0c0-25.9 21.16-47.06 47.06-47.06s47.06 21.16 47.06 47.06v117.84c0 25.9-21.16 47.06-47.06 47.06s-47.06-21.16-47.06-47.06V315.1zm47.06-188.98c-25.9 0-47.06-21.16-47.06-47.06S139 32 164.9 32s47.06 21.16 47.06 47.06v47.06H164.9zm0 23.72c25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06H47.06C21.16 243.96 0 222.8 0 196.9s21.16-47.06 47.06-47.06H164.9zm188.98 47.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06h-47.06V196.9zm-23.72 0c0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06V79.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06V196.9zM283.1 385.88c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06v-47.06h47.06zm0-23.72c-25.9 0-47.06-21.16-47.06-47.06 0-25.9 21.16-47.06 47.06-47.06h117.84c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06H283.1z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:info@ci4rail.com" target="_blank" rel="noopener" title="Contact" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M64 112c-8.8 0-16 7.2-16 16v22.1l172.5 141.6c20.7 17 50.4 17 71.1 0L464 150.1V128c0-8.8-7.2-16-16-16H64zM48 212.2V384c0 8.8 7.2 16 16 16h384c8.8 0 16-7.2 16-16V212.2L322 328.8c-38.4 31.5-93.7 31.5-132 0L48 212.2zM0 128c0-35.3 28.7-64 64-64h384c35.3 0 64 28.7 64 64v256c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "content.code.copy", "content.code.annotate", "content.tooltips", "content.tabs.link"], "search": "../../../../../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.bd41221c.min.js"></script>
+      
+    
+  <script>document$.subscribe(() => {const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});})</script></body>
+</html>
