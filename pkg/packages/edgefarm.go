@@ -313,6 +313,29 @@ affinity:
 		},
 	}
 
+	YurtCoordinator = []Packages{
+		{
+			Helm: []*Helm{
+				{
+					Repo: &repo.Entry{
+						Name: "yurt-coordinator",
+					},
+					Spec: &Spec{
+						Chart: []*helmclient.ChartSpec{
+							{
+								ReleaseName: "yurt-coordinator",
+								ChartName:   "oci://ghcr.io/edgefarm/helm-charts/yurt-coordinator",
+								Namespace:   "kube-system",
+								Version:     "1.25.0",
+								UpgradeCRDs: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
 	NodeServantApplier = []Packages{
 		{
 			Helm: []*Helm{
