@@ -123,6 +123,10 @@ func CreateCluster(config *rest.Config) error {
 		return err
 	}
 
+	if err = clusters.RenderAndApply("helm chart for local-path-provisioner", localPathProvisioner, context, shared.KubeConfigRestConfig); err != nil {
+		return err
+	}
+
 	// wait for kubeconfig in secret <cluster-name>-kubeconfig
 	exists, err := clusters.WaitForKubeconfig(config, fmt.Sprintf("%s-kubeconfig", shared.ClusterConfig.Metadata.Name), time.Minute*5)
 	if err != nil {

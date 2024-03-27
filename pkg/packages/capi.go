@@ -28,20 +28,6 @@ var (
 					Name: "cluster-api-operator",
 					URI:  "https://github.com/kubernetes-sigs/cluster-api-operator/releases/download/v0.8.1/operator-components.yaml",
 				},
-				// {
-				// 	Name: "cluster-api-components",
-				// 	URI:  "https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.6.1/cluster-api-components.yaml",
-				// 	PreHook: func(manifest string) (string, error) {
-				// 		new := strings.Replace(manifest, "${CAPI_DIAGNOSTICS_ADDRESS:=:8443}", ":8443", -1)
-				// 		new = strings.Replace(new, "${CAPI_INSECURE_DIAGNOSTICS:=false}", "false", -1)
-				// 		new = strings.Replace(new, "${EXP_MACHINE_POOL:=false}", "false", -1)
-				// 		new = strings.Replace(new, "${EXP_CLUSTER_RESOURCE_SET:=false}", "false", -1)
-				// 		new = strings.Replace(new, "${CLUSTER_TOPOLOGY:=false}", "false", -1)
-				// 		new = strings.Replace(new, "${EXP_RUNTIME_SDK:=false},", "false", -1)
-				// 		new = strings.Replace(new, "${EXP_MACHINE_SET_PREFLIGHT_CHECKS:=false}", "false", -1)
-				// 		return new, nil
-				// 	},
-				// },
 				{
 					Name: "bootstrap-components",
 					URI:  "https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.6.1/bootstrap-components.yaml",

@@ -613,9 +613,7 @@ spec:
     hcloud:
     - name: {{.HCLOUD_SSH_KEY}}`
 
-	hetznerCCMCSI = `
-manifest:
-apiVersion: addons.cluster.x-k8s.io/v1alpha1
+	hetznerCCMCSI = `apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
 metadata:
   name: hcloud-ccm
@@ -924,4 +922,18 @@ spec:
       nameservers:
         - 8.8.8.8
         - 8.8.4.4`
+
+	localPathProvisioner = `apiVersion: addons.cluster.x-k8s.io/v1alpha1
+kind: HelmChartProxy
+metadata:
+  name: coredns
+  namespace: default
+spec:
+  clusterSelector:
+    matchLabels:
+    cloudprovider.clusters.infrastructure.edgefarm.io/type: hetzner
+  version: 1.25.0
+  namespace: local-path-provisioner
+  chartName: local-path-provisioner
+  repoURL: oci://ghcr.io/edgefarm/helm-charts`
 )
