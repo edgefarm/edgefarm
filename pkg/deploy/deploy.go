@@ -109,6 +109,11 @@ func Deploy(t configv1.ConfigType, config *rest.Config) error {
 			klog.Errorf("errors occurred when deploying openyurt components")
 			return err
 		}
+
+		if err := packages.Install(config, packages.YurtCoordinator); err != nil {
+			klog.Errorf("error occurs when deploying YurtCoordinator, %v", err)
+			return err
+		}
 	}
 
 	if !shared.Args.Skip.EdgeFarmApplications {

@@ -926,7 +926,7 @@ spec:
 	localPathProvisioner = `apiVersion: addons.cluster.x-k8s.io/v1alpha1
 kind: HelmChartProxy
 metadata:
-  name: coredns
+  name: local-path-provisioner
   namespace: default
 spec:
   clusterSelector:
