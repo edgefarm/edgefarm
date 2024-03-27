@@ -274,8 +274,37 @@ spec:
 								ReleaseName: "yurt-manager",
 								ChartName:   "openyurt/yurt-manager",
 								Namespace:   "kube-system",
-								Version:     "1.3.4",
+								Version:     "1.4.1",
 								UpgradeCRDs: true,
+								ValuesYaml: `log:
+  level: 4
+replicaCount: 1
+nameOverride: ""
+image:
+  registry: openyurt
+  repository: yurt-manager
+  tag: v1.4.1
+ports:
+  metrics: 10271
+  healthProbe: 10272
+  webhook: 10273
+controllers: "csr-approver-controller,daemon-pod-updater-controller,delegate-lease-controller,node-life-cycle-controller,nodepool-controller,platform-admin-controller,pod-binding-controller,service-topology-endpoints-controller,service-topology-endpointslice-controller,yurt-app-daemon-controller,yurt-app-set-controller,yurt-coordinator-cert-controller,yurt-static-set-controller"
+disableIndependentWebhooks: ""
+leaderElectResourceName: "cloud-yurt-manager"
+resources:
+  limits:
+    cpu: 2000m
+    memory: 1024Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists`,
 							},
 						},
 					},
