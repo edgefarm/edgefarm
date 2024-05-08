@@ -88,6 +88,11 @@ func (c *DeployOpenYurt) Run(t configv1.ConfigType, config *rest.Config) error {
 		return err
 	}
 
+	if err := k8s.CreateEdgeNodepools(config); err != nil {
+		klog.Errorf("error occurs when creating edge nodepools, %v", err)
+		return err
+	}
+
 	klog.Info("Deploying yurt-manager")
 	if err := c.deployYurtManager(config); err != nil {
 		klog.Errorf("failed to deploy yurt-manager with image %s, %s", c.YurtManagerImage, err)
@@ -106,11 +111,6 @@ func (c *DeployOpenYurt) Run(t configv1.ConfigType, config *rest.Config) error {
 			return err
 
 		}
-	}
-
-	if err := k8s.CreateEdgeNodepools(config); err != nil {
-		klog.Errorf("error occurs when creating edge nodepools, %v", err)
-		return err
 	}
 
 	if err := c.prepareyNodeServantApplier(config); err != nil {
