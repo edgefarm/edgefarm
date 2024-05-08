@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -46,6 +47,9 @@ import (
 
 func CreateCluster() error {
 	o := newKindOptions()
+	if err := validateKernelParameters(); err != nil {
+		return err
+	}
 	if err := validatePorts(); err != nil {
 		return err
 	}
@@ -54,6 +58,27 @@ func CreateCluster() error {
 		return err
 	}
 	return initializer.Run()
+}
+
+func validateKernelParameters() error {
+	// Only run on Linux
+	if runtime.GOOS == "linux" {
+		modules, err := os.ReadFile("/proc/modules")
+		if err != nil {
+			return err
+		}
+		missingModules := []string{}
+		modulesToCheck := []string{"ip_vs", "ip_vs_rr", "ip_vs_wrr", "ip_vs_sh"}
+		for _, module := range modulesToCheck {
+			if !strings.Contains(string(modules), module) {
+				missingModules = append(missingModules, module)
+			}
+		}
+		if len(missingModules) > 0 {
+			return fmt.Errorf("missing kernel modules: %s", strings.Join(missingModules, ", "))
+		}
+	}
+	return nil
 }
 
 type initializerConfig struct {
