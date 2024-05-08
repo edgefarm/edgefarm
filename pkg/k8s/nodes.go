@@ -293,25 +293,6 @@ func HandleNodePool(kubeconfig *rest.Config, node v1.Node) error {
 		return err
 	}
 
-	try := retry.New(
-		retry.Count(30),
-		retry.Sleep(time.Second),
-		retry.Verbose(true),
-	)
-	if err := try.Single("Updating node", func() error {
-		fresh, err := client.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		fresh.Labels["apps.openyurt.io/desired-nodepool"] = fresh.Name
-		if _, err := client.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
-		return err
-	}
-
 	// handle nodepool template
 	type Values struct {
 		Name string
@@ -357,6 +338,26 @@ func HandleNodePool(kubeconfig *rest.Config, node v1.Node) error {
 	}).Create(context.Background(), manifest, metav1.CreateOptions{}); err != nil {
 		return err
 	}
+
+	try := retry.New(
+		retry.Count(30),
+		retry.Sleep(time.Second),
+		retry.Verbose(true),
+	)
+	if err := try.Single("Updating node", func() error {
+		fresh, err := client.CoreV1().Nodes().Get(context.Background(), node.Name, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		fresh.Labels["apps.openyurt.io/desired-nodepool"] = fresh.Name
+		if _, err := client.CoreV1().Nodes().Update(context.Background(), fresh, metav1.UpdateOptions{}); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	return nil
 
 }
