@@ -1,6 +1,8 @@
 module github.com/edgefarm/edgefarm
 
-go 1.21
+go 1.22
+
+toolchain go1.22.4
 
 require (
 	github.com/andanhm/go-prettytime v1.1.0
@@ -17,7 +19,7 @@ require (
 	github.com/mittwald/go-helm-client v0.8.2
 	github.com/openyurtio/openyurt v1.4.0
 	github.com/pytimer/k8sutil v0.0.0-20221114090626-86d6279d8e52
-	github.com/s0rg/retry v1.1.2
+	github.com/s0rg/retry v1.2.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
@@ -152,7 +154,7 @@ require (
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/net v0.16.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.13.0 // indirect

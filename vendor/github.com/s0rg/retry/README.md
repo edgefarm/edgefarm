@@ -14,9 +14,9 @@
 
 # features
 
- - small (~200 sloc), 100% test-covered codebase
+ - small (less than 200 sloc), 100% test-covered codebase
  - fully-customizable, you can specify number of retries, sleep (and sleep-jitter) between them, and stdlog verbosity
- - 3 backoff strategies - simple, linear and exponential
+ - 4 backoff strategies - simple, linear, binary-exponential and fibonacci
  - 3 ways to retry - single function, chain (one-by-one) and parallel execution
 
 # examples
@@ -29,7 +29,7 @@ import (
     "github.com/s0rg/retry"
 )
 
-
+func main() {
     try := retry.New()
 
     // single
@@ -38,6 +38,7 @@ import (
     }); err != nil {
         log.Fatal("retry:", err)
     }
+}
 ```
 
 ## with config
@@ -49,6 +50,7 @@ import (
     "github.com/s0rg/retry"
 )
 
+func main() {
     try := retry.New(
         retry.Count(5),
         retry.Parallelism(2),
@@ -87,4 +89,6 @@ import (
     }
 
     // at this point all tree resources will be avialaible
+
+}
 ```
