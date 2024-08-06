@@ -117,7 +117,7 @@ github.com/docker/distribution/registry/client/auth/challenge
 github.com/docker/distribution/registry/client/transport
 github.com/docker/distribution/registry/storage/cache
 github.com/docker/distribution/registry/storage/cache/memory
-# github.com/docker/docker v20.10.25+incompatible
+# github.com/docker/docker v24.0.9+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -141,9 +141,7 @@ github.com/docker/docker/pkg/homedir
 github.com/docker/docker/pkg/ioutils
 github.com/docker/docker/pkg/jsonmessage
 github.com/docker/docker/pkg/longpath
-github.com/docker/docker/pkg/stringid
 github.com/docker/docker/registry
-github.com/docker/docker/rootless
 # github.com/docker/docker-credential-helpers v0.6.3
 ## explicit
 github.com/docker/docker-credential-helpers/client
@@ -410,8 +408,6 @@ github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstrapt
 github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/util/apiclient
 github.com/openyurtio/openyurt/pkg/util/strings
 github.com/openyurtio/openyurt/pkg/util/templates
-github.com/openyurtio/openyurt/test/e2e/cmd/init/constants
-github.com/openyurtio/openyurt/test/e2e/cmd/init/lock
 # github.com/pelletier/go-toml v1.9.4
 ## explicit; go 1.12
 github.com/pelletier/go-toml
