@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/andanhm/go-prettytime v1.1.0
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/docker/docker v20.10.25+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/edgefarm/netbird-go v1.3.4
 	github.com/erikgeiser/promptkit v0.8.0
 	github.com/fatih/color v1.7.0
