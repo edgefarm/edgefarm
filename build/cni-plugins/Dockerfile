@@ -1,4 +1,4 @@
-FROM docker.io/flannel/flannel-cni-plugin:v1.4.0-flannel1 as flannel-cni-plugin
+FROM docker.io/flannel/flannel-cni-plugin:v1.6.0-flannel1 as flannel-cni-plugin
 FROM alpine:3.14 
 ARG TARGETPLATFORM
 RUN apk add curl
