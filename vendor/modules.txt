@@ -178,8 +178,8 @@ github.com/exponent-io/jsonpath
 # github.com/fatih/camelcase v1.0.0
 ## explicit
 github.com/fatih/camelcase
-# github.com/fatih/color v1.7.0
-## explicit
+# github.com/fatih/color v1.18.0
+## explicit; go 1.17
 github.com/fatih/color
 # github.com/fvbommel/sortorder v1.0.1
 ## explicit; go 1.13
@@ -325,10 +325,10 @@ github.com/lucasb-eyer/go-colorful
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattn/go-colorable v0.0.9
-## explicit
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.17
+# github.com/mattn/go-isatty v0.0.20
 ## explicit; go 1.15
 github.com/mattn/go-isatty
 # github.com/mattn/go-localereader v0.0.1
@@ -410,8 +410,6 @@ github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/phases/bootstrapt
 github.com/openyurtio/openyurt/pkg/util/kubernetes/kubeadm/app/util/apiclient
 github.com/openyurtio/openyurt/pkg/util/strings
 github.com/openyurtio/openyurt/pkg/util/templates
-github.com/openyurtio/openyurt/test/e2e/cmd/init/constants
-github.com/openyurtio/openyurt/test/e2e/cmd/init/lock
 # github.com/pelletier/go-toml v1.9.4
 ## explicit; go 1.12
 github.com/pelletier/go-toml
@@ -537,7 +535,7 @@ golang.org/x/oauth2/internal
 ## explicit; go 1.17
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.16.0
+# golang.org/x/sys v0.25.0
 ## explicit; go 1.18
 golang.org/x/sys/execabs
 golang.org/x/sys/plan9
