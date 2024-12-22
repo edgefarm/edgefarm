@@ -1,5 +1,5 @@
 FROM docker.io/flannel/flannel-cni-plugin:v1.4.0-flannel1 as flannel-cni-plugin
-FROM alpine:3.14 
+FROM alpine:3.21 
 ARG TARGETPLATFORM
 RUN apk add curl
 COPY --from=flannel-cni-plugin /flannel /cni/flannel
