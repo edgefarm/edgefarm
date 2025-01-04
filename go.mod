@@ -15,7 +15,7 @@ require (
 	github.com/icza/gox v0.0.0-20230924165045-adcb03233bb5
 	github.com/jedib0t/go-pretty/v6 v6.5.4
 	github.com/mittwald/go-helm-client v0.8.2
-	github.com/openyurtio/openyurt v1.4.0
+	github.com/openyurtio/openyurt v1.5.1
 	github.com/pytimer/k8sutil v0.0.0-20221114090626-86d6279d8e52
 	github.com/s0rg/retry v1.1.2
 	github.com/satori/go.uuid v1.2.0
